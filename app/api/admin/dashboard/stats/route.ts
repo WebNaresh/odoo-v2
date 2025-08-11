@@ -48,28 +48,28 @@ export async function GET(request: NextRequest) {
     ] = await Promise.all([
       // Total users
       prisma.user.count(),
-      
+
       // Total venues
       prisma.venue.count(),
-      
+
       // Total bookings (placeholder - will need booking model)
       Promise.resolve(0), // TODO: Implement when booking model is available
-      
+
       // Pending venues
       prisma.venue.count({
         where: { approvalStatus: "PENDING" }
       }),
-      
+
       // Approved venues
       prisma.venue.count({
         where: { approvalStatus: "APPROVED" }
       }),
-      
+
       // Rejected venues
       prisma.venue.count({
         where: { approvalStatus: "REJECTED" }
       }),
-      
+
       // Users from last month for growth calculation
       prisma.user.count({
         where: {
@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
           }
         }
       }),
-      
+
       // Venues from last month for growth calculation
       prisma.venue.count({
         where: {
@@ -87,10 +87,10 @@ export async function GET(request: NextRequest) {
           }
         }
       }),
-      
+
       // Bookings from last month (placeholder)
       Promise.resolve(0), // TODO: Implement when booking model is available
-      
+
       // Recent venues for activities
       prisma.venue.findMany({
         where: {
@@ -102,6 +102,11 @@ export async function GET(request: NextRequest) {
               name: true,
               email: true
             }
+          },
+          _count: {
+            select: {
+              courts: true
+            }
           }
         },
         orderBy: {
@@ -109,7 +114,7 @@ export async function GET(request: NextRequest) {
         },
         take: 5
       }),
-      
+
       // Top performing venues (by rating)
       prisma.venue.findMany({
         where: {
@@ -138,20 +143,20 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Calculate growth percentages
-    const userGrowth = usersLastMonth > 0 
-      ? ((totalUsers - usersLastMonth) / usersLastMonth * 100) 
+    const userGrowth = usersLastMonth > 0
+      ? ((totalUsers - usersLastMonth) / usersLastMonth * 100)
       : 0;
-    
-    const venueGrowth = venuesLastMonth > 0 
-      ? ((totalVenues - venuesLastMonth) / venuesLastMonth * 100) 
+
+    const venueGrowth = venuesLastMonth > 0
+      ? ((totalVenues - venuesLastMonth) / venuesLastMonth * 100)
       : 0;
-    
-    const bookingGrowth = bookingsLastMonth > 0 
-      ? ((totalBookings - bookingsLastMonth) / bookingsLastMonth * 100) 
+
+    const bookingGrowth = bookingsLastMonth > 0
+      ? ((totalBookings - bookingsLastMonth) / bookingsLastMonth * 100)
       : 0;
 
     // Transform recent venues into activities
-    const recentActivities = recentVenues.map((venue, index) => ({
+    const recentActivities = recentVenues.map((venue) => ({
       id: `venue_${venue.id}`,
       type: "facility_approval",
       title: "New venue pending approval",

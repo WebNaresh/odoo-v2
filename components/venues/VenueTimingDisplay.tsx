@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import {
   Card,
@@ -140,8 +140,10 @@ export function VenueTimingDisplay({
   };
 
   // Convert external selected time slots to internal format
-  const convertedExternalSlots =
-    externalSelectedTimeSlots?.map(convertToTimeSlot) || [];
+  const convertedExternalSlots = useMemo(
+    () => externalSelectedTimeSlots?.map(convertToTimeSlot) || [],
+    [externalSelectedTimeSlots]
+  );
 
   // Use external selected time slots if provided, otherwise use internal state
   const selectedTimeSlots = externalSelectedTimeSlots

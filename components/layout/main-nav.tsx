@@ -318,7 +318,7 @@ export function MainNav() {
                 variant="outline"
                 size="sm"
                 className="relative h-10 w-10 p-0 border-[#00884d]/20 hover:bg-[#00884d]/5 hover:border-[#00884d]/40 hover:scale-105 transition-all duration-300"
-                onClick={() => router.push("/notifications")}
+                onClick={() => router.push("/bookings")}
               >
                 <Bell className="h-4 w-4 text-[#00884d]" />
                 {/* Notification badge */}

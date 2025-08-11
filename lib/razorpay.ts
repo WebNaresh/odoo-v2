@@ -104,7 +104,7 @@ export async function verifyRazorpaySignature(
     signature: string
 ): Promise<boolean> {
     try {
-        const crypto = require("crypto");
+        const crypto = await import("crypto");
         const expectedSignature = crypto
             .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
             .update(`${orderId}|${paymentId}`)

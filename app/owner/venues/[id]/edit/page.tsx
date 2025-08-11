@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
+import Image from "next/image";
 import { useForm, FormProvider, type SubmitHandler } from "react-hook-form";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
@@ -19,7 +20,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import InputField from "@/components/AppInputFields/InputField";
 import {
   ArrowLeft,
@@ -32,13 +32,7 @@ import {
   CheckCircle,
   FileText,
   Trophy,
-  Settings,
-  Image,
   Star,
-  Users,
-  Shield,
-  Zap,
-  Info,
   AlertCircle,
   Save,
   Edit3,
@@ -226,9 +220,9 @@ export default function EditVenuePage() {
   }, [
     watchedName,
     watchedAddress,
-    watchedAmenities?.length,
-    watchedSports?.length,
-    watchedPhotoUrls?.length,
+    watchedAmenities,
+    watchedSports,
+    watchedPhotoUrls,
   ]);
 
   // Calculate completed steps
@@ -882,9 +876,11 @@ export default function EditVenuePage() {
                                 key={index}
                                 className="aspect-video bg-gray-100 rounded-lg overflow-hidden"
                               >
-                                <img
+                                <Image
                                   src={url}
                                   alt={`Venue photo ${index + 1}`}
+                                  width={400}
+                                  height={300}
                                   className="w-full h-full object-cover"
                                   onError={(e) => {
                                     (e.target as HTMLImageElement).src =

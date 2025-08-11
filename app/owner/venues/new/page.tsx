@@ -57,8 +57,18 @@ export default function NewVenuePage() {
   const [currentStep, setCurrentStep] = useState(1);
 
   const steps = [
-    { id: 1, title: "Basic Info", description: "Name, address & description", icon: Building2 },
-    { id: 2, title: "Amenities", description: "Available facilities", icon: Star },
+    {
+      id: 1,
+      title: "Basic Info",
+      description: "Name, address & description",
+      icon: Building2,
+    },
+    {
+      id: 2,
+      title: "Amenities",
+      description: "Available facilities",
+      icon: Star,
+    },
     { id: 3, title: "Sports", description: "Available sports", icon: Trophy },
     { id: 4, title: "Hours", description: "Operating schedule", icon: Clock },
     { id: 5, title: "Photos", description: "Venue images", icon: Camera },
@@ -85,8 +95,15 @@ export default function NewVenuePage() {
     },
   });
 
-  const { register, handleSubmit, setValue, watch, setError, clearErrors, formState } =
-    form;
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    setError,
+    clearErrors,
+    formState,
+  } = form;
 
   const watchedAmenities = watch("amenities");
   const watchedName = watch("name");
@@ -117,9 +134,9 @@ export default function NewVenuePage() {
   }, [
     watchedName,
     watchedAddress,
-    watchedAmenities?.length,
-    watchedSports?.length,
-    watchedPhotoUrls?.length
+    watchedAmenities,
+    watchedSports,
+    watchedPhotoUrls,
   ]);
 
   // Calculate completed steps without state
@@ -136,16 +153,22 @@ export default function NewVenuePage() {
   const completedSteps = getCompletedSteps();
 
   // Handle amenity selection with stable reference
-  const handleAmenityChange = useCallback((amenity: string, checked: boolean) => {
-    const currentAmenities = watchedAmenities || [];
-    if (checked) {
-      if (!currentAmenities.includes(amenity)) {
-        setValue("amenities", [...currentAmenities, amenity]);
+  const handleAmenityChange = useCallback(
+    (amenity: string, checked: boolean) => {
+      const currentAmenities = watchedAmenities || [];
+      if (checked) {
+        if (!currentAmenities.includes(amenity)) {
+          setValue("amenities", [...currentAmenities, amenity]);
+        }
+      } else {
+        setValue(
+          "amenities",
+          currentAmenities.filter((a) => a !== amenity)
+        );
       }
-    } else {
-      setValue("amenities", currentAmenities.filter((a) => a !== amenity));
-    }
-  }, [setValue, watchedAmenities]);
+    },
+    [setValue, watchedAmenities]
+  );
 
   // Handle operating hours change
   const handleOperatingHoursChange = (
@@ -432,8 +455,13 @@ export default function NewVenuePage() {
               <div className="lg:text-right">
                 <div className="mb-3">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-sm font-medium text-gray-700">Progress</span>
-                    <Badge variant="outline" className="text-[#00884d] border-[#00884d]/20">
+                    <span className="text-sm font-medium text-gray-700">
+                      Progress
+                    </span>
+                    <Badge
+                      variant="outline"
+                      className="text-[#00884d] border-[#00884d]/20"
+                    >
                       {formProgress}%
                     </Badge>
                   </div>
@@ -462,32 +490,38 @@ export default function NewVenuePage() {
                     onClick={() => setCurrentStep(step.id)}
                     className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
                       isCurrent
-                        ? 'bg-[#00884d] text-white shadow-md'
+                        ? "bg-[#00884d] text-white shadow-md"
                         : isCompleted
-                        ? 'bg-green-50 text-green-700 hover:bg-green-100'
-                        : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                        ? "bg-green-50 text-green-700 hover:bg-green-100"
+                        : "bg-gray-50 text-gray-600 hover:bg-gray-100"
                     }`}
                   >
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                      isCurrent
-                        ? 'bg-white/20'
-                        : isCompleted
-                        ? 'bg-green-100'
-                        : 'bg-gray-200'
-                    }`}>
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        isCurrent
+                          ? "bg-white/20"
+                          : isCompleted
+                          ? "bg-green-100"
+                          : "bg-gray-200"
+                      }`}
+                    >
                       {isCompleted ? (
                         <CheckCircle className="h-4 w-4 text-green-600" />
                       ) : (
-                        <StepIcon className={`h-4 w-4 ${
-                          isCurrent ? 'text-white' : 'text-gray-500'
-                        }`} />
+                        <StepIcon
+                          className={`h-4 w-4 ${
+                            isCurrent ? "text-white" : "text-gray-500"
+                          }`}
+                        />
                       )}
                     </div>
                     <div className="text-left hidden sm:block">
                       <div className="font-medium text-sm">{step.title}</div>
-                      <div className={`text-xs ${
-                        isCurrent ? 'text-white/80' : 'text-gray-500'
-                      }`}>
+                      <div
+                        className={`text-xs ${
+                          isCurrent ? "text-white/80" : "text-gray-500"
+                        }`}
+                      >
                         {step.description}
                       </div>
                     </div>
@@ -501,375 +535,416 @@ export default function NewVenuePage() {
         <FormProvider {...form}>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* Basic Information */}
-              <Card className="border-0 shadow-lg">
-                <CardHeader className="bg-gradient-to-r from-[#00884d]/5 to-[#00a855]/5 rounded-t-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[#00884d] rounded-lg flex items-center justify-center">
-                      <Building2 className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-xl">Basic Information</CardTitle>
-                      <CardDescription className="text-base">
-                        Provide the essential details about your sports venue
-                      </CardDescription>
-                    </div>
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-[#00884d]/5 to-[#00a855]/5 rounded-t-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[#00884d] rounded-lg flex items-center justify-center">
+                    <Building2 className="h-5 w-5 text-white" />
                   </div>
-                </CardHeader>
-                <CardContent className="p-6 space-y-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <InputField
-                        name="name"
-                        label="Venue Name"
-                        type="text"
-                        placeholder="e.g., Elite Sports Complex"
-                        Icon={Building2}
-                        required
-                        className="max-w-none"
-                      />
-                      <p className="text-xs text-gray-500 flex items-center gap-1">
-                        <Info className="h-3 w-3" />
-                        Choose a memorable name that represents your venue
-                      </p>
-                    </div>
-
-                    <div className="space-y-2">
-                      <InputField
-                        name="address"
-                        label="Address"
-                        type="places_autocomplete"
-                        placeholder="Full address including city and state"
-                        Icon={MapPin}
-                        required
-                        className="max-w-none"
-                      />
-                      <p className="text-xs text-gray-500 flex items-center gap-1">
-                        <Info className="h-3 w-3" />
-                        Use the autocomplete to ensure accurate location
-                      </p>
-                    </div>
+                  <div>
+                    <CardTitle className="text-xl">Basic Information</CardTitle>
+                    <CardDescription className="text-base">
+                      Provide the essential details about your sports venue
+                    </CardDescription>
                   </div>
-
+                </div>
+              </CardHeader>
+              <CardContent className="p-6 space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <InputField
-                      name="description"
-                      label="Description"
-                      type="text-area"
-                      placeholder="Describe your venue, its features, and what makes it special..."
-                      Icon={FileText}
+                      name="name"
+                      label="Venue Name"
+                      type="text"
+                      placeholder="e.g., Elite Sports Complex"
+                      Icon={Building2}
+                      required
                       className="max-w-none"
                     />
                     <p className="text-xs text-gray-500 flex items-center gap-1">
                       <Info className="h-3 w-3" />
-                      Help customers understand what makes your venue unique (optional)
+                      Choose a memorable name that represents your venue
                     </p>
                   </div>
 
-                </CardContent>
-              </Card>
+                  <div className="space-y-2">
+                    <InputField
+                      name="address"
+                      label="Address"
+                      type="places_autocomplete"
+                      placeholder="Full address including city and state"
+                      Icon={MapPin}
+                      required
+                      className="max-w-none"
+                    />
+                    <p className="text-xs text-gray-500 flex items-center gap-1">
+                      <Info className="h-3 w-3" />
+                      Use the autocomplete to ensure accurate location
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <InputField
+                    name="description"
+                    label="Description"
+                    type="text-area"
+                    placeholder="Describe your venue, its features, and what makes it special..."
+                    Icon={FileText}
+                    className="max-w-none"
+                  />
+                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                    <Info className="h-3 w-3" />
+                    Help customers understand what makes your venue unique
+                    (optional)
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Amenities */}
-              <Card className="border-0 shadow-lg">
-                <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                      <Star className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-xl">Amenities</CardTitle>
-                      <CardDescription className="text-base">
-                        Select the amenities available at your venue
-                      </CardDescription>
-                    </div>
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <Star className="h-5 w-5 text-white" />
                   </div>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {AVAILABLE_AMENITIES.map((amenity) => {
-                      const isSelected = watchedAmenities?.includes(amenity) || false;
-                      return (
-                        <div
-                          key={amenity}
-                          className={`flex items-center space-x-3 p-3 rounded-lg border-2 transition-all duration-200 cursor-pointer hover:bg-gray-50 ${
-                            isSelected
-                              ? 'border-[#00884d] bg-[#00884d]/5'
-                              : 'border-gray-200'
-                          }`}
-                          onClick={() => handleAmenityChange(amenity, !isSelected)}
+                  <div>
+                    <CardTitle className="text-xl">Amenities</CardTitle>
+                    <CardDescription className="text-base">
+                      Select the amenities available at your venue
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {AVAILABLE_AMENITIES.map((amenity) => {
+                    const isSelected =
+                      watchedAmenities?.includes(amenity) || false;
+                    return (
+                      <div
+                        key={amenity}
+                        className={`flex items-center space-x-3 p-3 rounded-lg border-2 transition-all duration-200 cursor-pointer hover:bg-gray-50 ${
+                          isSelected
+                            ? "border-[#00884d] bg-[#00884d]/5"
+                            : "border-gray-200"
+                        }`}
+                        onClick={() =>
+                          handleAmenityChange(amenity, !isSelected)
+                        }
+                      >
+                        <input
+                          type="checkbox"
+                          id={`amenity-${amenity}`}
+                          checked={isSelected}
+                          onChange={(e) =>
+                            handleAmenityChange(amenity, e.target.checked)
+                          }
+                          className="w-4 h-4 text-[#00884d] bg-gray-100 border-gray-300 rounded focus:ring-[#00884d] focus:ring-2"
+                        />
+                        <label
+                          htmlFor={`amenity-${amenity}`}
+                          className="text-sm font-medium leading-none cursor-pointer flex-1"
                         >
-                          <input
-                            type="checkbox"
-                            id={`amenity-${amenity}`}
-                            checked={isSelected}
-                            onChange={(e) => handleAmenityChange(amenity, e.target.checked)}
-                            className="w-4 h-4 text-[#00884d] bg-gray-100 border-gray-300 rounded focus:ring-[#00884d] focus:ring-2"
-                          />
-                          <label
-                            htmlFor={`amenity-${amenity}`}
-                            className="text-sm font-medium leading-none cursor-pointer flex-1"
-                          >
-                            {amenity}
-                          </label>
-                        </div>
-                      );
-                    })}
-                  </div>
+                          {amenity}
+                        </label>
+                      </div>
+                    );
+                  })}
+                </div>
 
-                  {watchedAmenities && watchedAmenities.length > 0 && (
-                    <div className="mt-6 p-4 bg-green-50 rounded-lg">
-                      <div className="flex items-center gap-2 mb-2">
-                        <CheckCircle className="h-4 w-4 text-green-600" />
-                        <span className="text-sm font-medium text-green-800">
-                          Selected Amenities ({watchedAmenities.length})
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {watchedAmenities.map((amenity) => (
-                          <Badge key={amenity} variant="secondary" className="bg-green-100 text-green-800">
-                            {amenity}
-                          </Badge>
-                        ))}
-                      </div>
+                {watchedAmenities && watchedAmenities.length > 0 && (
+                  <div className="mt-6 p-4 bg-green-50 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <span className="text-sm font-medium text-green-800">
+                        Selected Amenities ({watchedAmenities.length})
+                      </span>
                     </div>
-                  )}
-
-                </CardContent>
-              </Card>
+                    <div className="flex flex-wrap gap-2">
+                      {watchedAmenities.map((amenity) => (
+                        <Badge
+                          key={amenity}
+                          variant="secondary"
+                          className="bg-green-100 text-green-800"
+                        >
+                          {amenity}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Sports */}
-              <Card className="border-0 shadow-lg">
-                <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-t-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
-                      <Trophy className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-xl">Sports</CardTitle>
-                      <CardDescription className="text-base">
-                        Select the sports available at your venue. You can choose from existing sports or add new ones.
-                      </CardDescription>
-                    </div>
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-t-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
+                    <Trophy className="h-5 w-5 text-white" />
                   </div>
-                </CardHeader>
-                <CardContent className="p-6 space-y-6">
-                  <div className="space-y-2">
-                    <InputField
-                      name="sports"
-                      label="Available Sports"
-                      type="multiSelect"
-                      placeholder="Select or add sports (e.g., Football, Basketball, Tennis)"
-                      Icon={Trophy}
-                      options={[
-                        { value: "Football", label: "Football" },
-                        { value: "Basketball", label: "Basketball" },
-                        { value: "Tennis", label: "Tennis" },
-                        { value: "Cricket", label: "Cricket" },
-                        { value: "Badminton", label: "Badminton" },
-                        { value: "Volleyball", label: "Volleyball" },
-                        { value: "Table Tennis", label: "Table Tennis" },
-                        { value: "Swimming", label: "Swimming" },
-                        { value: "Gym", label: "Gym" },
-                        { value: "Yoga", label: "Yoga" },
-                      ]}
-                      className="max-w-none"
-                      description="Select existing sports or type to create new ones"
-                    />
-                    <p className="text-xs text-gray-500 flex items-center gap-1">
-                      <Info className="h-3 w-3" />
-                      You can add multiple sports and create custom ones by typing
-                    </p>
+                  <div>
+                    <CardTitle className="text-xl">Sports</CardTitle>
+                    <CardDescription className="text-base">
+                      Select the sports available at your venue. You can choose
+                      from existing sports or add new ones.
+                    </CardDescription>
                   </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6 space-y-6">
+                <div className="space-y-2">
+                  <InputField
+                    name="sports"
+                    label="Available Sports"
+                    type="multiSelect"
+                    placeholder="Select or add sports (e.g., Football, Basketball, Tennis)"
+                    Icon={Trophy}
+                    options={[
+                      { value: "Football", label: "Football" },
+                      { value: "Basketball", label: "Basketball" },
+                      { value: "Tennis", label: "Tennis" },
+                      { value: "Cricket", label: "Cricket" },
+                      { value: "Badminton", label: "Badminton" },
+                      { value: "Volleyball", label: "Volleyball" },
+                      { value: "Table Tennis", label: "Table Tennis" },
+                      { value: "Swimming", label: "Swimming" },
+                      { value: "Gym", label: "Gym" },
+                      { value: "Yoga", label: "Yoga" },
+                    ]}
+                    className="max-w-none"
+                    description="Select existing sports or type to create new ones"
+                  />
+                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                    <Info className="h-3 w-3" />
+                    You can add multiple sports and create custom ones by typing
+                  </p>
+                </div>
 
-                  {watchedSports && watchedSports.length > 0 && (
-                    <div className="p-4 bg-purple-50 rounded-lg">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Trophy className="h-4 w-4 text-purple-600" />
-                        <span className="text-sm font-medium text-purple-800">
-                          Selected Sports ({watchedSports.length})
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {watchedSports.map((sport: any, index: number) => (
-                          <Badge key={index} variant="secondary" className="bg-purple-100 text-purple-800">
-                            {typeof sport === 'string' ? sport : sport.label || sport.value}
-                          </Badge>
-                        ))}
-                      </div>
+                {watchedSports && watchedSports.length > 0 && (
+                  <div className="p-4 bg-purple-50 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Trophy className="h-4 w-4 text-purple-600" />
+                      <span className="text-sm font-medium text-purple-800">
+                        Selected Sports ({watchedSports.length})
+                      </span>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
+                    <div className="flex flex-wrap gap-2">
+                      {watchedSports.map((sport: any, index: number) => (
+                        <Badge
+                          key={index}
+                          variant="secondary"
+                          className="bg-purple-100 text-purple-800"
+                        >
+                          {typeof sport === "string"
+                            ? sport
+                            : sport.label || sport.value}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Operating Hours */}
-              <Card className="border-0 shadow-lg">
-                <CardHeader className="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-t-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center">
-                      <Clock className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-xl">Operating Hours</CardTitle>
-                      <CardDescription className="text-base">
-                        Set the operating hours for each day of the week
-                      </CardDescription>
-                    </div>
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-t-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center">
+                    <Clock className="h-5 w-5 text-white" />
                   </div>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    {Object.entries({
-                      monday: "Monday",
-                      tuesday: "Tuesday",
-                      wednesday: "Wednesday",
-                      thursday: "Thursday",
-                      friday: "Friday",
-                      saturday: "Saturday",
-                      sunday: "Sunday",
-                    }).map(([day, label]) => {
-                      const isOpen = watch(
-                        `operatingHours.${day as keyof CreateVenueData["operatingHours"]}.isOpen`
-                      );
+                  <div>
+                    <CardTitle className="text-xl">Operating Hours</CardTitle>
+                    <CardDescription className="text-base">
+                      Set the operating hours for each day of the week
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  {Object.entries({
+                    monday: "Monday",
+                    tuesday: "Tuesday",
+                    wednesday: "Wednesday",
+                    thursday: "Thursday",
+                    friday: "Friday",
+                    saturday: "Saturday",
+                    sunday: "Sunday",
+                  }).map(([day, label]) => {
+                    const isOpen = watch(
+                      `operatingHours.${
+                        day as keyof CreateVenueData["operatingHours"]
+                      }.isOpen`
+                    );
 
-                      return (
-                        <div
-                          key={day}
-                          className={`flex flex-col lg:flex-row lg:items-center gap-4 p-4 border-2 rounded-xl transition-all duration-200 ${
-                            isOpen ? 'border-[#00884d]/20 bg-[#00884d]/5' : 'border-gray-200 bg-gray-50'
-                          }`}
-                        >
-                          <div className="w-full lg:w-32">
-                            <Label className="font-semibold text-gray-900">{label}</Label>
-                          </div>
-
-                          <div className="flex items-center space-x-3">
-                            <Checkbox
-                              id={`${day}-open`}
-                              checked={isOpen}
-                              onCheckedChange={(checked) =>
-                                handleOperatingHoursChange(
-                                  day as keyof CreateVenueData["operatingHours"],
-                                  "isOpen",
-                                  checked as boolean
-                                )
-                              }
-                              className="data-[state=checked]:bg-[#00884d] data-[state=checked]:border-[#00884d]"
-                            />
-                            <Label htmlFor={`${day}-open`} className="text-sm font-medium">
-                              Open
-                            </Label>
-                          </div>
-
-                          {isOpen && (
-                            <div className="flex flex-col sm:flex-row gap-4 flex-1">
-                              <div className="flex items-center gap-2">
-                                <Label className="text-sm font-medium text-gray-700 w-12">From:</Label>
-                                <Input
-                                  type="time"
-                                  className="w-32 border-[#00884d]/20 focus:border-[#00884d]"
-                                  {...register(
-                                    `operatingHours.${
-                                      day as keyof CreateVenueData["operatingHours"]
-                                    }.openTime`
-                                  )}
-                                />
-                              </div>
-
-                              <div className="flex items-center gap-2">
-                                <Label className="text-sm font-medium text-gray-700 w-12">To:</Label>
-                                <Input
-                                  type="time"
-                                  className="w-32 border-[#00884d]/20 focus:border-[#00884d]"
-                                  {...register(
-                                    `operatingHours.${
-                                      day as keyof CreateVenueData["operatingHours"]
-                                    }.closeTime`
-                                  )}
-                                />
-                              </div>
-                            </div>
-                          )}
-
-                          {!isOpen && (
-                            <div className="flex-1 text-sm text-gray-500 italic">
-                              Closed
-                            </div>
-                          )}
+                    return (
+                      <div
+                        key={day}
+                        className={`flex flex-col lg:flex-row lg:items-center gap-4 p-4 border-2 rounded-xl transition-all duration-200 ${
+                          isOpen
+                            ? "border-[#00884d]/20 bg-[#00884d]/5"
+                            : "border-gray-200 bg-gray-50"
+                        }`}
+                      >
+                        <div className="w-full lg:w-32">
+                          <Label className="font-semibold text-gray-900">
+                            {label}
+                          </Label>
                         </div>
-                      );
-                    })}
-                  </div>
 
-                  <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                    <div className="flex items-start gap-2">
-                      <Info className="h-4 w-4 text-blue-600 mt-0.5" />
-                      <div className="text-sm text-blue-800">
-                        <p className="font-medium mb-1">Operating Hours Tips:</p>
-                        <ul className="text-xs space-y-1 text-blue-700">
-                          <li>• Set realistic hours that you can maintain consistently</li>
-                          <li>• Consider peak hours when customers are most likely to book</li>
-                          <li>• You can always update these hours later</li>
-                        </ul>
+                        <div className="flex items-center space-x-3">
+                          <Checkbox
+                            id={`${day}-open`}
+                            checked={isOpen}
+                            onCheckedChange={(checked) =>
+                              handleOperatingHoursChange(
+                                day as keyof CreateVenueData["operatingHours"],
+                                "isOpen",
+                                checked as boolean
+                              )
+                            }
+                            className="data-[state=checked]:bg-[#00884d] data-[state=checked]:border-[#00884d]"
+                          />
+                          <Label
+                            htmlFor={`${day}-open`}
+                            className="text-sm font-medium"
+                          >
+                            Open
+                          </Label>
+                        </div>
+
+                        {isOpen && (
+                          <div className="flex flex-col sm:flex-row gap-4 flex-1">
+                            <div className="flex items-center gap-2">
+                              <Label className="text-sm font-medium text-gray-700 w-12">
+                                From:
+                              </Label>
+                              <Input
+                                type="time"
+                                className="w-32 border-[#00884d]/20 focus:border-[#00884d]"
+                                {...register(
+                                  `operatingHours.${
+                                    day as keyof CreateVenueData["operatingHours"]
+                                  }.openTime`
+                                )}
+                              />
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <Label className="text-sm font-medium text-gray-700 w-12">
+                                To:
+                              </Label>
+                              <Input
+                                type="time"
+                                className="w-32 border-[#00884d]/20 focus:border-[#00884d]"
+                                {...register(
+                                  `operatingHours.${
+                                    day as keyof CreateVenueData["operatingHours"]
+                                  }.closeTime`
+                                )}
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {!isOpen && (
+                          <div className="flex-1 text-sm text-gray-500 italic">
+                            Closed
+                          </div>
+                        )}
                       </div>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <Info className="h-4 w-4 text-blue-600 mt-0.5" />
+                    <div className="text-sm text-blue-800">
+                      <p className="font-medium mb-1">Operating Hours Tips:</p>
+                      <ul className="text-xs space-y-1 text-blue-700">
+                        <li>
+                          • Set realistic hours that you can maintain
+                          consistently
+                        </li>
+                        <li>
+                          • Consider peak hours when customers are most likely
+                          to book
+                        </li>
+                        <li>• You can always update these hours later</li>
+                      </ul>
                     </div>
                   </div>
-
-                </CardContent>
-              </Card>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Photo Upload */}
-              <Card className="border-0 shadow-lg">
-                <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
-                      <Camera className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-xl">Photos</CardTitle>
-                      <CardDescription className="text-base">
-                        Upload high-quality photos to showcase your venue
-                      </CardDescription>
-                    </div>
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
+                    <Camera className="h-5 w-5 text-white" />
                   </div>
-                </CardHeader>
-                <CardContent className="p-6 space-y-6">
-                  <div className="space-y-2">
-                    <InputField
-                      type="cloudinary-image"
-                      name="photoUrls"
-                      label="Venue Photos"
-                      placeholder="Upload venue photos"
-                      Icon={Camera}
-                      multiple={true}
-                      maxFiles={10}
-                      uploadPreset="ml_default"
-                      folder="venue-photos"
-                      maxFileSize={15728640} // 15MB
-                      allowedFormats={["jpg", "jpeg", "png", "webp"]}
-                    />
-                    <p className="text-xs text-gray-500 flex items-center gap-1">
-                      <Info className="h-3 w-3" />
-                      Upload up to 10 high-quality photos (JPG, PNG, WebP - max 15MB each)
-                    </p>
+                  <div>
+                    <CardTitle className="text-xl">Photos</CardTitle>
+                    <CardDescription className="text-base">
+                      Upload high-quality photos to showcase your venue
+                    </CardDescription>
                   </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6 space-y-6">
+                <div className="space-y-2">
+                  <InputField
+                    type="cloudinary-image"
+                    name="photoUrls"
+                    label="Venue Photos"
+                    placeholder="Upload venue photos"
+                    Icon={Camera}
+                    multiple={true}
+                    maxFiles={10}
+                    uploadPreset="ml_default"
+                    folder="venue-photos"
+                    maxFileSize={15728640} // 15MB
+                    allowedFormats={["jpg", "jpeg", "png", "webp"]}
+                  />
+                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                    <Info className="h-3 w-3" />
+                    Upload up to 10 high-quality photos (JPG, PNG, WebP - max
+                    15MB each)
+                  </p>
+                </div>
 
-                  <div className="p-4 bg-green-50 rounded-lg">
-                    <div className="flex items-start gap-2">
-                      <Image className="h-4 w-4 text-green-600 mt-0.5" />
-                      <div className="text-sm text-green-800">
-                        <p className="font-medium mb-1">Photo Tips for Better Bookings:</p>
-                        <ul className="text-xs space-y-1 text-green-700">
-                          <li>• Include exterior shots showing the venue entrance</li>
-                          <li>• Capture different sports areas and courts</li>
-                          <li>• Show amenities like parking, changing rooms, etc.</li>
-                          <li>• Use good lighting and avoid blurry images</li>
-                          <li>• Photos help customers trust and choose your venue</li>
-                        </ul>
-                      </div>
+                <div className="p-4 bg-green-50 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <Image className="h-4 w-4 text-green-600 mt-0.5" />
+                    <div className="text-sm text-green-800">
+                      <p className="font-medium mb-1">
+                        Photo Tips for Better Bookings:
+                      </p>
+                      <ul className="text-xs space-y-1 text-green-700">
+                        <li>
+                          • Include exterior shots showing the venue entrance
+                        </li>
+                        <li>• Capture different sports areas and courts</li>
+                        <li>
+                          • Show amenities like parking, changing rooms, etc.
+                        </li>
+                        <li>• Use good lighting and avoid blurry images</li>
+                        <li>
+                          • Photos help customers trust and choose your venue
+                        </li>
+                      </ul>
                     </div>
                   </div>
-
-                </CardContent>
-              </Card>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Submit Button */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
