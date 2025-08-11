@@ -42,23 +42,12 @@ const sidebarItems: SidebarItem[] = [
     icon: Building2,
     description: "Manage your sports venues",
   },
-  {
-    title: "Court Management",
-    href: "/owner/courts",
-    icon: Trophy,
-    description: "Configure courts and pricing",
-  },
+
   {
     title: "Bookings",
     href: "/owner/bookings",
     icon: ClipboardList,
     description: "Manage bookings and schedules",
-  },
-  {
-    title: "Time Slots",
-    href: "/owner/timeslots",
-    icon: BookOpen,
-    description: "Manage availability and schedules",
   },
   {
     title: "Analytics",
