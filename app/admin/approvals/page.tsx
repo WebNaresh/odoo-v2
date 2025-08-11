@@ -63,7 +63,10 @@ interface Venue {
   name: string;
   description: string;
   address: string;
-  location: string;
+  location: {
+    type: string;
+    coordinates: [number, number];
+  };
   sports: string[];
   amenities: string[];
   photoUrls: string[];
@@ -86,19 +89,6 @@ const getStatusColor = (status: string) => {
     case "APPROVED":
       return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
     case "REJECTED":
-      return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
-    default:
-      return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
-  }
-};
-
-const getDocumentStatusColor = (status: string) => {
-  switch (status) {
-    case "verified":
-      return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
-    case "pending":
-      return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300";
-    case "rejected":
       return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
     default:
       return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
@@ -201,7 +191,6 @@ export default function ApprovalsPage() {
     const matchesSearch =
       venue.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       venue.owner.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      venue.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
       venue.address.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSearch;
   });
@@ -235,7 +224,11 @@ export default function ApprovalsPage() {
                 <h3 className="font-semibold text-lg mb-1">{venue.name}</h3>
                 <div className="flex items-center gap-1 text-sm text-muted-foreground mb-1">
                   <MapPin className="h-4 w-4" />
-                  {venue.location}
+                  {venue.location?.coordinates
+                    ? `${venue.location.coordinates[1]?.toFixed(
+                        4
+                      )}, ${venue.location.coordinates[0]?.toFixed(4)}`
+                    : "Location not available"}
                 </div>
                 <p className="text-sm text-muted-foreground">
                   Owner: {venue.owner.name}
@@ -468,7 +461,13 @@ export default function ApprovalsPage() {
                             Location:
                           </span>
                           <p className="font-medium">
-                            {selectedVenue.location}
+                            {selectedVenue.location?.coordinates
+                              ? `${selectedVenue.location.coordinates[1]?.toFixed(
+                                  4
+                                )}, ${selectedVenue.location.coordinates[0]?.toFixed(
+                                  4
+                                )}`
+                              : "Location not available"}
                           </p>
                         </div>
                         <div>
