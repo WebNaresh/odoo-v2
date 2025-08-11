@@ -42,119 +42,246 @@ export async function createBooking(data: z.infer<typeof createBookingSchema>) {
 
     // Start transaction to ensure atomicity
     const result = await prisma.$transaction(async (tx) => {
-      // Get time slot with court details
-      const timeSlot = await tx.timeSlot.findUnique({
-        where: { id: validatedData.timeSlotId },
-        include: {
-          court: {
-            include: {
-              venue: true,
-            },
-          },
-          bookings: {
-            where: {
-              status: {
-                in: ["PENDING", "CONFIRMED"],
-              },
-            },
-          },
-        },
-      });
+      // Parse dynamic time slot ID (format: courtId-date-time)
+      let courtId: string;
+      let slotDate: string;
+      let slotStartTime: string;
+      let slotEndTime: string;
+      let timeSlotPrice: number = 500; // Default price
 
-      if (!timeSlot) {
-        throw new Error("Time slot not found");
-      }
+      if (validatedData.timeSlotId.includes('-') && validatedData.timeSlotId.split('-').length >= 3) {
+        // Dynamic time slot ID
+        const parts = validatedData.timeSlotId.split('-');
+        courtId = parts[0];
+        slotDate = `${parts[1]}-${parts[2]}-${parts[3]}`;
+        slotStartTime = parts[4];
 
-      if (!timeSlot.isAvailable || timeSlot.status !== "AVAILABLE") {
-        throw new Error("Time slot is not available");
-      }
+        // Calculate end time (assume 1 hour slots)
+        const startHour = parseInt(slotStartTime.split(':')[0]);
+        slotEndTime = `${String(startHour + 1).padStart(2, '0')}:${slotStartTime.split(':')[1]}`;
 
-      // Check if court matches
-      if (timeSlot.courtId !== validatedData.courtId) {
-        throw new Error("Court and time slot mismatch");
-      }
-
-      // Check capacity
-      const maxCapacity = timeSlot.maxCapacity || timeSlot.court.capacity;
-      const currentBookedPlayers = timeSlot.bookings.reduce(
-        (total, booking) => total + booking.playerCount,
-        0
-      );
-
-      if (currentBookedPlayers + validatedData.playerCount > maxCapacity) {
-        throw new Error(
-          `Insufficient capacity. Available spots: ${maxCapacity - currentBookedPlayers}`
-        );
-      }
-
-      // Check for existing booking by same user for same slot
-      const existingBooking = await tx.booking.findFirst({
-        where: {
-          userId: session.user.id,
+        console.log("🔍 [BOOKING] Parsed dynamic time slot:", {
           timeSlotId: validatedData.timeSlotId,
-          status: {
-            in: ["PENDING", "CONFIRMED"],
+          courtId,
+          slotDate,
+          slotStartTime,
+          slotEndTime,
+        });
+
+        // Check if court matches
+        if (courtId !== validatedData.courtId) {
+          throw new Error("Court and time slot mismatch");
+        }
+
+        // Get court details
+        const court = await tx.court.findUnique({
+          where: { id: courtId },
+          include: {
+            venue: true,
           },
-        },
-      });
+        });
 
-      if (existingBooking) {
-        throw new Error("You already have a booking for this time slot");
-      }
+        if (!court) {
+          throw new Error("Court not found");
+        }
 
-      // Calculate total price
-      const totalPrice = timeSlot.price * (validatedData.playerCount / timeSlot.court.capacity);
+        if (!court.isActive) {
+          throw new Error("Court is not active");
+        }
 
-      // Create booking
-      const booking = await tx.booking.create({
-        data: {
+        timeSlotPrice = court.pricePerHour;
+
+        // Check for existing bookings for this time slot
+        const slotDateTime = new Date(`${slotDate}T${slotStartTime}:00`);
+        const slotEndDateTime = new Date(`${slotDate}T${slotEndTime}:00`);
+
+        const existingBookings = await tx.booking.findMany({
+          where: {
+            courtId: courtId,
+            startTime: {
+              gte: slotDateTime,
+              lt: slotEndDateTime,
+            },
+            status: {
+              in: ["PENDING", "CONFIRMED"],
+            },
+          },
+        });
+
+        // Check capacity
+        const maxCapacity = court.capacity;
+        const currentBookedPlayers = existingBookings.reduce(
+          (total, booking) => total + booking.playerCount,
+          0
+        );
+
+        if (currentBookedPlayers + validatedData.playerCount > maxCapacity) {
+          throw new Error(
+            `Insufficient capacity. Available spots: ${maxCapacity - currentBookedPlayers}`
+          );
+        }
+
+        // Check for existing booking by same user for same slot
+        const userExistingBooking = existingBookings.find(
+          booking => booking.userId === session.user.id
+        );
+
+        if (userExistingBooking) {
+          throw new Error("You already have a booking for this time slot");
+        }
+
+        // Create the booking data for dynamic slots
+        const bookingData = {
           userId: session.user.id,
           courtId: validatedData.courtId,
-          timeSlotId: validatedData.timeSlotId,
-          bookingDate: timeSlot.date,
-          startTime: timeSlot.startTime,
-          endTime: timeSlot.endTime,
-          duration: Math.round(
-            (timeSlot.endTime.getTime() - timeSlot.startTime.getTime()) / (1000 * 60)
-          ),
-          totalPrice,
+          timeSlotId: null, // No database time slot for dynamic slots
+          bookingDate: slotDateTime,
+          startTime: slotDateTime,
+          endTime: slotEndDateTime,
+          duration: 60, // 1 hour
+          totalPrice: timeSlotPrice * validatedData.playerCount,
           playerCount: validatedData.playerCount,
           bookingReference: generateBookingReference(),
           notes: validatedData.notes,
-          status: "PENDING",
-          paymentStatus: "PENDING",
-        },
-        include: {
-          court: {
-            include: {
-              venue: true,
+          status: "PENDING" as const,
+          paymentStatus: "PENDING" as const,
+        };
+
+        const booking = await tx.booking.create({
+          data: bookingData,
+          include: {
+            court: {
+              include: {
+                venue: true,
+              },
+            },
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
             },
           },
-          timeSlot: true,
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
+        });
+
+        return booking;
+
+      } else {
+        // Database time slot ID - use existing logic
+        const timeSlot = await tx.timeSlot.findUnique({
+          where: { id: validatedData.timeSlotId },
+          include: {
+            court: {
+              include: {
+                venue: true,
+              },
+            },
+            bookings: {
+              where: {
+                status: {
+                  in: ["PENDING", "CONFIRMED"],
+                },
+              },
             },
           },
-        },
-      });
+        });
 
-      // Update time slot booking count
-      await tx.timeSlot.update({
-        where: { id: validatedData.timeSlotId },
-        data: {
-          currentBookings: {
-            increment: 1,
+        if (!timeSlot) {
+          throw new Error("Time slot not found");
+        }
+
+        if (!timeSlot.isAvailable || timeSlot.status !== "AVAILABLE") {
+          throw new Error("Time slot is not available");
+        }
+
+        // Check if court matches
+        if (timeSlot.courtId !== validatedData.courtId) {
+          throw new Error("Court and time slot mismatch");
+        }
+
+        // Check capacity
+        const maxCapacity = timeSlot.maxCapacity || timeSlot.court.capacity;
+        const currentBookedPlayers = timeSlot.bookings.reduce(
+          (total, booking) => total + booking.playerCount,
+          0
+        );
+
+        if (currentBookedPlayers + validatedData.playerCount > maxCapacity) {
+          throw new Error(
+            `Insufficient capacity. Available spots: ${maxCapacity - currentBookedPlayers}`
+          );
+        }
+
+        // Check for existing booking by same user for same slot
+        const existingBooking = await tx.booking.findFirst({
+          where: {
+            userId: session.user.id,
+            timeSlotId: validatedData.timeSlotId,
+            status: {
+              in: ["PENDING", "CONFIRMED"],
+            },
           },
-          // Mark as booked if at capacity
-          status: currentBookedPlayers + validatedData.playerCount >= maxCapacity ? "BOOKED" : "AVAILABLE",
-          isAvailable: currentBookedPlayers + validatedData.playerCount < maxCapacity,
-        },
-      });
+        });
 
-      return booking;
+        if (existingBooking) {
+          throw new Error("You already have a booking for this time slot");
+        }
+
+        // Calculate total price
+        const totalPrice = timeSlot.price * (validatedData.playerCount / timeSlot.court.capacity);
+
+        // Create booking
+        const booking = await tx.booking.create({
+          data: {
+            userId: session.user.id,
+            courtId: validatedData.courtId,
+            timeSlotId: validatedData.timeSlotId,
+            bookingDate: timeSlot.date,
+            startTime: timeSlot.startTime,
+            endTime: timeSlot.endTime,
+            duration: Math.round(
+              (timeSlot.endTime.getTime() - timeSlot.startTime.getTime()) / (1000 * 60)
+            ),
+            totalPrice,
+            playerCount: validatedData.playerCount,
+            bookingReference: generateBookingReference(),
+            notes: validatedData.notes,
+            status: "PENDING",
+            paymentStatus: "PENDING",
+          },
+          include: {
+            court: {
+              include: {
+                venue: true,
+              },
+            },
+            timeSlot: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        });
+
+        // Update time slot booking count
+        await tx.timeSlot.update({
+          where: { id: validatedData.timeSlotId },
+          data: {
+            currentBookings: {
+              increment: 1,
+            },
+            // Mark as booked if at capacity
+            status: currentBookedPlayers + validatedData.playerCount >= maxCapacity ? "BOOKED" : "AVAILABLE",
+            isAvailable: currentBookedPlayers + validatedData.playerCount < maxCapacity,
+          },
+        });
+
+        return booking;
+      }
     });
 
     // Revalidate relevant paths
