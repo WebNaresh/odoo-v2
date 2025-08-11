@@ -292,7 +292,7 @@ export default function VenuesPage() {
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Sports:</span>
                       <span className="font-medium">
-                        {venue.supportedSports?.length || 0} sports
+                        {venue.sports?.length || 0} sports
                       </span>
                     </div>
 
@@ -304,21 +304,20 @@ export default function VenuesPage() {
                     </div>
 
                     <div className="flex flex-wrap gap-1 mt-3">
-                      {venue.supportedSports?.slice(0, 3).map((sport) => (
+                      {venue.sports?.slice(0, 3).map((sport) => (
                         <Badge
-                          key={sport.id}
+                          key={sport}
                           variant="secondary"
                           className="text-xs"
                         >
-                          {sport.name}
+                          {sport}
                         </Badge>
                       ))}
-                      {venue.supportedSports &&
-                        venue.supportedSports.length > 3 && (
-                          <Badge variant="secondary" className="text-xs">
-                            +{venue.supportedSports.length - 3} more
-                          </Badge>
-                        )}
+                      {venue.sports && venue.sports.length > 3 && (
+                        <Badge variant="secondary" className="text-xs">
+                          +{venue.sports.length - 3} more
+                        </Badge>
+                      )}
                     </div>
                   </div>
 

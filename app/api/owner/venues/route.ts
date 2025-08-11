@@ -35,14 +35,7 @@ export async function GET(request: NextRequest) {
         ownerId: session.user.id
       },
       include: {
-        supportedSports: {
-          select: {
-            id: true,
-            name: true,
-            category: true,
-            isPopular: true,
-          }
-        },
+
         courts: {
           select: {
             id: true,
@@ -182,7 +175,7 @@ export async function POST(request: NextRequest) {
       address,
       location,
       amenities,
-      sportIds,
+      sports,
       operatingHours,
       photoUrls
     } = validationResult.data;
@@ -193,7 +186,7 @@ export async function POST(request: NextRequest) {
       address,
       location,
       amenities,
-      sportIds,
+      sports,
       operatingHours: Object.keys(operatingHours || {}),
       photoUrls,
       photoUrlsCount: photoUrls?.length || 0
@@ -212,7 +205,7 @@ export async function POST(request: NextRequest) {
       amenities,
       photoUrls,
       operatingHours,
-      sportIds,
+      sports,
       approvalStatus: "PENDING",
       isActive: true,
       reviewCount: 0,
@@ -228,20 +221,12 @@ export async function POST(request: NextRequest) {
         amenities,
         photoUrls,
         operatingHours,
-        sportIds,
+        sports,
         approvalStatus: "PENDING",
         isActive: true,
         reviewCount: 0,
       },
       include: {
-        supportedSports: {
-          select: {
-            id: true,
-            name: true,
-            category: true,
-            isPopular: true,
-          }
-        },
         owner: {
           select: {
             id: true,

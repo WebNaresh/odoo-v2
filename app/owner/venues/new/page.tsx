@@ -28,10 +28,11 @@ import {
   Loader2,
   CheckCircle,
   FileText,
+  Trophy,
 } from "lucide-react";
 import { type CreateVenueData, AVAILABLE_AMENITIES } from "@/types/venue";
 
-interface VenueFormData extends Omit<CreateVenueData, "sportIds"> {
+interface VenueFormData extends CreateVenueData {
   // photoUrls will be handled by the Cloudinary component
 }
 
@@ -48,6 +49,7 @@ export default function NewVenuePage() {
       description: "",
       address: "",
       amenities: [],
+      sports: [],
       photoUrls: [],
       operatingHours: {
         monday: { isOpen: true, openTime: "06:00", closeTime: "22:00" },
@@ -243,7 +245,11 @@ export default function NewVenuePage() {
         address: addressString,
         location: location, // Include location coordinates if available
         amenities: data.amenities,
-        sportIds: [], // Will be set up later when configuring courts
+        sports: Array.isArray(data.sports)
+          ? data.sports.map((sport: any) =>
+              typeof sport === "string" ? sport : sport.value || sport.label
+            )
+          : [], // Sports selected by user
         operatingHours: data.operatingHours,
         photoUrls,
       };
@@ -259,8 +265,8 @@ export default function NewVenuePage() {
         addressLength: venueData.address?.length || 0,
         hasAmenities: Array.isArray(venueData.amenities),
         amenitiesCount: venueData.amenities?.length || 0,
-        hasSportIds: Array.isArray(venueData.sportIds),
-        sportIdsCount: venueData.sportIds?.length || 0,
+        hasSports: Array.isArray(venueData.sports),
+        sportsCount: venueData.sports?.length || 0,
         hasOperatingHours: !!venueData.operatingHours,
         operatingHoursDays: venueData.operatingHours
           ? Object.keys(venueData.operatingHours)
@@ -411,6 +417,40 @@ export default function NewVenuePage() {
                     </div>
                   ))}
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Sports */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Sports</CardTitle>
+                <CardDescription>
+                  Select the sports available at your venue. You can choose from
+                  existing sports or add new ones.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <InputField
+                  name="sports"
+                  label="Sports"
+                  type="multiSelect"
+                  placeholder="Select or add sports (e.g., Football, Basketball, Tennis)"
+                  Icon={Trophy}
+                  options={[
+                    { value: "Football", label: "Football" },
+                    { value: "Basketball", label: "Basketball" },
+                    { value: "Tennis", label: "Tennis" },
+                    { value: "Cricket", label: "Cricket" },
+                    { value: "Badminton", label: "Badminton" },
+                    { value: "Volleyball", label: "Volleyball" },
+                    { value: "Table Tennis", label: "Table Tennis" },
+                    { value: "Swimming", label: "Swimming" },
+                    { value: "Gym", label: "Gym" },
+                    { value: "Yoga", label: "Yoga" },
+                  ]}
+                  className="max-w-none"
+                  description="Select existing sports or type to create new ones"
+                />
               </CardContent>
             </Card>
 

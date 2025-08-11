@@ -169,6 +169,7 @@ export async function GET(request: NextRequest) {
         name: venue.name,
         address: venue.address,
         photoUrls: venue.photoUrls,
+        sports: venue.sports,
         courtsCount: venue.courts.length,
         rating: venue.rating || 0,
         reviewCount: venue._count.reviews,

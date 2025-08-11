@@ -58,21 +58,6 @@ model User {
   @@map("users")
 }
 
-model Sport {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  name        String   @unique
-  category    String
-  description String?
-  isPopular   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
-  courts Court[]
-
-  @@map("sports")
-}
-
 model Venue {
   id             String         @id @default(auto()) @map("_id") @db.ObjectId
   name           String
@@ -89,6 +74,7 @@ model Venue {
   isActive       Boolean        @default(true)
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
+  sports         String[]
 
   // Relations
   owner    User     @relation("VenueOwner", fields: [ownerId], references: [id])
@@ -113,7 +99,6 @@ model Court {
 
   // Relations
   venue     Venue      @relation(fields: [venueId], references: [id])
-  sport     Sport      @relation(fields: [sportId], references: [id])
   timeSlots TimeSlot[]
   bookings  Booking[]
 

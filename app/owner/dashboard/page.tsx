@@ -73,6 +73,7 @@ interface RecentVenue {
   bookingsCount: number;
   rating?: number;
   photoUrls: string[];
+  sports: string[];
 }
 
 export default function OwnerDashboardPage() {
@@ -393,6 +394,27 @@ export default function OwnerDashboardPage() {
                         <MapPin className="h-3 w-3" />
                         {venue.address}
                       </div>
+                      {venue.sports && venue.sports.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {venue.sports.slice(0, 2).map((sport) => (
+                            <Badge
+                              key={sport}
+                              variant="outline"
+                              className="text-xs px-1 py-0"
+                            >
+                              {sport}
+                            </Badge>
+                          ))}
+                          {venue.sports.length > 2 && (
+                            <Badge
+                              variant="outline"
+                              className="text-xs px-1 py-0"
+                            >
+                              +{venue.sports.length - 2}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
                       <div className="flex items-center gap-2 mt-1">
                         <Badge className={getStatusColor(venue.status)}>
                           {venue.status}

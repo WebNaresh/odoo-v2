@@ -64,7 +64,7 @@ export const createVenueSchema = z.object({
   amenities: z.array(z.string())
     .default([]),
 
-  sportIds: z.array(z.string())
+  sports: z.array(z.string())
     .default([]),
 
   operatingHours: operatingHoursSchema,
@@ -127,8 +127,7 @@ export interface Venue {
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
-  supportedSports: Sport[];
-  sportIds: string[];
+  sports: string[];
 }
 
 // Form data interface for venue creation
@@ -141,7 +140,7 @@ export interface VenueFormData {
     longitude: number;
   };
   amenities: string[];
-  sportIds: string[];
+  sports: string[];
   operatingHours: OperatingHours;
   photos: File[];
 }
