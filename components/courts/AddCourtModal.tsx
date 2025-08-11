@@ -36,19 +36,13 @@ import {
   DEFAULT_OPERATING_HOURS,
 } from "@/types/court";
 import type { CreateCourtData } from "@/types/court";
+import { getSortedSports } from "@/constants/sports";
 
 interface AddCourtModalProps {
   isOpen: boolean;
   onClose: () => void;
   venueId: string;
   onCourtAdded: () => void;
-}
-
-interface Sport {
-  id: string;
-  name: string;
-  category: string;
-  isPopular: boolean;
 }
 
 export function AddCourtModal({
@@ -58,8 +52,9 @@ export function AddCourtModal({
   onCourtAdded,
 }: AddCourtModalProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [sports, setSports] = useState<Sport[]>([]);
-  const [sportsLoading, setSportsLoading] = useState(false);
+
+  // Use predefined sports sorted by popularity and name
+  const sports = getSortedSports();
 
   const form = useForm<CreateCourtData>({
     resolver: zodResolver(createCourtSchema),
@@ -74,33 +69,9 @@ export function AddCourtModal({
     },
   });
 
-  // Fetch sports when modal opens
-  const fetchSports = async () => {
-    if (sports.length > 0) return; // Already loaded
-
-    setSportsLoading(true);
-    try {
-      const response = await fetch("/api/sports");
-      const data = await response.json();
-
-      if (data.success) {
-        setSports(data.sports);
-      } else {
-        toast.error("Failed to load sports");
-      }
-    } catch (error) {
-      console.error("Error fetching sports:", error);
-      toast.error("Failed to load sports");
-    } finally {
-      setSportsLoading(false);
-    }
-  };
-
-  // Handle modal open
+  // Handle modal open/close
   const handleOpenChange = (open: boolean) => {
-    if (open) {
-      fetchSports();
-    } else {
+    if (!open) {
       onClose();
       form.reset();
     }
@@ -217,17 +188,16 @@ export function AddCourtModal({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {sportsLoading ? (
-                        <SelectItem value="" disabled>
-                          Loading sports...
+                      {sports.map((sport) => (
+                        <SelectItem key={sport.id} value={sport.id}>
+                          <div className="flex items-center justify-between w-full">
+                            <span>{sport.name}</span>
+                            <span className="text-xs text-muted-foreground ml-2">
+                              {sport.category}
+                            </span>
+                          </div>
                         </SelectItem>
-                      ) : (
-                        sports.map((sport) => (
-                          <SelectItem key={sport.id} value={sport.id}>
-                            {sport.name}
-                          </SelectItem>
-                        ))
-                      )}
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />

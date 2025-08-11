@@ -77,10 +77,9 @@ model Venue {
   sports         String[]
 
   // Relations
-  owner    User     @relation("VenueOwner", fields: [ownerId], references: [id])
-  sportIds String[] @db.ObjectId
-  courts   Court[]
-  reviews  Review[]
+  owner   User     @relation("VenueOwner", fields: [ownerId], references: [id])
+  courts  Court[]
+  reviews Review[]
 
   @@map("venues")
 }
@@ -90,7 +89,6 @@ model Court {
   name           String
   courtType      String
   venueId        String   @db.ObjectId
-  sportId        String   @db.ObjectId
   pricePerHour   Float
   operatingHours Json
   isActive       Boolean  @default(true)
