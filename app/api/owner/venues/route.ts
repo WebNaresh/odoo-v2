@@ -122,6 +122,17 @@ export async function POST(request: NextRequest) {
       photoUrlsLength: Array.isArray(body.photoUrls) ? body.photoUrls.length : 'not array',
       photoUrlsContent: body.photoUrls
     });
+    console.log("🏠 [VENUE API] Address data received:", {
+      address: body.address,
+      addressType: typeof body.address,
+      addressLength: typeof body.address === 'string' ? body.address.length : 'not string'
+    });
+    console.log("📍 [VENUE API] Location data received:", {
+      location: body.location,
+      locationType: typeof body.location,
+      hasCoordinates: body.location?.coordinates ? true : false,
+      coordinates: body.location?.coordinates
+    });
 
     // Validate request data
     console.log("🔍 [VENUE API] Starting validation with createVenueSchema");
@@ -147,6 +158,23 @@ export async function POST(request: NextRequest) {
 
     console.log("✅ [VENUE API] Validation successful");
     console.log("📋 [VENUE API] Validated data:", JSON.stringify(validationResult.data, null, 2));
+
+    // Additional validation: ensure address is a string
+    if (typeof validationResult.data.address !== 'string') {
+      console.log("❌ [VENUE API] Address is not a string:", {
+        addressType: typeof validationResult.data.address,
+        addressValue: validationResult.data.address
+      });
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Address must be a string",
+          addressType: typeof validationResult.data.address,
+          addressValue: validationResult.data.address
+        },
+        { status: 400 }
+      );
+    }
 
     const {
       name,

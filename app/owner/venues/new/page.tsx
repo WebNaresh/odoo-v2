@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, FormProvider, type SubmitHandler } from "react-hook-form";
-
 import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,8 +35,10 @@ import { type CreateVenueData, AVAILABLE_AMENITIES } from "@/types/venue";
 
 interface VenueFormData
   extends Omit<CreateVenueData, "photoUrls" | "sportIds"> {
-  photos: FileList | null;
+  photos?: FileList | null;
 }
+
+// Client-side validation is now handled manually in the onSubmit function
 
 export default function NewVenuePage() {
   const router = useRouter();
@@ -46,6 +47,7 @@ export default function NewVenuePage() {
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
 
   const form = useForm<VenueFormData>({
+    mode: "onChange", // Enable real-time validation
     defaultValues: {
       name: "",
       description: "",
@@ -64,7 +66,15 @@ export default function NewVenuePage() {
     },
   });
 
-  const { register, handleSubmit, setValue, watch } = form;
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+    setError,
+    clearErrors,
+  } = form;
 
   const watchedAmenities = watch("amenities");
 
@@ -153,6 +163,76 @@ export default function NewVenuePage() {
       })),
     });
 
+    // Manual client-side validation
+    console.log("🔍 [VENUE FORM] Starting client-side validation");
+    let hasErrors = false;
+
+    // Clear previous errors
+    clearErrors();
+
+    // Validate name
+    if (!data.name || data.name.trim().length < 2) {
+      setError("name", {
+        type: "manual",
+        message: "Venue name must be at least 2 characters",
+      });
+      hasErrors = true;
+    } else if (data.name.length > 100) {
+      setError("name", {
+        type: "manual",
+        message: "Venue name must be less than 100 characters",
+      });
+      hasErrors = true;
+    }
+
+    // Validate address
+    if (!data.address) {
+      setError("address", {
+        type: "manual",
+        message: "Address is required",
+      });
+      hasErrors = true;
+    } else {
+      // Check if address is a string or object and extract the address string
+      let addressString = "";
+      if (typeof data.address === "string") {
+        addressString = data.address;
+      } else if (data.address && typeof data.address === "object") {
+        const addressObj = data.address as any;
+        addressString =
+          addressObj.address ||
+          addressObj.formatted_address ||
+          addressObj.description ||
+          addressObj.name ||
+          "";
+      }
+
+      if (!addressString || addressString.length < 10) {
+        setError("address", {
+          type: "manual",
+          message: "Address must be at least 10 characters",
+        });
+        hasErrors = true;
+      }
+    }
+
+    // Validate description (optional but if provided, check length)
+    if (data.description && data.description.length > 500) {
+      setError("description", {
+        type: "manual",
+        message: "Description must be less than 500 characters",
+      });
+      hasErrors = true;
+    }
+
+    if (hasErrors) {
+      console.log("❌ [VENUE FORM] Client-side validation failed");
+      setIsLoading(false);
+      toast.error("Please fix the validation errors before submitting");
+      return;
+    }
+
+    console.log("✅ [VENUE FORM] Client-side validation passed");
     setIsLoading(true);
 
     try {
@@ -170,33 +250,71 @@ export default function NewVenuePage() {
 
       console.log("✅ [VENUE FORM] Final photo URLs:", photoUrls);
 
-      // Handle address - extract string value if it's an object from Google Places
+      // Handle address - extract string value and location coordinates from Google Places
       console.log("🏠 [VENUE FORM] Processing address:", {
         addressType: typeof data.address,
         addressValue: data.address,
       });
 
       let addressString: string;
+      let location:
+        | { type: "Point"; coordinates: [number, number] }
+        | undefined;
+
       if (typeof data.address === "string") {
         addressString = data.address;
+        // No location coordinates available for plain string
       } else if (data.address && typeof data.address === "object") {
-        // If it's an object from Google Places, try to extract the formatted address
+        const addressObj = data.address as any;
+
+        // Extract address string
         addressString =
-          (data.address as any).formatted_address ||
-          (data.address as any).description ||
-          (data.address as any).name ||
+          addressObj.address ||
+          addressObj.formatted_address ||
+          addressObj.description ||
+          addressObj.name ||
           String(data.address);
+
+        // Extract location coordinates if available
+        if (
+          addressObj.position &&
+          addressObj.position.lat &&
+          addressObj.position.lng
+        ) {
+          location = {
+            type: "Point",
+            coordinates: [addressObj.position.lng, addressObj.position.lat], // [longitude, latitude] for GeoJSON
+          };
+          console.log(
+            "📍 [VENUE FORM] Extracted location coordinates:",
+            location
+          );
+        } else if (addressObj.geometry && addressObj.geometry.location) {
+          // Alternative structure from Google Places
+          const lat = addressObj.geometry.location.lat();
+          const lng = addressObj.geometry.location.lng();
+          location = {
+            type: "Point",
+            coordinates: [lng, lat],
+          };
+          console.log(
+            "📍 [VENUE FORM] Extracted location from geometry:",
+            location
+          );
+        }
       } else {
         addressString = String(data.address || "");
       }
 
       console.log("🏠 [VENUE FORM] Final address string:", addressString);
+      console.log("📍 [VENUE FORM] Final location:", location);
 
       // Prepare venue data
       const venueData: CreateVenueData = {
         name: data.name,
         description: data.description || undefined,
         address: addressString,
+        location: location, // Include location coordinates if available
         amenities: data.amenities,
         sportIds: [], // Will be set up later when configuring courts
         operatingHours: data.operatingHours,
