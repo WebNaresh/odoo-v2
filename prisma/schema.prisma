@@ -49,11 +49,11 @@ model User {
   role          UserRole  @default(USER)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-
+  isBanned      Boolean   @default(false)
   // Relations
-  ownedVenues Venue[]   @relation("VenueOwner")
-  bookings    Booking[]
-  reviews     Review[]
+  ownedVenues   Venue[]   @relation("VenueOwner")
+  bookings      Booking[]
+  reviews       Review[]
 
   @@map("users")
 }

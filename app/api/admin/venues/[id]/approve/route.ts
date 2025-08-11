@@ -8,10 +8,12 @@ import { emailService } from "@/lib/email";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    console.log("🔍 [VENUE APPROVAL API] Starting approval request for venue:", params.id);
+    // Await params to get the dynamic route parameter (Next.js 15+ requirement)
+    const { id } = await params;
+    console.log("🔍 [VENUE APPROVAL API] Starting approval request for venue:", id);
 
     // Check authentication
     const session = await getServerSession(authOptions);
@@ -37,7 +39,7 @@ export async function POST(
 
     // Find the venue with owner information
     const venue = await prisma.venue.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         owner: {
           select: {
@@ -50,7 +52,7 @@ export async function POST(
     });
 
     if (!venue) {
-      console.log("❌ [VENUE APPROVAL API] Venue not found:", params.id);
+      console.log("❌ [VENUE APPROVAL API] Venue not found:", id);
       return NextResponse.json({ error: "Venue not found" }, { status: 404 });
     }
 
@@ -58,7 +60,7 @@ export async function POST(
 
     // Update venue approval status
     const updatedVenue = await prisma.venue.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         approvalStatus: action,
         isActive: action === "APPROVED",
