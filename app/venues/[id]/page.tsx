@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQueryState } from "nuqs";
 import { useSession } from "next-auth/react";
+import { useRazorpay } from "@/hooks/useRazorpay";
 import { MainNav } from "@/components/layout/main-nav";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,7 +40,7 @@ import { toast } from "react-hot-toast";
 import { useVenueDetails } from "@/hooks/use-venues";
 import { VenueTimingDisplay } from "@/components/venues/VenueTimingDisplay";
 import { RelatedVenues } from "@/components/venues/RelatedVenues";
-import { BookingConfirmationDialog } from "@/components/bookings/BookingConfirmationDialog";
+
 import Image from "next/image";
 
 // Mock venue data
@@ -168,42 +169,11 @@ export default function VenueDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { data: session, status } = useSession();
+  const { processPayment, restoreBodyPointerEvents } = useRazorpay();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorited, setIsFavorited] = useState(false);
 
-  // Booking state
-  const [showBookingDialog, setShowBookingDialog] = useState(false);
-  const [selectedBookingSlot, setSelectedBookingSlot] = useState<{
-    id: string;
-    courtId: string;
-    courtName: string;
-    venueName: string;
-    venueAddress: string;
-    date: string;
-    startTime: string;
-    endTime: string;
-    price: number;
-    maxCapacity: number;
-    currentBookings: number;
-  } | null>(null);
-
-  // Multiple booking queue state
-  const [bookingQueue, setBookingQueue] = useState<
-    Array<{
-      id: string;
-      courtId: string;
-      courtName: string;
-      venueName: string;
-      venueAddress: string;
-      date: string;
-      startTime: string;
-      endTime: string;
-      price: number;
-      maxCapacity: number;
-      currentBookings: number;
-    }>
-  >([]);
-  const [currentBookingIndex, setCurrentBookingIndex] = useState(0);
+  // Direct payment - no booking dialog state needed
 
   // URL state management for selected courts (multiple selection)
   const [selectedCourtIds, setSelectedCourtIds] = useQueryState(
@@ -247,47 +217,114 @@ export default function VenueDetailPage() {
     });
   }, [selectedTimeSlots]);
 
-  // Handle booking queue progression
-  const handleBookingComplete = () => {
-    console.log("✅ [VENUE PAGE] Booking completed, checking queue");
-
-    if (
-      bookingQueue.length > 0 &&
-      currentBookingIndex < bookingQueue.length - 1
-    ) {
-      // Move to next booking in queue
-      const nextIndex = currentBookingIndex + 1;
-      setCurrentBookingIndex(nextIndex);
-      setSelectedBookingSlot(bookingQueue[nextIndex]);
-
-      console.log(
-        `📋 [VENUE PAGE] Moving to booking ${nextIndex + 1}/${
-          bookingQueue.length
-        }`
-      );
-
-      // Keep dialog open for next booking
-      setShowBookingDialog(true);
-
-      toast.success(
-        `Booking ${currentBookingIndex + 1} completed! Proceeding to booking ${
-          nextIndex + 1
-        }...`
-      );
-    } else {
-      // All bookings completed
-      console.log("🎉 [VENUE PAGE] All bookings completed");
-      setBookingQueue([]);
-      setCurrentBookingIndex(0);
-      setSelectedBookingSlot(null);
-      setShowBookingDialog(false);
-
-      toast.success("All bookings completed successfully!");
-    }
-  };
+  // Direct payment - no queue management needed
 
   // State for member count
   const [memberCount, setMemberCount] = useState(1);
+
+  // Handle direct payment without booking dialog
+  const handleDirectPayment = async (
+    timeSlots: {
+      id: string;
+      courtId: string;
+      startTime: string;
+      endTime: string;
+      date: string;
+      price: number;
+    }[]
+  ) => {
+    if (!venue || !session?.user) {
+      toast.error("Please log in to book a venue");
+      return;
+    }
+
+    console.log(
+      "🚀 [VENUE PAGE] Starting direct Razorpay payment for",
+      timeSlots.length,
+      "slots"
+    );
+
+    try {
+      // Process each slot individually for now (can be enhanced for bulk processing)
+      for (let i = 0; i < timeSlots.length; i++) {
+        const timeSlot = timeSlots[i];
+        const court = venue.courts?.find((c) => c.id === timeSlot.courtId);
+
+        if (!court) {
+          toast.error(`Court not found for slot ${timeSlot.startTime}`);
+          return;
+        }
+
+        // Validation: Check member count against court capacity
+        const courtCapacity = (court as any).capacity || 10;
+        if (memberCount > courtCapacity) {
+          toast.error(
+            `Member count exceeds court capacity (${courtCapacity} max) for ${court.name}. Please reduce the number of players.`
+          );
+          return;
+        }
+
+        console.log(
+          `💳 [VENUE PAGE] Processing payment ${i + 1}/${
+            timeSlots.length
+          } for slot:`,
+          {
+            slotId: timeSlot.id,
+            courtName: court.name,
+            startTime: timeSlot.startTime,
+            endTime: timeSlot.endTime,
+          }
+        );
+
+        // Process payment directly
+        await processPayment(
+          {
+            timeSlotId: timeSlot.id,
+            courtId: timeSlot.courtId,
+            playerCount: memberCount,
+            venueName: venue.name,
+            courtName: court.name,
+            notes: `Booking for ${court.name} at ${venue.name}`,
+          },
+          {
+            name: session.user.name || "User",
+            email: session.user.email || "",
+            contact: undefined, // Phone number not available in session
+          },
+          // Payment success callback
+          (paymentResult) => {
+            console.log(
+              "✅ [VENUE PAGE] Payment successful, booking created:",
+              paymentResult
+            );
+            toast.success(
+              `Payment successful! Booking confirmed for ${court.name}.`
+            );
+
+            // Reset selections after successful payment
+            setSelectedTimeSlots([]);
+            setSelectedCourtIds("");
+
+            // Optionally redirect to bookings page
+            // router.push('/bookings');
+          },
+          // Payment failure callback
+          (error) => {
+            console.error("❌ [VENUE PAGE] Payment failed:", error);
+            toast.error("Payment failed. Please try again.");
+          }
+        );
+
+        // For multiple slots, add a small delay between payments
+        if (i < timeSlots.length - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
+      }
+    } catch (error) {
+      console.error("❌ [VENUE PAGE] Direct payment error:", error);
+      toast.error("Payment process failed. Please try again.");
+    }
+  };
 
   // Convert 24-hour format to 12-hour format
   const formatTime = (time: string) => {
@@ -311,148 +348,6 @@ export default function VenueDetailPage() {
   } = useVenueDetails(params.id as string);
 
   const venue = venueResponse?.success ? venueResponse.venue : null;
-
-  const handleBookNow = () => {
-    if (!venue) return;
-
-    // Check if user is logged in
-    if (status === "loading") {
-      toast.error("Please wait while we check your login status...");
-      return;
-    }
-
-    if (status === "unauthenticated" || !session?.user) {
-      toast.error("Please log in to book a venue");
-      router.push(
-        `/auth/signin?callbackUrl=${encodeURIComponent(window.location.href)}`
-      );
-      return;
-    }
-
-    console.log("✅ [VENUE PAGE] User is authenticated:", {
-      userId: session.user.id,
-      userEmail: session.user.email,
-      userRole: session.user.role,
-    });
-
-    // Validation: Check if at least one court is selected
-    if (selectedCourtIdsArray.length === 0) {
-      toast.error("Please select at least one court first");
-      return;
-    }
-
-    // Validation: Check if time slots are selected
-    if (selectedTimeSlots.length === 0) {
-      toast.error("Please select at least one time slot first");
-      return;
-    }
-
-    console.log(
-      "🎯 [VENUE PAGE] Starting booking process for",
-      selectedTimeSlots.length,
-      "slots"
-    );
-
-    // Handle multiple time slot bookings
-    if (selectedTimeSlots.length === 1) {
-      // Single slot booking
-      const timeSlot = selectedTimeSlots[0];
-      const court = venue.courts?.find((c) => c.id === timeSlot.courtId);
-
-      if (!court) {
-        toast.error("Court not found");
-        return;
-      }
-
-      // Validation: Check member count against court capacity
-      const courtCapacity = (court as any).capacity || 10;
-      if (memberCount > courtCapacity) {
-        toast.error(
-          `Member count exceeds court capacity (${courtCapacity} max). Please reduce the number of players.`
-        );
-        return;
-      }
-
-      console.log("✅ [VENUE PAGE] Single slot booking - showing dialog");
-
-      // Set up booking slot data
-      setSelectedBookingSlot({
-        id: timeSlot.id,
-        courtId: timeSlot.courtId,
-        courtName: court.name,
-        venueName: venue.name,
-        venueAddress: venue.address,
-        date: timeSlot.date,
-        startTime: timeSlot.startTime,
-        endTime: timeSlot.endTime,
-        price: timeSlot.price,
-        maxCapacity: courtCapacity,
-        currentBookings: 0, // This should come from the time slot data
-      });
-
-      // Show booking confirmation dialog
-      setShowBookingDialog(true);
-    } else if (selectedTimeSlots.length > 1) {
-      // Multiple slot booking
-      console.log(
-        "🚀 [VENUE PAGE] Multiple slot booking - creating separate bookings"
-      );
-
-      // Validate all slots
-      for (const timeSlot of selectedTimeSlots) {
-        const court = venue.courts?.find((c) => c.id === timeSlot.courtId);
-        if (!court) {
-          toast.error(`Court not found for slot ${timeSlot.startTime}`);
-          return;
-        }
-
-        const courtCapacity = (court as any).capacity || 10;
-        if (memberCount > courtCapacity) {
-          toast.error(
-            `Member count exceeds court capacity (${courtCapacity} max) for ${court.name}. Please reduce the number of players.`
-          );
-          return;
-        }
-      }
-
-      // Create bookings for each slot
-      toast.success(
-        `Creating ${selectedTimeSlots.length} separate bookings...`
-      );
-
-      // Prepare booking queue
-      const bookingSlots = selectedTimeSlots.map((timeSlot) => {
-        const court = venue.courts?.find((c) => c.id === timeSlot.courtId);
-        return {
-          id: timeSlot.id,
-          courtId: timeSlot.courtId,
-          courtName: court?.name || "Unknown Court",
-          venueName: venue.name,
-          venueAddress: venue.address,
-          date: timeSlot.date,
-          startTime: timeSlot.startTime,
-          endTime: timeSlot.endTime,
-          price: timeSlot.price,
-          maxCapacity: (court as any)?.capacity || 10,
-          currentBookings: 0,
-        };
-      });
-
-      console.log("📋 [VENUE PAGE] Setting up booking queue:", bookingSlots);
-
-      // Set up the booking queue
-      setBookingQueue(bookingSlots);
-      setCurrentBookingIndex(0);
-
-      // Start with the first booking
-      setSelectedBookingSlot(bookingSlots[0]);
-      setShowBookingDialog(true);
-
-      toast.success(
-        `Processing ${selectedTimeSlots.length} bookings. Please confirm each booking dialog.`
-      );
-    }
-  };
 
   const handleCourtSelect = (courtId: string) => {
     const currentSelection = [...selectedCourtIdsArray];
@@ -1155,14 +1050,14 @@ export default function VenueDetailPage() {
                 selectedTimeSlots={selectedTimeSlots}
                 onBookingRequest={(timeSlots) => {
                   console.log(
-                    "🎯 [VENUE PAGE] Received booking request from VenueTimingDisplay:",
+                    "🎯 [VENUE PAGE] Received direct payment request from VenueTimingDisplay:",
                     timeSlots
                   );
-                  // Set the selected time slots and trigger booking
+                  // Set the selected time slots and trigger direct Razorpay payment
                   setSelectedTimeSlots(timeSlots);
-                  // Trigger the booking process
+                  // Trigger direct payment process
                   setTimeout(() => {
-                    handleBookNow();
+                    handleDirectPayment(timeSlots);
                   }, 100);
                 }}
               />
@@ -1197,39 +1092,7 @@ export default function VenueDetailPage() {
         </div>
       </main>
 
-      {/* Booking Confirmation Dialog */}
-      <BookingConfirmationDialog
-        isOpen={showBookingDialog}
-        onClose={() => {
-          setShowBookingDialog(false);
-          setSelectedBookingSlot(null);
-          // Reset queue if user cancels
-          if (bookingQueue.length > 0) {
-            setBookingQueue([]);
-            setCurrentBookingIndex(0);
-          }
-        }}
-        onSuccess={() => {
-          // Handle successful booking
-          if (bookingQueue.length > 0) {
-            handleBookingComplete();
-          } else {
-            // Single booking completed
-            setShowBookingDialog(false);
-            setSelectedBookingSlot(null);
-          }
-        }}
-        timeSlot={selectedBookingSlot}
-        initialPlayerCount={memberCount}
-        queueInfo={
-          bookingQueue.length > 0
-            ? {
-                current: currentBookingIndex + 1,
-                total: bookingQueue.length,
-              }
-            : undefined
-        }
-      />
+      {/* Direct Razorpay payment - no booking dialog needed */}
     </div>
   );
 }
