@@ -14,14 +14,20 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  RefreshCw, 
-  AlertTriangle, 
-  Clock, 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  RefreshCw,
+  AlertTriangle,
+  Clock,
   Shield,
   CheckCircle,
-  Loader2
+  Loader2,
 } from "lucide-react";
 import { useVenueResubmission } from "@/hooks/useVenueResubmission";
 
@@ -31,13 +37,13 @@ interface VenueResubmissionButtonProps {
   rejectionReason?: string;
 }
 
-export function VenueResubmissionButton({ 
-  venueId, 
-  approvalStatus, 
-  rejectionReason 
+export function VenueResubmissionButton({
+  venueId,
+  approvalStatus,
+  rejectionReason,
 }: VenueResubmissionButtonProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  
+
   const {
     resubmit,
     isResubmitting,
@@ -74,12 +80,13 @@ export function VenueResubmissionButton({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-red-700 text-sm mb-3">
+            <div className="text-red-700 text-sm mb-3">
               <strong>Reason:</strong> {rejectionReason}
-            </p>
-            <p className="text-red-600 text-xs">
-              Please address the issues mentioned above before resubmitting your venue for review.
-            </p>
+            </div>
+            <div className="text-red-600 text-xs">
+              Please address the issues mentioned above before resubmitting your
+              venue for review.
+            </div>
           </CardContent>
         </Card>
       )}
@@ -97,12 +104,22 @@ export function VenueResubmissionButton({
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Attempts Remaining</span>
-            <Badge variant={attemptsRemaining > 2 ? "default" : attemptsRemaining > 0 ? "secondary" : "destructive"}>
+            <span className="text-sm text-muted-foreground">
+              Attempts Remaining
+            </span>
+            <Badge
+              variant={
+                attemptsRemaining > 2
+                  ? "default"
+                  : attemptsRemaining > 0
+                  ? "secondary"
+                  : "destructive"
+              }
+            >
               {attemptsRemaining} / 5
             </Badge>
           </div>
-          
+
           {cooldownEndsAt && (
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground flex items-center gap-1">
@@ -140,38 +157,47 @@ export function VenueResubmissionButton({
             {buttonState.text}
           </Button>
         </AlertDialogTrigger>
-        
+
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <RefreshCw className="h-5 w-5" />
               Resubmit Venue for Review
             </AlertDialogTitle>
-            <AlertDialogDescription className="space-y-3">
-              <p>
-                You are about to resubmit your venue for admin review. Please ensure you have:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm">
-                <li>Addressed all issues mentioned in the rejection reason</li>
-                <li>Updated venue information, photos, and descriptions as needed</li>
-                <li>Verified all venue details are accurate and complete</li>
-              </ul>
-              
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-4">
-                <div className="flex items-start gap-2">
-                  <Shield className="h-4 w-4 text-yellow-600 mt-0.5" />
-                  <div className="text-sm text-yellow-800">
-                    <p className="font-medium mb-1">Important Notice:</p>
-                    <p>
-                      Repeated submissions without addressing feedback may result in account restrictions. 
-                      You have <strong>{attemptsRemaining} attempts remaining</strong>.
-                    </p>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <div>
+                  You are about to resubmit your venue for admin review. Please
+                  ensure you have:
+                </div>
+                <ul className="list-disc list-inside space-y-1 text-sm">
+                  <li>
+                    Addressed all issues mentioned in the rejection reason
+                  </li>
+                  <li>
+                    Updated venue information, photos, and descriptions as
+                    needed
+                  </li>
+                  <li>Verified all venue details are accurate and complete</li>
+                </ul>
+
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-4">
+                  <div className="flex items-start gap-2">
+                    <Shield className="h-4 w-4 text-yellow-600 mt-0.5" />
+                    <div className="text-sm text-yellow-800">
+                      <div className="font-medium mb-1">Important Notice:</div>
+                      <div>
+                        Repeated submissions without addressing feedback may
+                        result in account restrictions. You have{" "}
+                        <strong>{attemptsRemaining} attempts remaining</strong>.
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          
+
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
