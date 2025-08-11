@@ -33,15 +33,16 @@ interface RazorpayResponse {
 }
 
 interface CreateOrderData {
-  bookingId: string;
-  amount: number;
+  timeSlotId: string;
+  courtId: string;
+  playerCount: number;
+  notes?: string;
 }
 
 interface VerifyPaymentData {
   razorpay_order_id: string;
   razorpay_payment_id: string;
   razorpay_signature: string;
-  bookingId: string;
 }
 
 // Declare Razorpay on window
@@ -113,7 +114,6 @@ export function useRazorpay() {
       console.log("🔐 [RAZORPAY HOOK] Verifying payment:", {
         orderId: data.razorpay_order_id,
         paymentId: data.razorpay_payment_id,
-        bookingId: data.bookingId,
       });
 
       const response = await fetch("/api/payments/verify", {
@@ -144,12 +144,13 @@ export function useRazorpay() {
 
   // Process payment
   const processPayment = async (
-    bookingData: {
-      id: string;
-      amount: number;
+    slotData: {
+      timeSlotId: string;
+      courtId: string;
+      playerCount: number;
       venueName: string;
       courtName: string;
-      bookingReference: string;
+      notes?: string;
     },
     userDetails: {
       name: string;
@@ -168,8 +169,10 @@ export function useRazorpay() {
 
       // Create order
       const orderResult = await createOrder({
-        bookingId: bookingData.id,
-        amount: bookingData.amount,
+        timeSlotId: slotData.timeSlotId,
+        courtId: slotData.courtId,
+        playerCount: slotData.playerCount,
+        notes: slotData.notes,
       });
 
       if (!orderResult.order) {
@@ -182,7 +185,7 @@ export function useRazorpay() {
         amount: orderResult.order.amount,
         currency: orderResult.order.currency,
         name: "Venue Booking Platform",
-        description: `Booking for ${bookingData.courtName} at ${bookingData.venueName}`,
+        description: `Booking for ${slotData.courtName} at ${slotData.venueName}`,
         order_id: orderResult.order.id,
         handler: async (response: RazorpayResponse) => {
           try {
@@ -191,7 +194,6 @@ export function useRazorpay() {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
-              bookingId: bookingData.id,
             });
 
             if (onSuccess) {
@@ -209,10 +211,12 @@ export function useRazorpay() {
           contact: userDetails.contact,
         },
         notes: {
-          bookingId: bookingData.id,
-          bookingReference: bookingData.bookingReference,
-          venueName: bookingData.venueName,
-          courtName: bookingData.courtName,
+          timeSlotId: slotData.timeSlotId,
+          courtId: slotData.courtId,
+          venueName: slotData.venueName,
+          courtName: slotData.courtName,
+          playerCount: slotData.playerCount.toString(),
+          notes: slotData.notes || "",
         },
         theme: {
           color: "#3B82F6",

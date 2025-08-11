@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { verifyRazorpaySignature, getRazorpayPayment } from "@/lib/razorpay";
+import { verifyRazorpaySignature, getRazorpayPayment, razorpay } from "@/lib/razorpay";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+
+// Helper function to generate booking reference
+function generateBookingReference(): string {
+  const timestamp = Date.now().toString(36);
+  const random = Math.random().toString(36).substring(2, 8);
+  return `BK${timestamp}${random}`.toUpperCase();
+}
 
 // Validation schema
 const verifyPaymentSchema = z.object({
@@ -80,15 +87,120 @@ export async function POST(request: NextRequest) {
 
     const payment = paymentResult.payment;
 
-    // Update booking with payment details
-    const updatedBooking = await prisma.booking.update({
-      where: { id: bookingId },
+    // Get order details to extract booking information
+    const orderResult = await razorpay.orders.fetch(razorpay_order_id);
+    if (!orderResult || !orderResult.notes) {
+      console.error("❌ [PAYMENT VERIFY] Failed to fetch order details");
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Failed to verify order details"
+        },
+        { status: 500 }
+      );
+    }
+
+    const orderNotes = orderResult.notes;
+    console.log("📋 [PAYMENT VERIFY] Order notes:", orderNotes);
+
+    // Extract booking details from order notes
+    const {
+      timeSlotId,
+      courtId,
+      venueName,
+      courtName,
+      userEmail,
+      slotDate,
+      slotStartTime,
+      slotEndTime,
+      playerCount,
+      notes,
+    } = orderNotes;
+
+    // Validate that the order belongs to the current user
+    if (orderNotes.userId !== session.user.id) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Access denied"
+        },
+        { status: 403 }
+      );
+    }
+
+    // Create booking after successful payment
+    console.log("🚀 [PAYMENT VERIFY] Creating booking after successful payment");
+
+    const slotDateTime = new Date(`${slotDate}T${slotStartTime}:00`);
+    const slotEndDateTime = new Date(`${slotDate}T${slotEndTime}:00`);
+
+    // Final conflict check before creating booking
+    const existingBookings = await prisma.booking.findMany({
+      where: {
+        courtId: courtId,
+        startTime: {
+          gte: slotDateTime,
+          lt: slotEndDateTime,
+        },
+        status: {
+          in: ["PENDING", "CONFIRMED"],
+        },
+      },
+    });
+
+    // Get court details for capacity check
+    const court = await prisma.court.findUnique({
+      where: { id: courtId },
+      include: {
+        venue: true,
+      },
+    });
+
+    if (!court) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Court not found"
+        },
+        { status: 404 }
+      );
+    }
+
+    const maxCapacity = court.capacity;
+    const currentBookedPlayers = existingBookings.reduce(
+      (total, booking) => total + booking.playerCount,
+      0
+    );
+
+    if (currentBookedPlayers + parseInt(playerCount) > maxCapacity) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Slot no longer available. Capacity exceeded.`
+        },
+        { status: 409 }
+      );
+    }
+
+    // Create the booking
+    const createdBooking = await prisma.booking.create({
       data: {
-        paymentId: razorpay_payment_id,
-        paymentStatus: "PAID",
+        userId: session.user.id,
+        courtId: courtId,
+        timeSlotId: null, // No database time slot for dynamic slots
+        bookingDate: slotDateTime,
+        startTime: slotDateTime,
+        endTime: slotEndDateTime,
+        duration: 60, // 1 hour
+        totalPrice: payment.amount / 100, // Convert from paise to rupees
+        playerCount: parseInt(playerCount),
+        bookingReference: generateBookingReference(),
+        notes: notes || undefined,
         status: "CONFIRMED",
-        paidAt: new Date(),
+        paymentStatus: "PAID",
+        paymentId: razorpay_payment_id,
         paymentMethod: payment.method || "razorpay",
+        paidAt: new Date(),
         paymentDetails: {
           orderId: razorpay_order_id,
           paymentId: razorpay_payment_id,
@@ -116,27 +228,28 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log("✅ [PAYMENT VERIFY] Payment verified successfully:", {
-      bookingId: updatedBooking.id,
+    console.log("✅ [PAYMENT VERIFY] Payment verified and booking created successfully:", {
+      bookingId: createdBooking.id,
       paymentId: razorpay_payment_id,
       amount: payment.amount,
-      status: updatedBooking.paymentStatus,
+      status: createdBooking.paymentStatus,
+      bookingReference: createdBooking.bookingReference,
     });
 
     return NextResponse.json({
       success: true,
       booking: {
-        id: updatedBooking.id,
-        bookingReference: updatedBooking.bookingReference,
-        status: updatedBooking.status,
-        paymentStatus: updatedBooking.paymentStatus,
-        paidAt: updatedBooking.paidAt,
-        venueName: updatedBooking.court.venue.name,
-        courtName: updatedBooking.court.name,
-        startTime: updatedBooking.startTime,
-        endTime: updatedBooking.endTime,
-        playerCount: updatedBooking.playerCount,
-        totalPrice: updatedBooking.totalPrice,
+        id: createdBooking.id,
+        bookingReference: createdBooking.bookingReference,
+        status: createdBooking.status,
+        paymentStatus: createdBooking.paymentStatus,
+        paidAt: createdBooking.paidAt,
+        venueName: createdBooking.court.venue.name,
+        courtName: createdBooking.court.name,
+        startTime: createdBooking.startTime,
+        endTime: createdBooking.endTime,
+        playerCount: createdBooking.playerCount,
+        totalPrice: createdBooking.totalPrice,
       },
       payment: {
         id: payment.id,

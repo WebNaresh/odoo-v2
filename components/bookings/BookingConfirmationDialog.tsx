@@ -104,63 +104,56 @@ export function BookingConfirmationDialog({
         return;
       }
 
-      // Create the booking
-      const result = await createBookingMutation.mutateAsync({
-        courtId: timeSlot.courtId,
+      console.log("✅ [BOOKING] Slot available, initiating payment:", {
         timeSlotId: timeSlot.id,
+        courtId: timeSlot.courtId,
         playerCount,
-        notes: notes.trim() || undefined,
       });
 
-      if (result.success && result.booking) {
-        console.log("✅ [BOOKING] Booking created, initiating payment:", {
-          bookingId: result.booking.id,
-          amount: result.booking.totalPrice,
-        });
+      // Initiate Razorpay payment (booking will be created after successful payment)
+      await processPayment(
+        {
+          timeSlotId: timeSlot.id,
+          courtId: timeSlot.courtId,
+          playerCount,
+          venueName: timeSlot.venueName,
+          courtName: timeSlot.courtName,
+          notes: notes.trim() || undefined,
+        },
+        {
+          name: session.user.name || "User",
+          email: session.user.email || "",
+          contact: session.user.phone || undefined,
+        },
+        // Payment success callback
+        (paymentResult) => {
+          console.log(
+            "✅ [BOOKING] Payment successful, booking created:",
+            paymentResult
+          );
+          setStep("success");
 
-        // Initiate Razorpay payment
-        await processPayment(
-          {
-            id: result.booking.id,
-            amount: result.booking.totalPrice,
-            venueName: timeSlot.venueName,
-            courtName: timeSlot.courtName,
-            bookingReference: result.booking.bookingReference,
-          },
-          {
-            name: session.user.name || "User",
-            email: session.user.email || "",
-            contact: session.user.phone || undefined,
-          },
-          // Payment success callback
-          (paymentResult) => {
-            console.log("✅ [BOOKING] Payment successful:", paymentResult);
-            setStep("success");
-
-            // Call onSuccess callback if provided
-            if (onSuccess) {
-              // For queue bookings, call onSuccess immediately
-              setTimeout(() => {
-                onSuccess();
-              }, 1500);
-            } else {
-              // Auto-close after 3 seconds for single bookings
-              setTimeout(() => {
-                handleClose();
-              }, 3000);
-            }
-          },
-          // Payment failure callback
-          (error) => {
-            console.error("❌ [BOOKING] Payment failed:", error);
-            setStep("error");
+          // Call onSuccess callback if provided
+          if (onSuccess) {
+            // For queue bookings, call onSuccess immediately
+            setTimeout(() => {
+              onSuccess();
+            }, 1500);
+          } else {
+            // Auto-close after 3 seconds for single bookings
+            setTimeout(() => {
+              handleClose();
+            }, 3000);
           }
-        );
-      } else {
-        setStep("error");
-      }
+        },
+        // Payment failure callback
+        (error) => {
+          console.error("❌ [BOOKING] Payment failed:", error);
+          setStep("error");
+        }
+      );
     } catch (error) {
-      console.error("❌ [BOOKING] Booking error:", error);
+      console.error("❌ [BOOKING] Process error:", error);
       setStep("error");
     }
   };
