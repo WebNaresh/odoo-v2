@@ -151,7 +151,7 @@ export function MainNav() {
         return {
           greeting: "Facility Owner",
           dashboardLink: "/owner/dashboard",
-          primaryAction: "Manage Venues",
+          primaryAction: "Dashboard",
         };
       case "ADMIN":
         return {
