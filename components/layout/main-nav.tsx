@@ -38,6 +38,15 @@ import {
   Trophy,
   BookOpen,
   CreditCard,
+  Bell,
+  Heart,
+  Star,
+  ChevronDown,
+  X,
+  Zap,
+  Globe,
+  Phone,
+  Mail,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -186,26 +195,32 @@ export function MainNav() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-primary/10 bg-white/80 backdrop-blur-md supports-[backdrop-filter]:bg-white/60 shadow-sm">
-      <div className="container mx-auto px-3 sm:px-4 lg:px-6">
-        <div className="flex h-14 sm:h-16 lg:h-18 items-center justify-between">
-          {/* Enhanced Responsive Logo */}
+    <header className="sticky top-0 z-50 w-full border-b border-[#00884d]/10 bg-white/95 backdrop-blur-xl supports-[backdrop-filter]:bg-white/90 shadow-lg">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 sm:h-18 lg:h-20 items-center justify-between">
+          {/* Enhanced Logo with Animation */}
           <Link
             href="/"
-            className="flex items-center space-x-2 sm:space-x-3 group flex-shrink-0"
+            className="flex items-center space-x-3 group flex-shrink-0 hover:scale-105 transition-all duration-300"
           >
-            <div className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 rounded-xl bg-gradient-primary flex items-center justify-center shadow-primary group-hover:scale-105 transition-transform duration-200">
-              <span className="text-white font-bold text-sm sm:text-lg lg:text-xl">
-                Q
-              </span>
+            <div className="relative">
+              <div className="h-10 w-10 sm:h-12 sm:w-12 lg:h-14 lg:w-14 rounded-2xl bg-gradient-to-br from-[#00884d] to-[#00a855] flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-300">
+                <span className="text-white font-bold text-lg sm:text-xl lg:text-2xl">
+                  Q
+                </span>
+              </div>
+              <div className="absolute -inset-1 bg-gradient-to-br from-[#00884d] to-[#00a855] rounded-2xl blur opacity-20 group-hover:opacity-40 transition-opacity duration-300"></div>
             </div>
-            <span className="font-bold text-lg sm:text-xl lg:text-2xl text-gradient-primary hidden xs:block">
-              QuickCourt
-            </span>
+            <div className="hidden sm:block">
+              <span className="font-bold text-xl sm:text-2xl lg:text-3xl bg-gradient-to-r from-[#00884d] to-[#00a855] bg-clip-text text-transparent">
+                QuickCourt
+              </span>
+              <div className="text-xs text-gray-500 font-medium">Sports Booking Platform</div>
+            </div>
           </Link>
 
-          {/* Enhanced Responsive Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-1 xl:space-x-2 text-sm font-medium flex-1 justify-center max-w-2xl mx-8">
+          {/* Enhanced Desktop Navigation */}
+          <nav className="hidden lg:flex items-center space-x-2 xl:space-x-4 text-sm font-medium flex-1 justify-center max-w-3xl mx-8">
             {filteredNavItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -214,168 +229,275 @@ export function MainNav() {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex items-center space-x-2 px-3 py-2 rounded-xl transition-all duration-200 hover:bg-primary/10 whitespace-nowrap",
+                    "group relative flex items-center space-x-2 px-4 py-3 rounded-2xl transition-all duration-300 hover:scale-105 whitespace-nowrap",
                     isActive
-                      ? "text-primary bg-primary/10 font-semibold shadow-sm"
-                      : "text-foreground/70 hover:text-primary"
+                      ? "text-white bg-gradient-to-r from-[#00884d] to-[#00a855] font-semibold shadow-lg"
+                      : "text-gray-600 hover:text-[#00884d] hover:bg-[#00884d]/5"
                   )}
                 >
                   {Icon && <Icon className="h-4 w-4 flex-shrink-0" />}
-                  <span className="hidden xl:inline">{item.title}</span>
-                  <span className="xl:hidden">{item.title.split(" ")[0]}</span>
+                  <span className="hidden xl:inline font-medium">{item.title}</span>
+                  <span className="xl:hidden font-medium">{item.title.split(" ")[0]}</span>
+
+                  {/* Active indicator */}
+                  {isActive && (
+                    <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full"></div>
+                  )}
+
+                  {/* Hover effect */}
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-[#00884d] to-[#00a855] opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
                 </Link>
               );
             })}
           </nav>
 
-          {/* Enhanced Responsive Right Actions */}
-          <div className="flex items-center space-x-2 sm:space-x-3 lg:space-x-4 flex-shrink-0">
-            {/* Enhanced Responsive Search Button */}
+          {/* Enhanced Right Actions */}
+          <div className="flex items-center space-x-3 lg:space-x-4 flex-shrink-0">
+            {/* Enhanced Search Button */}
             <Button
               variant="outline"
               size="sm"
               className={cn(
-                "relative transition-all duration-200 border-primary/20 hover:bg-primary/10 hover:border-primary/30",
-                "h-8 w-8 p-0 sm:h-9 sm:w-9 md:h-10 md:w-10",
-                "lg:w-48 xl:w-60 lg:justify-start lg:px-3 lg:py-2"
+                "relative group transition-all duration-300 border-[#00884d]/20 hover:bg-[#00884d]/5 hover:border-[#00884d]/40 hover:scale-105",
+                "h-10 w-10 p-0 sm:h-11 sm:w-11",
+                "lg:w-56 xl:w-64 lg:justify-start lg:px-4 lg:py-3"
               )}
-              onClick={() => router.push("/search")}
+              onClick={() => router.push("/venues")}
             >
-              <Search className="h-3 w-3 sm:h-4 sm:w-4 lg:mr-2 text-primary" />
-              <span className="hidden lg:inline-flex text-muted-foreground">
+              <Search className="h-4 w-4 lg:mr-3 text-[#00884d] group-hover:scale-110 transition-transform duration-200" />
+              <span className="hidden lg:inline-flex text-gray-500 group-hover:text-[#00884d] transition-colors duration-200">
                 {userRole === "FACILITY_OWNER"
-                  ? "Search venues..."
+                  ? "Search your venues..."
                   : userRole === "ADMIN"
                   ? "Search platform..."
-                  : "Search venues..."}
+                  : "Search venues & sports..."}
               </span>
+              <div className="hidden lg:block absolute right-3 top-1/2 transform -translate-y-1/2">
+                <kbd className="px-2 py-1 text-xs bg-gray-100 rounded border">⌘K</kbd>
+              </div>
             </Button>
 
-            {/* Enhanced Responsive User Menu */}
+            {/* Notifications (for authenticated users) */}
+            {session && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="relative h-10 w-10 p-0 border-[#00884d]/20 hover:bg-[#00884d]/5 hover:border-[#00884d]/40 hover:scale-105 transition-all duration-300"
+                onClick={() => router.push("/notifications")}
+              >
+                <Bell className="h-4 w-4 text-[#00884d]" />
+                {/* Notification badge */}
+                <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full flex items-center justify-center">
+                  <span className="text-[10px] text-white font-bold">3</span>
+                </span>
+              </Button>
+            )}
+
+            {/* Enhanced User Menu */}
             {status === "loading" ? (
-              <div className="h-8 w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 rounded-full bg-muted animate-pulse" />
+              <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-gradient-to-r from-gray-200 to-gray-300 animate-pulse" />
             ) : session ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="relative h-8 w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 rounded-full hover:bg-primary/10 transition-colors"
+                    className="relative h-10 w-10 sm:h-11 sm:w-11 rounded-full hover:bg-[#00884d]/10 transition-all duration-300 hover:scale-105 group"
                   >
-                    <Avatar className="h-8 w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 border-2 border-primary/20">
+                    <Avatar className="h-10 w-10 sm:h-11 sm:w-11 border-2 border-[#00884d]/20 group-hover:border-[#00884d]/40 transition-colors duration-300">
                       <AvatarImage
                         src={session.user?.image || ""}
                         alt={session.user?.name || ""}
                       />
-                      <AvatarFallback className="bg-gradient-primary text-white font-semibold text-sm sm:text-base">
+                      <AvatarFallback className="bg-gradient-to-br from-[#00884d] to-[#00a855] text-white font-bold text-sm sm:text-base">
                         {session.user?.name?.charAt(0) || "U"}
                       </AvatarFallback>
                     </Avatar>
+                    {/* Online indicator */}
+                    <div className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 border-2 border-white rounded-full"></div>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-64" align="end" forceMount>
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">
-                        {session.user?.name}
-                      </p>
-                      <p className="text-xs leading-none text-muted-foreground">
-                        {session.user?.email}
-                      </p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <span className="text-xs leading-none text-muted-foreground">
-                          {roleInfo.greeting}
-                        </span>
-                        {userRole === "FACILITY_OWNER" && (
-                          <Building2 className="h-3 w-3 text-blue-500" />
-                        )}
-                        {userRole === "ADMIN" && (
-                          <Shield className="h-3 w-3 text-red-500" />
-                        )}
-                        {userRole === "USER" && (
-                          <User className="h-3 w-3 text-green-500" />
-                        )}
+                <DropdownMenuContent className="w-80 p-2" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal p-4">
+                    <div className="flex items-start space-x-3">
+                      <Avatar className="h-12 w-12 border-2 border-[#00884d]/20">
+                        <AvatarImage
+                          src={session.user?.image || ""}
+                          alt={session.user?.name || ""}
+                        />
+                        <AvatarFallback className="bg-gradient-to-br from-[#00884d] to-[#00a855] text-white font-bold">
+                          {session.user?.name?.charAt(0) || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 space-y-1">
+                        <p className="text-base font-semibold leading-none text-gray-900">
+                          {session.user?.name}
+                        </p>
+                        <p className="text-sm leading-none text-gray-500">
+                          {session.user?.email}
+                        </p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <div className="flex items-center gap-1 px-2 py-1 bg-[#00884d]/10 rounded-full">
+                            {userRole === "FACILITY_OWNER" && (
+                              <Building2 className="h-3 w-3 text-[#00884d]" />
+                            )}
+                            {userRole === "ADMIN" && (
+                              <Shield className="h-3 w-3 text-[#00884d]" />
+                            )}
+                            {userRole === "USER" && (
+                              <User className="h-3 w-3 text-[#00884d]" />
+                            )}
+                            <span className="text-xs font-medium text-[#00884d]">
+                              {roleInfo.greeting}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
+                  <DropdownMenuSeparator className="my-2" />
 
-                  {/* Role-specific dashboard link */}
-                  <DropdownMenuItem
-                    onClick={() => router.push(roleInfo.dashboardLink)}
-                  >
-                    <Home className="mr-2 h-4 w-4" />
-                    <span>{roleInfo.primaryAction}</span>
-                  </DropdownMenuItem>
+                  {/* Enhanced Menu Items */}
+                  <div className="px-2 py-1">
+                    <DropdownMenuItem
+                      onClick={() => router.push(roleInfo.dashboardLink)}
+                      className="flex items-center space-x-3 px-3 py-3 rounded-xl hover:bg-[#00884d]/5 transition-colors duration-200 cursor-pointer"
+                    >
+                      <div className="w-8 h-8 bg-[#00884d]/10 rounded-lg flex items-center justify-center">
+                        <Home className="h-4 w-4 text-[#00884d]" />
+                      </div>
+                      <div className="flex-1">
+                        <span className="font-medium text-gray-900">{roleInfo.primaryAction}</span>
+                        <p className="text-xs text-gray-500">Access your main dashboard</p>
+                      </div>
+                    </DropdownMenuItem>
 
-                  {/* Common profile and settings */}
-                  <DropdownMenuItem onClick={() => router.push("/profile")}>
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => router.push("/settings")}>
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
-                  </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => router.push("/profile")}
+                      className="flex items-center space-x-3 px-3 py-3 rounded-xl hover:bg-[#00884d]/5 transition-colors duration-200 cursor-pointer"
+                    >
+                      <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <User className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div className="flex-1">
+                        <span className="font-medium text-gray-900">Profile</span>
+                        <p className="text-xs text-gray-500">Manage your account details</p>
+                      </div>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      onClick={() => router.push("/settings")}
+                      className="flex items-center space-x-3 px-3 py-3 rounded-xl hover:bg-[#00884d]/5 transition-colors duration-200 cursor-pointer"
+                    >
+                      <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <Settings className="h-4 w-4 text-gray-600" />
+                      </div>
+                      <div className="flex-1">
+                        <span className="font-medium text-gray-900">Settings</span>
+                        <p className="text-xs text-gray-500">Preferences and privacy</p>
+                      </div>
+                    </DropdownMenuItem>
+                  </div>
 
                   {/* Role-specific quick actions */}
-                  {/* Facility Owner navigation moved to dedicated sidebar */}
-
                   {userRole === "USER" && (
                     <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => router.push("/bookings")}
-                      >
-                        <Calendar className="mr-2 h-4 w-4" />
-                        <span>My Bookings</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => router.push("/venues")}>
-                        <MapPin className="mr-2 h-4 w-4" />
-                        <span>Browse Venues</span>
-                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="my-2" />
+                      <div className="px-2 py-1">
+                        <DropdownMenuItem
+                          onClick={() => router.push("/bookings")}
+                          className="flex items-center space-x-3 px-3 py-3 rounded-xl hover:bg-[#00884d]/5 transition-colors duration-200 cursor-pointer"
+                        >
+                          <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                            <Calendar className="h-4 w-4 text-green-600" />
+                          </div>
+                          <div className="flex-1">
+                            <span className="font-medium text-gray-900">My Bookings</span>
+                            <p className="text-xs text-gray-500">View your reservations</p>
+                          </div>
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem
+                          onClick={() => router.push("/venues")}
+                          className="flex items-center space-x-3 px-3 py-3 rounded-xl hover:bg-[#00884d]/5 transition-colors duration-200 cursor-pointer"
+                        >
+                          <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <MapPin className="h-4 w-4 text-purple-600" />
+                          </div>
+                          <div className="flex-1">
+                            <span className="font-medium text-gray-900">Browse Venues</span>
+                            <p className="text-xs text-gray-500">Find sports facilities</p>
+                          </div>
+                        </DropdownMenuItem>
+                      </div>
                     </>
                   )}
 
                   {userRole === "ADMIN" && (
                     <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => router.push("/admin/users")}
-                      >
-                        <Users className="mr-2 h-4 w-4" />
-                        <span>User Management</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => router.push("/admin/venues")}
-                      >
-                        <Building2 className="mr-2 h-4 w-4" />
-                        <span>Venue Approval</span>
-                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="my-2" />
+                      <div className="px-2 py-1">
+                        <DropdownMenuItem
+                          onClick={() => router.push("/admin/users")}
+                          className="flex items-center space-x-3 px-3 py-3 rounded-xl hover:bg-[#00884d]/5 transition-colors duration-200 cursor-pointer"
+                        >
+                          <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                            <Users className="h-4 w-4 text-orange-600" />
+                          </div>
+                          <div className="flex-1">
+                            <span className="font-medium text-gray-900">User Management</span>
+                            <p className="text-xs text-gray-500">Manage platform users</p>
+                          </div>
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem
+                          onClick={() => router.push("/admin/venues")}
+                          className="flex items-center space-x-3 px-3 py-3 rounded-xl hover:bg-[#00884d]/5 transition-colors duration-200 cursor-pointer"
+                        >
+                          <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+                            <Building2 className="h-4 w-4 text-red-600" />
+                          </div>
+                          <div className="flex-1">
+                            <span className="font-medium text-gray-900">Venue Approval</span>
+                            <p className="text-xs text-gray-500">Review venue submissions</p>
+                          </div>
+                        </DropdownMenuItem>
+                      </div>
                     </>
                   )}
 
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
-                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="my-2" />
+                  <div className="px-2 py-1">
+                    <DropdownMenuItem
+                      onClick={handleSignOut}
+                      className="flex items-center space-x-3 px-3 py-3 rounded-xl hover:bg-red-50 transition-colors duration-200 cursor-pointer text-red-600"
+                    >
+                      <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+                        <LogOut className="h-4 w-4 text-red-600" />
+                      </div>
+                      <div className="flex-1">
+                        <span className="font-medium">Sign Out</span>
+                        <p className="text-xs text-red-500">End your session</p>
+                      </div>
+                    </DropdownMenuItem>
+                  </div>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="flex items-center space-x-3">
                 <Button
                   onClick={handleSignIn}
                   variant="ghost"
                   size="sm"
-                  className="text-primary hover:bg-primary/10 font-semibold hidden sm:flex"
+                  className="text-[#00884d] hover:bg-[#00884d]/10 font-semibold hidden sm:flex px-4 py-2 rounded-xl transition-all duration-300"
                 >
                   Sign In
                 </Button>
                 <Button
                   onClick={() => router.push("/auth/signin")}
                   size="sm"
-                  className="bg-gradient-primary hover:shadow-primary text-white font-semibold px-3 sm:px-4 lg:px-6 rounded-xl transition-all duration-200 hover:scale-105 text-xs sm:text-sm"
+                  className="bg-gradient-to-r from-[#00884d] to-[#00a855] hover:from-[#00a855] hover:to-[#00884d] text-white font-bold px-4 sm:px-6 lg:px-8 py-2 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-xl shadow-lg text-sm"
                 >
+                  <Zap className="h-4 w-4 mr-2" />
                   <span className="sm:hidden">Join</span>
                   <span className="hidden sm:inline">Get Started</span>
                 </Button>
@@ -402,23 +524,35 @@ export function MainNav() {
                   <SheetTitle>Navigation Menu</SheetTitle>
                 </SheetHeader>
                 <div className="flex flex-col h-full">
-                  {/* Mobile Header */}
-                  <div className="flex items-center justify-between p-4 sm:p-6 border-b border-primary/10">
-                    <div className="flex items-center space-x-3">
-                      <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-primary">
-                        <span className="text-white font-bold text-sm sm:text-lg">
-                          Q
-                        </span>
+                  {/* Enhanced Mobile Header */}
+                  <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-white">
+                    <div className="flex items-center space-x-4">
+                      <div className="relative">
+                        <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-[#00884d] to-[#00a855] flex items-center justify-center shadow-xl">
+                          <span className="text-white font-bold text-xl">Q</span>
+                        </div>
+                        <div className="absolute -inset-1 bg-gradient-to-br from-[#00884d] to-[#00a855] rounded-2xl blur opacity-20"></div>
                       </div>
-                      <span className="font-bold text-lg sm:text-xl text-gradient-primary">
-                        QuickCourt
-                      </span>
+                      <div>
+                        <span className="font-bold text-2xl bg-gradient-to-r from-[#00884d] to-[#00a855] bg-clip-text text-transparent">
+                          QuickCourt
+                        </span>
+                        <div className="text-sm text-gray-500 font-medium">Sports Booking Platform</div>
+                      </div>
                     </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsOpen(false)}
+                      className="h-8 w-8 p-0 hover:bg-gray-100 rounded-lg"
+                    >
+                      <X className="h-4 w-4 text-gray-500" />
+                    </Button>
                   </div>
 
-                  {/* Mobile Navigation */}
-                  <nav className="flex flex-col space-y-1 p-4 sm:p-6 flex-1">
-                    {filteredNavItems.map((item) => {
+                  {/* Enhanced Mobile Navigation */}
+                  <nav className="flex flex-col space-y-2 p-6 flex-1 bg-gradient-to-b from-white to-gray-50">
+                    {filteredNavItems.map((item, index) => {
                       const Icon = item.icon;
                       const isActive = pathname === item.href;
                       return (
@@ -426,17 +560,31 @@ export function MainNav() {
                           key={item.href}
                           href={item.href}
                           className={cn(
-                            "flex items-center space-x-3 px-4 py-3 sm:py-4 rounded-xl text-base sm:text-lg font-medium transition-all duration-200",
+                            "group flex items-center space-x-4 px-4 py-4 rounded-2xl text-lg font-semibold transition-all duration-300 hover:scale-[1.02]",
                             isActive
-                              ? "text-primary bg-primary/10 font-semibold shadow-sm"
-                              : "text-foreground/70 hover:text-primary hover:bg-primary/5"
+                              ? "text-white bg-gradient-to-r from-[#00884d] to-[#00a855] shadow-lg"
+                              : "text-gray-700 hover:text-[#00884d] hover:bg-[#00884d]/5"
                           )}
                           onClick={() => setIsOpen(false)}
+                          style={{ animationDelay: `${index * 50}ms` }}
                         >
-                          {Icon && (
-                            <Icon className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0" />
+                          <div className={cn(
+                            "w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-300",
+                            isActive
+                              ? "bg-white/20"
+                              : "bg-gray-100 group-hover:bg-[#00884d]/10"
+                          )}>
+                            {Icon && (
+                              <Icon className={cn(
+                                "h-5 w-5 transition-colors duration-300",
+                                isActive ? "text-white" : "text-gray-600 group-hover:text-[#00884d]"
+                              )} />
+                            )}
+                          </div>
+                          <span className="flex-1">{item.title}</span>
+                          {isActive && (
+                            <div className="w-2 h-2 bg-white rounded-full"></div>
                           )}
-                          <span>{item.title}</span>
                         </Link>
                       );
                     })}
@@ -446,7 +594,7 @@ export function MainNav() {
                       variant="outline"
                       className="flex items-center justify-start space-x-3 px-4 py-3 sm:py-4 rounded-xl text-base sm:text-lg font-medium border-primary/20 hover:bg-primary/5 mt-4"
                       onClick={() => {
-                        router.push("/search");
+                        router.push("/venues");
                         setIsOpen(false);
                       }}
                     >
