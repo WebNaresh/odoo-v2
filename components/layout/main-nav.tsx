@@ -262,7 +262,7 @@ export function MainNav() {
                 "h-10 w-10 p-0 sm:h-11 sm:w-11",
                 "lg:w-56 xl:w-64 lg:justify-start lg:px-4 lg:py-3"
               )}
-              onClick={() => router.push("/search")}
+              onClick={() => router.push("/venues")}
             >
               <Search className="h-4 w-4 lg:mr-3 text-[#00884d] group-hover:scale-110 transition-transform duration-200" />
               <span className="hidden lg:inline-flex text-gray-500 group-hover:text-[#00884d] transition-colors duration-200">
@@ -594,7 +594,7 @@ export function MainNav() {
                       variant="outline"
                       className="flex items-center justify-start space-x-3 px-4 py-3 sm:py-4 rounded-xl text-base sm:text-lg font-medium border-primary/20 hover:bg-primary/5 mt-4"
                       onClick={() => {
-                        router.push("/search");
+                        router.push("/venues");
                         setIsOpen(false);
                       }}
                     >
