@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { verifyRazorpaySignature, getRazorpayPayment, razorpay } from "@/lib/razorpay";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { sendBookingConfirmationEmailWithRetry, formatBookingDataForEmail } from "@/lib/booking-email";
 
 // Helper function to generate booking reference
 function generateBookingReference(): string {
@@ -255,6 +256,40 @@ export async function POST(request: NextRequest) {
       status: createdBooking.paymentStatus,
       bookingReference: createdBooking.bookingReference,
     });
+
+    // Send booking confirmation email
+    try {
+      console.log("📧 [PAYMENT VERIFY] Sending booking confirmation email...");
+
+      const emailData = formatBookingDataForEmail(
+        createdBooking,
+        createdBooking.user,
+        createdBooking.court,
+        createdBooking.court.venue,
+        {
+          paymentId: razorpay_payment_id,
+          paymentMethod: payment.method || 'Razorpay',
+          amount: payment.amount,
+        }
+      );
+
+      // Send email with retry mechanism (don't block the response)
+      sendBookingConfirmationEmailWithRetry(emailData, 3)
+        .then((emailSent) => {
+          if (emailSent) {
+            console.log("✅ [PAYMENT VERIFY] Booking confirmation email sent successfully");
+          } else {
+            console.error("❌ [PAYMENT VERIFY] Failed to send booking confirmation email");
+          }
+        })
+        .catch((error) => {
+          console.error("❌ [PAYMENT VERIFY] Error sending booking confirmation email:", error);
+        });
+
+    } catch (error) {
+      console.error("❌ [PAYMENT VERIFY] Error preparing booking confirmation email:", error);
+      // Don't fail the payment verification if email fails
+    }
 
     return NextResponse.json({
       success: true,
