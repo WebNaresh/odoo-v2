@@ -54,8 +54,16 @@ export default function SignIn() {
   ];
 
   useEffect(() => {
-    // Check if user is already signed in
+    // Check if user is already signed in, but don't redirect if we're in the middle of role selection flow
     const checkSession = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const stepParam = urlParams.get("step");
+
+      // If we have step=check, let the role selection flow handle the redirect
+      if (stepParam === "check") {
+        return;
+      }
+
       const session = await getSession();
       if (session) {
         router.push("/");
@@ -139,8 +147,9 @@ export default function SignIn() {
       const userCreated = new Date(user.createdAt);
       const timeDiff = now.getTime() - userCreated.getTime();
 
-      // If user was created within the last 2 minutes, show role selection
-      if (timeDiff < 120000) {
+      // If user was created within the last 10 minutes, show role selection
+      // This gives enough time for the OAuth flow and any delays
+      if (timeDiff < 600000) {
         setIsNewUser(true);
         setAuthStep("role-selection");
         return;
