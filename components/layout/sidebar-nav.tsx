@@ -4,22 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
-import {
-  Calendar,
-  User,
-  Settings,
-  Building2,
-  BarChart3,
-  Users,
-  Shield,
-  CheckCircle,
-  MessageSquare,
-  CreditCard,
-  MapPin,
-  Clock,
-  Star,
-  FileText,
-} from "lucide-react";
+import { Calendar, User, Settings, Shield, CheckCircle } from "lucide-react";
 
 interface SidebarNavItem {
   title: string;
@@ -52,45 +37,9 @@ const userNavItems: SidebarNavItem[] = [
 
 const facilityOwnerNavItems: SidebarNavItem[] = [
   {
-    title: "Dashboard",
-    href: "/dashboard/owner",
-    icon: BarChart3,
-    roles: ["FACILITY_OWNER", "ADMIN"],
-  },
-  {
-    title: "My Facilities",
-    href: "/dashboard/facilities",
-    icon: Building2,
-    roles: ["FACILITY_OWNER", "ADMIN"],
-  },
-  {
-    title: "Bookings",
-    href: "/dashboard/owner/bookings",
-    icon: Calendar,
-    roles: ["FACILITY_OWNER", "ADMIN"],
-  },
-  {
-    title: "Courts",
-    href: "/dashboard/courts",
-    icon: MapPin,
-    roles: ["FACILITY_OWNER", "ADMIN"],
-  },
-  {
-    title: "Schedule",
-    href: "/dashboard/schedule",
-    icon: Clock,
-    roles: ["FACILITY_OWNER", "ADMIN"],
-  },
-  {
-    title: "Reviews",
-    href: "/dashboard/reviews",
-    icon: Star,
-    roles: ["FACILITY_OWNER", "ADMIN"],
-  },
-  {
-    title: "Payments",
-    href: "/dashboard/payments",
-    icon: CreditCard,
+    title: "Owner Portal",
+    href: "/owner",
+    icon: Settings,
     roles: ["FACILITY_OWNER", "ADMIN"],
   },
 ];
@@ -103,35 +52,11 @@ const adminNavItems: SidebarNavItem[] = [
     roles: ["ADMIN"],
   },
   {
-    title: "Facility Approvals",
+    title: "Venue Approvals",
     href: "/admin/approvals",
     icon: CheckCircle,
     roles: ["ADMIN"],
     badge: "3",
-  },
-  {
-    title: "User Management",
-    href: "/admin/users",
-    icon: Users,
-    roles: ["ADMIN"],
-  },
-  {
-    title: "All Facilities",
-    href: "/admin/facilities",
-    icon: Building2,
-    roles: ["ADMIN"],
-  },
-  {
-    title: "Reports",
-    href: "/admin/reports",
-    icon: FileText,
-    roles: ["ADMIN"],
-  },
-  {
-    title: "Content Moderation",
-    href: "/admin/moderation",
-    icon: MessageSquare,
-    roles: ["ADMIN"],
   },
 ];
 
@@ -212,7 +137,7 @@ export function SidebarNav({ className }: SidebarNavProps) {
       {groupedItems.owner.length > 0 && (
         <div className="space-y-1">
           <h4 className="text-sm font-medium text-muted-foreground px-3 py-2 mt-4">
-            Facility Management
+            Venue Management
           </h4>
           {groupedItems.owner.map((item) => {
             const Icon = item.icon;

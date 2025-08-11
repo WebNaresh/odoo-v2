@@ -6,12 +6,11 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { UserProfileSection } from "@/components/layout/user-profile-section";
 import {
   Building2,
   BarChart3,
   ClipboardList,
-  Trophy,
-  BookOpen,
   Settings,
   Home,
   Plus,
@@ -191,14 +190,9 @@ export default function OwnerSidebar({ className }: OwnerSidebarProps) {
             </div>
           </ScrollArea>
 
-          {/* Footer */}
-          <div className="p-4 border-t">
-            {!isCollapsed && (
-              <div className="text-xs text-muted-foreground">
-                <p className="font-medium">Facility Owner Portal</p>
-                <p>Manage your sports venues</p>
-              </div>
-            )}
+          {/* User Profile Section */}
+          <div className="border-t">
+            <UserProfileSection isCollapsed={isCollapsed} />
           </div>
         </div>
       </div>
