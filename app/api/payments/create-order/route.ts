@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { timeSlotId, courtId, playerCount, notes } = validationResult.data;
+    const { timeSlotId, courtId, playerCount, notes: userNotes } = validationResult.data;
 
     console.log("🔍 [PAYMENT ORDER] Validating slot availability:", {
       timeSlotId,
@@ -205,7 +205,7 @@ export async function POST(request: NextRequest) {
       slotStartTime,
       slotEndTime,
       playerCount: playerCount.toString(),
-      notes: notes || "",
+      notes: userNotes || "",
     };
 
     const orderResult = await createRazorpayOrder(amount, receipt, notes);

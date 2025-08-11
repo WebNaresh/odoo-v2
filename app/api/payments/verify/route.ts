@@ -87,6 +87,17 @@ export async function POST(request: NextRequest) {
 
     const payment = paymentResult.payment;
 
+    if (!payment) {
+      console.error("❌ [PAYMENT VERIFY] Payment data not found");
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Payment data not found"
+        },
+        { status: 500 }
+      );
+    }
+
     // Get order details to extract booking information
     const orderResult = await razorpay.orders.fetch(razorpay_order_id);
     if (!orderResult || !orderResult.notes) {
@@ -104,18 +115,27 @@ export async function POST(request: NextRequest) {
     console.log("📋 [PAYMENT VERIFY] Order notes:", orderNotes);
 
     // Extract booking details from order notes
-    const {
-      timeSlotId,
-      courtId,
-      venueName,
-      courtName,
-      userEmail,
-      slotDate,
-      slotStartTime,
-      slotEndTime,
-      playerCount,
-      notes,
-    } = orderNotes;
+    const timeSlotId = orderNotes.timeSlotId as string;
+    const courtId = orderNotes.courtId as string;
+    const venueName = orderNotes.venueName as string;
+    const courtName = orderNotes.courtName as string;
+    const userEmail = orderNotes.userEmail as string;
+    const slotDate = orderNotes.slotDate as string;
+    const slotStartTime = orderNotes.slotStartTime as string;
+    const slotEndTime = orderNotes.slotEndTime as string;
+    const playerCount = orderNotes.playerCount as string;
+    const userNotes = orderNotes.notes as string;
+
+    // Validate required fields
+    if (!timeSlotId || !courtId || !slotDate || !slotStartTime || !playerCount) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid order data"
+        },
+        { status: 400 }
+      );
+    }
 
     // Validate that the order belongs to the current user
     if (orderNotes.userId !== session.user.id) {
@@ -192,10 +212,10 @@ export async function POST(request: NextRequest) {
         startTime: slotDateTime,
         endTime: slotEndDateTime,
         duration: 60, // 1 hour
-        totalPrice: payment.amount / 100, // Convert from paise to rupees
+        totalPrice: Number(payment.amount) / 100, // Convert from paise to rupees
         playerCount: parseInt(playerCount),
         bookingReference: generateBookingReference(),
-        notes: notes || undefined,
+        notes: userNotes || undefined,
         status: "CONFIRMED",
         paymentStatus: "PAID",
         paymentId: razorpay_payment_id,
@@ -244,8 +264,8 @@ export async function POST(request: NextRequest) {
         status: createdBooking.status,
         paymentStatus: createdBooking.paymentStatus,
         paidAt: createdBooking.paidAt,
-        venueName: createdBooking.court.venue.name,
-        courtName: createdBooking.court.name,
+        venueName: venueName,
+        courtName: courtName,
         startTime: createdBooking.startTime,
         endTime: createdBooking.endTime,
         playerCount: createdBooking.playerCount,
