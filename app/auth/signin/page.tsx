@@ -160,7 +160,6 @@ export default function SignIn() {
     }
 
     try {
-      console.log("🎯 Starting role selection for:", selectedRole);
       setLoading(true);
       setError(null);
       setAuthStep("completing");
@@ -173,21 +172,13 @@ export default function SignIn() {
         body: JSON.stringify({ role: selectedRole }),
       });
 
-      console.log("🌐 Role selection API response:", response.status);
-
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error("❌ Role selection failed:", errorData);
         throw new Error("Failed to update role");
       }
 
-      const responseData = await response.json();
-      console.log("✅ Role selection successful:", responseData);
-
-      console.log("🏠 Redirecting to home page...");
       router.push("/");
     } catch (err) {
-      console.error("💥 Role selection error:", err);
+      console.error("Role selection error:", err);
       setError("Failed to update your role. Please try again.");
       setAuthStep("role-selection");
     } finally {
