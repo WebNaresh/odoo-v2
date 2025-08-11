@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { signIn, getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -58,7 +59,7 @@ export default function SignIn() {
     const checkSession = async () => {
       const session = await getSession();
       if (session) {
-        router.push("/");
+        router.push(callbackUrl);
       }
     };
     checkSession();
@@ -102,12 +103,37 @@ export default function SignIn() {
           router.push("/");
         }
       }
-    } catch (err) {
-      console.error("Sign in error:", err);
+    } catch (error) {
       setError("An unexpected error occurred. Please try again.");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
+  };
+
+  const handleEmailSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
+
+    try {
+      // This would be implemented with a custom email/password provider
+      // For now, we'll show a message that it's not implemented
+      toast.error(
+        "Email/password sign-in not implemented yet. Please use Google sign-in."
+      );
+    } catch (error) {
+      setError("Failed to sign in. Please check your credentials.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
 
   const checkUserStatus = async () => {
