@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { signIn, getSession, useSession } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
+import { refreshSessionAndWaitForRole } from "@/lib/session-utils";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -186,24 +187,24 @@ export default function SignIn() {
       }
 
       // Force session refresh to get updated user data with new role
-      // Clear the session cache and fetch fresh data
-      await getSession({ event: "storage" });
-
-      // Wait a moment for the session to be fully updated
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // Get the session again to ensure we have the latest data with updated role
-      const finalSession = await getSession();
-
-      console.log("Updated session after role selection:", finalSession);
-
-      // Verify the role was updated correctly
-      if (finalSession?.user?.role !== selectedRole) {
-        console.warn("Session role doesn't match selected role, retrying...");
-        // Try one more time with a longer delay
+      try {
+        console.log("Refreshing session and waiting for role update...");
+        const updatedSession = await refreshSessionAndWaitForRole(
+          selectedRole as any,
+          3,
+          15000
+        );
+        console.log(
+          "Session successfully updated with new role:",
+          updatedSession?.user?.role
+        );
+      } catch (error) {
+        console.error("Failed to refresh session with new role:", error);
+        // Fallback to basic session refresh
+        await getSession({ event: "storage" });
         await new Promise((resolve) => setTimeout(resolve, 2000));
-        const retrySession = await getSession();
-        console.log("Retry session:", retrySession);
+        const fallbackSession = await getSession();
+        console.log("Fallback session:", fallbackSession);
       }
 
       // Redirect based on user role and if they're new

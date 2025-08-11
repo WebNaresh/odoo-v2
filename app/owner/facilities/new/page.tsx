@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import InputField from "@/components/AppInputFields/InputField";
 import {
   ArrowLeft,
   Building2,
@@ -29,6 +30,9 @@ import {
   Loader2,
   CheckCircle,
   X,
+  User,
+  FileText,
+  Globe,
 } from "lucide-react";
 import {
   createVenueSchema,
@@ -51,14 +55,7 @@ export default function NewVenuePage() {
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    setValue,
-    watch,
-    reset,
-  } = useForm<VenueFormData>({
+  const form = useForm<VenueFormData>({
     resolver: zodResolver(createVenueSchema.omit({ photoUrls: true })),
     defaultValues: {
       name: "",
@@ -77,6 +74,15 @@ export default function NewVenuePage() {
       },
     },
   });
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+    watch,
+    reset,
+  } = form;
 
   const watchedAmenities = watch("amenities");
   const watchedSportIds = watch("sportIds");
@@ -268,347 +274,331 @@ export default function NewVenuePage() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-          {/* Basic Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
-              <CardDescription>
-                Provide the essential details about your sports facility
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Facility Name *</Label>
-                  <Input
-                    id="name"
-                    {...register("name")}
+        <FormProvider {...form}>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+            {/* Basic Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Basic Information</CardTitle>
+                <CardDescription>
+                  Provide the essential details about your sports facility
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <InputField
+                    name="name"
+                    label="Facility Name"
+                    type="text"
                     placeholder="e.g., Elite Sports Complex"
-                    className={errors.name ? "border-red-500" : ""}
+                    Icon={Building2}
+                    required
+                    className="max-w-none"
                   />
-                  {errors.name && (
-                    <p className="text-sm text-red-500">
-                      {errors.name.message}
-                    </p>
-                  )}
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="address">Address *</Label>
-                  <Input
-                    id="address"
-                    {...register("address")}
+                  <InputField
+                    name="address"
+                    label="Address"
+                    type="places_autocomplete"
                     placeholder="Full address including city and state"
-                    className={errors.address ? "border-red-500" : ""}
+                    Icon={MapPin}
+                    required
+                    className="max-w-none"
                   />
-                  {errors.address && (
-                    <p className="text-sm text-red-500">
-                      {errors.address.message}
-                    </p>
-                  )}
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  {...register("description")}
+                <InputField
+                  name="description"
+                  label="Description"
+                  type="text-area"
                   placeholder="Describe your facility, its features, and what makes it special..."
-                  rows={4}
-                  className={errors.description ? "border-red-500" : ""}
+                  Icon={FileText}
+                  className="max-w-none"
                 />
-                {errors.description && (
-                  <p className="text-sm text-red-500">
-                    {errors.description.message}
-                  </p>
-                )}
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="latitude">Latitude (Optional)</Label>
-                  <Input
-                    id="latitude"
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <InputField
+                    name="latitude"
+                    label="Latitude (Optional)"
                     type="number"
-                    step="any"
-                    {...register("latitude", { valueAsNumber: true })}
                     placeholder="e.g., 19.0760"
+                    Icon={Globe}
+                    className="max-w-none"
                   />
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="longitude">Longitude (Optional)</Label>
-                  <Input
-                    id="longitude"
+                  <InputField
+                    name="longitude"
+                    label="Longitude (Optional)"
                     type="number"
-                    step="any"
-                    {...register("longitude", { valueAsNumber: true })}
                     placeholder="e.g., 72.8777"
+                    Icon={Globe}
+                    className="max-w-none"
                   />
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          {/* Sports Selection */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Sports Offered</CardTitle>
-              <CardDescription>
-                Select the sports that will be available at your facility
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loadingSports ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin" />
-                  <span className="ml-2">Loading sports...</span>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {sports.map((sport) => (
-                    <div key={sport.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`sport-${sport.id}`}
-                        checked={watchedSportIds?.includes(sport.id) || false}
-                        onCheckedChange={(checked) =>
-                          handleSportChange(sport.id, checked as boolean)
-                        }
-                      />
-                      <Label
-                        htmlFor={`sport-${sport.id}`}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                      >
-                        {sport.name}
-                        {sport.isPopular && (
-                          <Badge variant="secondary" className="ml-1 text-xs">
-                            Popular
-                          </Badge>
-                        )}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {errors.sportIds && (
-                <p className="text-sm text-red-500 mt-2">
-                  {errors.sportIds.message}
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Amenities */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Amenities</CardTitle>
-              <CardDescription>
-                Select the amenities available at your facility
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {AVAILABLE_AMENITIES.map((amenity) => (
-                  <div key={amenity} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`amenity-${amenity}`}
-                      checked={watchedAmenities?.includes(amenity) || false}
-                      onCheckedChange={(checked) =>
-                        handleAmenityChange(amenity, checked as boolean)
-                      }
-                    />
-                    <Label
-                      htmlFor={`amenity-${amenity}`}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                    >
-                      {amenity}
-                    </Label>
+            {/* Sports Selection */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Sports Offered</CardTitle>
+                <CardDescription>
+                  Select the sports that will be available at your facility
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loadingSports ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                    <span className="ml-2">Loading sports...</span>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Operating Hours */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Operating Hours</CardTitle>
-              <CardDescription>
-                Set the operating hours for each day of the week
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {Object.entries({
-                  monday: "Monday",
-                  tuesday: "Tuesday",
-                  wednesday: "Wednesday",
-                  thursday: "Thursday",
-                  friday: "Friday",
-                  saturday: "Saturday",
-                  sunday: "Sunday",
-                }).map(([day, label]) => (
-                  <div
-                    key={day}
-                    className="flex items-center gap-4 p-4 border rounded-lg"
-                  >
-                    <div className="w-24">
-                      <Label className="font-medium">{label}</Label>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`${day}-open`}
-                        checked={watch(
-                          `operatingHours.${
-                            day as keyof CreateVenueData["operatingHours"]
-                          }.isOpen`
-                        )}
-                        onCheckedChange={(checked) =>
-                          handleOperatingHoursChange(
-                            day as keyof CreateVenueData["operatingHours"],
-                            "isOpen",
-                            checked as boolean
-                          )
-                        }
-                      />
-                      <Label htmlFor={`${day}-open`} className="text-sm">
-                        Open
-                      </Label>
-                    </div>
-
-                    {watch(
-                      `operatingHours.${
-                        day as keyof CreateVenueData["operatingHours"]
-                      }.isOpen`
-                    ) && (
-                      <>
-                        <div className="flex items-center gap-2">
-                          <Label className="text-sm">From:</Label>
-                          <Input
-                            type="time"
-                            className="w-32"
-                            {...register(
-                              `operatingHours.${
-                                day as keyof CreateVenueData["operatingHours"]
-                              }.openTime`
-                            )}
-                          />
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <Label className="text-sm">To:</Label>
-                          <Input
-                            type="time"
-                            className="w-32"
-                            {...register(
-                              `operatingHours.${
-                                day as keyof CreateVenueData["operatingHours"]
-                              }.closeTime`
-                            )}
-                          />
-                        </div>
-                      </>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Photo Upload */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Photos</CardTitle>
-              <CardDescription>
-                Upload photos of your facility (maximum 10 photos, 5MB each)
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() =>
-                      document.getElementById("photo-upload")?.click()
-                    }
-                    className="flex items-center gap-2"
-                  >
-                    <Camera className="h-4 w-4" />
-                    Add Photos
-                  </Button>
-                  <input
-                    id="photo-upload"
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={handlePhotoUpload}
-                    className="hidden"
-                  />
-                  <span className="text-sm text-muted-foreground">
-                    {photoFiles.length}/10 photos uploaded
-                  </span>
-                </div>
-
-                {photoPreviews.length > 0 && (
+                ) : (
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {photoPreviews.map((preview, index) => (
-                      <div key={index} className="relative group">
-                        <img
-                          src={preview}
-                          alt={`Preview ${index + 1}`}
-                          className="w-full h-32 object-cover rounded-lg border"
+                    {sports.map((sport) => (
+                      <div
+                        key={sport.id}
+                        className="flex items-center space-x-2"
+                      >
+                        <Checkbox
+                          id={`sport-${sport.id}`}
+                          checked={watchedSportIds?.includes(sport.id) || false}
+                          onCheckedChange={(checked) =>
+                            handleSportChange(sport.id, checked as boolean)
+                          }
                         />
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="sm"
-                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => removePhoto(index)}
+                        <Label
+                          htmlFor={`sport-${sport.id}`}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                         >
-                          <X className="h-3 w-3" />
-                        </Button>
+                          {sport.name}
+                          {sport.isPopular && (
+                            <Badge variant="secondary" className="ml-1 text-xs">
+                              Popular
+                            </Badge>
+                          )}
+                        </Label>
                       </div>
                     ))}
                   </div>
                 )}
-              </div>
-            </CardContent>
-          </Card>
+                {errors.sportIds && (
+                  <p className="text-sm text-red-500 mt-2">
+                    {errors.sportIds.message}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
 
-          {/* Submit Button */}
-          <div className="flex items-center justify-between pt-6">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.back()}
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
+            {/* Amenities */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Amenities</CardTitle>
+                <CardDescription>
+                  Select the amenities available at your facility
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {AVAILABLE_AMENITIES.map((amenity) => (
+                    <div key={amenity} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`amenity-${amenity}`}
+                        checked={watchedAmenities?.includes(amenity) || false}
+                        onCheckedChange={(checked) =>
+                          handleAmenityChange(amenity, checked as boolean)
+                        }
+                      />
+                      <Label
+                        htmlFor={`amenity-${amenity}`}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                      >
+                        {amenity}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
 
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="flex items-center gap-2"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Creating Facility...
-                </>
-              ) : (
-                <>
-                  <CheckCircle className="h-4 w-4" />
-                  Create Facility
-                </>
-              )}
-            </Button>
-          </div>
-        </form>
+            {/* Operating Hours */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Operating Hours</CardTitle>
+                <CardDescription>
+                  Set the operating hours for each day of the week
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {Object.entries({
+                    monday: "Monday",
+                    tuesday: "Tuesday",
+                    wednesday: "Wednesday",
+                    thursday: "Thursday",
+                    friday: "Friday",
+                    saturday: "Saturday",
+                    sunday: "Sunday",
+                  }).map(([day, label]) => (
+                    <div
+                      key={day}
+                      className="flex items-center gap-4 p-4 border rounded-lg"
+                    >
+                      <div className="w-24">
+                        <Label className="font-medium">{label}</Label>
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`${day}-open`}
+                          checked={watch(
+                            `operatingHours.${
+                              day as keyof CreateVenueData["operatingHours"]
+                            }.isOpen`
+                          )}
+                          onCheckedChange={(checked) =>
+                            handleOperatingHoursChange(
+                              day as keyof CreateVenueData["operatingHours"],
+                              "isOpen",
+                              checked as boolean
+                            )
+                          }
+                        />
+                        <Label htmlFor={`${day}-open`} className="text-sm">
+                          Open
+                        </Label>
+                      </div>
+
+                      {watch(
+                        `operatingHours.${
+                          day as keyof CreateVenueData["operatingHours"]
+                        }.isOpen`
+                      ) && (
+                        <>
+                          <div className="flex items-center gap-2">
+                            <Label className="text-sm">From:</Label>
+                            <Input
+                              type="time"
+                              className="w-32"
+                              {...register(
+                                `operatingHours.${
+                                  day as keyof CreateVenueData["operatingHours"]
+                                }.openTime`
+                              )}
+                            />
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <Label className="text-sm">To:</Label>
+                            <Input
+                              type="time"
+                              className="w-32"
+                              {...register(
+                                `operatingHours.${
+                                  day as keyof CreateVenueData["operatingHours"]
+                                }.closeTime`
+                              )}
+                            />
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Photo Upload */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Photos</CardTitle>
+                <CardDescription>
+                  Upload photos of your facility (maximum 10 photos, 5MB each)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() =>
+                        document.getElementById("photo-upload")?.click()
+                      }
+                      className="flex items-center gap-2"
+                    >
+                      <Camera className="h-4 w-4" />
+                      Add Photos
+                    </Button>
+                    <input
+                      id="photo-upload"
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handlePhotoUpload}
+                      className="hidden"
+                    />
+                    <span className="text-sm text-muted-foreground">
+                      {photoFiles.length}/10 photos uploaded
+                    </span>
+                  </div>
+
+                  {photoPreviews.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {photoPreviews.map((preview, index) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={preview}
+                            alt={`Preview ${index + 1}`}
+                            className="w-full h-32 object-cover rounded-lg border"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => removePhoto(index)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Submit Button */}
+            <div className="flex items-center justify-between pt-6">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.back()}
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="flex items-center gap-2"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Creating Facility...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="h-4 w-4" />
+                    Create Facility
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </FormProvider>
       </div>
     </div>
   );

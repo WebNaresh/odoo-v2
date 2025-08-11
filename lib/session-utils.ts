@@ -1,4 +1,5 @@
 import { Session } from "next-auth";
+import { getSession } from "next-auth/react";
 import { UserRole } from "@/types/next-auth";
 
 /**
@@ -96,6 +97,13 @@ export function isUser(session: Session | null): boolean {
 }
 
 /**
+ * Check if user is a facility owner
+ */
+export function isFacilityOwner(session: Session | null): boolean {
+  return getUserRole(session) === "FACILITY_OWNER";
+}
+
+/**
  * Check if user has specific role
  */
 export function hasRole(session: Session | null, role: UserRole): boolean {
@@ -111,7 +119,99 @@ export function getRoleDisplayName(role: UserRole | null): string {
       return "Administrator";
     case "USER":
       return "User";
+    case "FACILITY_OWNER":
+      return "Facility Owner";
     default:
       return "Unknown";
+  }
+}
+
+/**
+ * Force refresh the NextAuth session to get updated user data from the database
+ * This is useful after updating user data (like role) in the database
+ */
+export async function refreshSession(maxRetries = 3, delayMs = 1000): Promise<Session | null> {
+  let attempts = 0;
+
+  while (attempts < maxRetries) {
+    try {
+      // Clear any cached session data
+      await getSession({ event: 'storage' });
+
+      // Wait for the specified delay
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+
+      // Get fresh session data
+      const session = await getSession();
+
+      console.log(`Session refresh attempt ${attempts + 1}:`, {
+        hasSession: !!session,
+        userRole: session?.user?.role,
+        userEmail: session?.user?.email,
+        timestamp: new Date().toISOString()
+      });
+
+      return session;
+    } catch (error) {
+      console.error(`Session refresh attempt ${attempts + 1} failed:`, error);
+      attempts++;
+
+      if (attempts >= maxRetries) {
+        throw new Error(`Failed to refresh session after ${maxRetries} attempts`);
+      }
+
+      // Wait longer before retrying
+      await new Promise(resolve => setTimeout(resolve, delayMs * attempts));
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Wait for session to have the expected role
+ * Useful after role updates to ensure the session reflects the new role
+ */
+export async function waitForRoleUpdate(
+  expectedRole: UserRole,
+  maxWaitMs = 10000,
+  checkIntervalMs = 500
+): Promise<Session | null> {
+  const startTime = Date.now();
+
+  while (Date.now() - startTime < maxWaitMs) {
+    const session = await getSession();
+
+    if (session?.user?.role === expectedRole) {
+      console.log(`Role update confirmed: ${expectedRole}`);
+      return session;
+    }
+
+    console.log(`Waiting for role update... Current: ${session?.user?.role}, Expected: ${expectedRole}`);
+    await new Promise(resolve => setTimeout(resolve, checkIntervalMs));
+  }
+
+  throw new Error(`Timeout waiting for role update to ${expectedRole}`);
+}
+
+/**
+ * Comprehensive session refresh that waits for role update
+ */
+export async function refreshSessionAndWaitForRole(
+  expectedRole: UserRole,
+  maxRetries = 3,
+  maxWaitMs = 10000
+): Promise<Session | null> {
+  try {
+    // First, refresh the session
+    await refreshSession(maxRetries);
+
+    // Then wait for the role to be updated
+    const session = await waitForRoleUpdate(expectedRole, maxWaitMs);
+
+    return session;
+  } catch (error) {
+    console.error("Failed to refresh session and wait for role:", error);
+    throw error;
   }
 }
