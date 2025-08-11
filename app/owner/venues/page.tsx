@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ import {
   Eye,
   Trash2,
   Loader2,
+  AlertCircle,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -35,39 +36,24 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "react-hot-toast";
 import { type Venue } from "@/types/venue";
+import { useOwnerVenues, useDeleteVenue } from "@/hooks/use-owner-venues";
 
 export default function VenuesPage() {
   const router = useRouter();
-  const [venues, setVenues] = useState<Venue[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Fetch venues
-  useEffect(() => {
-    const fetchVenues = async () => {
-      try {
-        const response = await fetch("/api/owner/venues");
-        const data = await response.json();
+  // Use React Query for data fetching
+  const { data: venuesResponse, isLoading, isError, error } = useOwnerVenues();
 
-        if (data.success) {
-          setVenues(data.venues);
-        } else {
-          toast.error("Failed to load venues");
-        }
-      } catch (error) {
-        console.error("Error fetching venues:", error);
-        toast.error("Failed to load venues");
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Use React Query mutation for deleting venues
+  const deleteVenueMutation = useDeleteVenue();
 
-    fetchVenues();
-  }, []);
+  // Extract venues from response
+  const venues = venuesResponse?.success ? venuesResponse.venues : [];
 
   // Filter venues based on search query
   const filteredVenues = venues.filter(
-    (venue) =>
+    (venue: Venue) =>
       venue.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       venue.address.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -103,31 +89,44 @@ export default function VenuesPage() {
     }
 
     try {
-      const response = await fetch(`/api/owner/venues/${venueId}`, {
-        method: "DELETE",
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        toast.success("Venue deleted successfully");
-        setVenues(venues.filter((venue) => venue.id !== venueId));
-      } else {
-        toast.error(data.error || "Failed to delete venue");
-      }
+      await deleteVenueMutation.mutateAsync(venueId);
+      toast.success("Venue deleted successfully");
     } catch (error) {
       console.error("Error deleting venue:", error);
       toast.error("Failed to delete venue");
     }
   };
 
-  if (loading) {
+  // Handle loading state
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin" />
             <span className="ml-2 text-lg">Loading venues...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle error state
+  if (isError) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex flex-col items-center justify-center py-12">
+            <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
+            <h3 className="text-lg font-semibold mb-2">
+              Failed to load venues
+            </h3>
+            <p className="text-muted-foreground text-center mb-6">
+              {error instanceof Error
+                ? error.message
+                : "An unexpected error occurred"}
+            </p>
+            <Button onClick={() => window.location.reload()}>Try Again</Button>
           </div>
         </div>
       </div>
@@ -224,7 +223,6 @@ export default function VenuesPage() {
                         <DropdownMenuItem
                           onClick={() => handleViewVenue(venue.id)}
                         >
-                          
                           <Eye className="h-4 w-4 mr-2" />
                           View Details
                         </DropdownMenuItem>

@@ -73,6 +73,7 @@ export interface VenueDetailsResponse {
 
 export class VenueService {
   private static baseUrl = '/api/venues';
+  private static ownerBaseUrl = '/api/owner/venues';
 
   static async getVenues(_filters: VenueFilters = {}): Promise<VenueResponse> {
     try {
@@ -114,6 +115,36 @@ export class VenueService {
           hasMore: false,
         },
         error: error instanceof Error ? error.message : 'Failed to fetch venues',
+      };
+    }
+  }
+
+  static async getOwnerVenues(): Promise<{ success: boolean; venues: Venue[]; error?: string }> {
+    try {
+      const response = await axios.get(this.ownerBaseUrl, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching owner venues:', error);
+
+      // Handle axios error
+      if (axios.isAxiosError(error)) {
+        const errorMessage = error.response?.data?.error || error.message;
+        return {
+          success: false,
+          venues: [],
+          error: errorMessage,
+        };
+      }
+
+      return {
+        success: false,
+        venues: [],
+        error: error instanceof Error ? error.message : 'Failed to fetch owner venues',
       };
     }
   }
