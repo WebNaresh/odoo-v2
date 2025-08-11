@@ -153,10 +153,34 @@ export default function EditVenuePage() {
         venue
       );
 
+      // Prepare address data for Google Places Autocomplete component
+      let addressData;
+      if (venue.location && venue.location.coordinates) {
+        // If we have location coordinates, create an object format
+        addressData = {
+          address: venue.address,
+          position: {
+            lat: venue.location.coordinates[1], // latitude is second in GeoJSON
+            lng: venue.location.coordinates[0], // longitude is first in GeoJSON
+          },
+        };
+        console.log(
+          "📍 [EDIT VENUE] Pre-populating with location data:",
+          addressData
+        );
+      } else {
+        // If no location coordinates, use simple string
+        addressData = venue.address || "";
+        console.log(
+          "🏠 [EDIT VENUE] Pre-populating with address string:",
+          addressData
+        );
+      }
+
       reset({
         name: venue.name || "",
         description: venue.description || "",
-        address: venue.address || "",
+        address: addressData,
         amenities: venue.amenities || [],
         sports: venue.sports || [],
         photoUrls: venue.photoUrls || [],
@@ -342,11 +366,72 @@ export default function EditVenuePage() {
         return;
       }
 
+      // Handle address - extract string value and location coordinates from Google Places
+      console.log("🏠 [EDIT VENUE] Processing address:", {
+        addressType: typeof data.address,
+        addressValue: data.address,
+      });
+
+      let addressString: string;
+      let location:
+        | { type: "Point"; coordinates: [number, number] }
+        | undefined;
+
+      if (typeof data.address === "string") {
+        addressString = data.address;
+        // No location coordinates available for plain string
+      } else if (data.address && typeof data.address === "object") {
+        const addressObj = data.address as any;
+
+        // Extract address string
+        addressString =
+          addressObj.address ||
+          addressObj.formatted_address ||
+          addressObj.description ||
+          addressObj.name ||
+          String(data.address);
+
+        // Extract location coordinates if available
+        if (
+          addressObj.position &&
+          addressObj.position.lat &&
+          addressObj.position.lng
+        ) {
+          location = {
+            type: "Point",
+            coordinates: [addressObj.position.lng, addressObj.position.lat], // [longitude, latitude] for GeoJSON
+          };
+          console.log(
+            "📍 [EDIT VENUE] Extracted location coordinates:",
+            location
+          );
+        } else if (addressObj.geometry && addressObj.geometry.location) {
+          // Alternative structure from Google Places
+          const lat = addressObj.geometry.location.lat();
+          const lng = addressObj.geometry.location.lng();
+          location = {
+            type: "Point",
+            coordinates: [lng, lat],
+          };
+          console.log(
+            "📍 [EDIT VENUE] Extracted location from geometry:",
+            location
+          );
+        }
+      } else {
+        addressString = String(data.address || "");
+      }
+
+      console.log("🏠 [EDIT VENUE] Final address string:", addressString);
+      console.log("📍 [EDIT VENUE] Final location:", location);
+
       // Process data for API submission
       const filteredData = {
         ...data,
         // Ensure address is always a string
-        address: addressValue,
+        address: addressString,
+        // Include location coordinates if available
+        location: location,
         // Filter out empty photo URLs
         photoUrls: data.photoUrls?.filter((url) => url.trim() !== "") || [],
       };

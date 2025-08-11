@@ -292,6 +292,10 @@ const updateVenueSchema = z.object({
   name: z.string().min(1, "Venue name is required").max(100, "Venue name is too long"),
   description: z.string().optional(),
   address: z.string().min(1, "Address is required").max(500, "Address is too long"),
+  location: z.object({
+    type: z.literal("Point"),
+    coordinates: z.array(z.number()).length(2), // [longitude, latitude]
+  }).optional(),
   amenities: z.array(z.string()).default([]),
   sports: z.array(z.string()).min(1, "At least one sport is required"),
   photoUrls: z.array(z.string().url("Invalid URL format")).default([]),
@@ -453,6 +457,7 @@ export async function PUT(
         name: venueData.name,
         description: venueData.description || null,
         address: venueData.address,
+        location: venueData.location,
         amenities: venueData.amenities,
         sports: venueData.sports,
         photoUrls: venueData.photoUrls,
@@ -468,7 +473,6 @@ export async function PUT(
         _count: {
           select: {
             courts: true,
-            bookings: true,
           },
         },
       },
@@ -478,7 +482,6 @@ export async function PUT(
       id: updatedVenue.id,
       name: updatedVenue.name,
       courtsCount: updatedVenue._count.courts,
-      bookingsCount: updatedVenue._count.bookings,
     });
 
     return NextResponse.json({

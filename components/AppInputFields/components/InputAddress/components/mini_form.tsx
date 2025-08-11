@@ -61,8 +61,8 @@ const AddressInput = ({ field, inputProps }: Props) => {
       backgroundColor: state.isSelected
         ? "var(--primary)"
         : state.isFocused
-          ? "var(--accent)"
-          : "transparent",
+        ? "var(--accent)"
+        : "transparent",
       color: state.isSelected
         ? "var(--primary-foreground)"
         : "var(--foreground)",
@@ -127,7 +127,17 @@ const AddressInput = ({ field, inputProps }: Props) => {
       // other properties with default values...
     },
   ]);
-  const [value, setValue] = useState<string>("");
+  const [value, setValue] = useState<string>(() => {
+    // Initialize with field value if it exists
+    if (field?.value) {
+      if (typeof field.value === "string") {
+        return field.value;
+      } else if (field.value?.address) {
+        return field.value.address;
+      }
+    }
+    return "";
+  });
   const handleFieldChange1 = field.onChange;
   const handleFieldChange = useCallback(
     (newValue: any) => {
@@ -137,6 +147,19 @@ const AddressInput = ({ field, inputProps }: Props) => {
     },
     [handleFieldChange1] // Only recreate if 'field' changes
   );
+
+  // Sync field value changes with local state
+  useEffect(() => {
+    if (field?.value) {
+      if (typeof field.value === "string") {
+        setValue(field.value);
+      } else if (field.value?.address) {
+        setValue(field.value.address);
+      }
+    } else {
+      setValue("");
+    }
+  }, [field?.value]);
 
   useEffect(() => {
     if (state.length === 0) {
