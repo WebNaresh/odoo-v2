@@ -477,14 +477,14 @@ export default function OwnerDashboardPage() {
                 <span className="text-sm">Occupancy Rate</span>
                 <div className="flex items-center gap-2">
                   <Progress value={stats.occupancyRate} className="w-16" />
-                  <span className="text-sm font-medium">{stats.occupancyRate.toFixed(1)}%</span>
+                  <span className="text-sm font-medium">{(stats.occupancyRate || 0).toFixed(1)}%</span>
                 </div>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm">Average Rating</span>
                 <div className="flex items-center gap-1">
                   <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                  <span className="text-sm font-medium">{stats.averageRating.toFixed(1)}</span>
+                  <span className="text-sm font-medium">{(stats.averageRating || 0).toFixed(1)}</span>
                 </div>
               </div>
               <div className="flex items-center justify-between">
@@ -534,7 +534,7 @@ export default function OwnerDashboardPage() {
                       <p className="text-sm text-muted-foreground">Rating</p>
                       <div className="flex items-center gap-1">
                         <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                        <span className="font-medium">{venue.rating.toFixed(1)}</span>
+                        <span className="font-medium">{(venue.rating || 0).toFixed(1)}</span>
                         <span className="text-xs text-muted-foreground">({venue.reviewCount})</span>
                       </div>
                     </div>
