@@ -1,4 +1,5 @@
 import { Venue } from "@/types/venue";
+import axios from "axios";
 
 export interface VenueFilters {
   search?: string;
@@ -75,23 +76,34 @@ export class VenueService {
 
   static async getVenues(_filters: VenueFilters = {}): Promise<VenueResponse> {
     try {
-      // Simple fetch without any query parameters for now
+      // Simple axios request without any query parameters for now
       // TODO: Implement filters later
-      const response = await fetch(this.baseUrl, {
-        method: 'GET',
+      const response = await axios.get(this.baseUrl, {
         headers: {
           'Content-Type': 'application/json',
         },
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return response.data;
     } catch (error) {
       console.error('Error fetching venues:', error);
+
+      // Handle axios error
+      if (axios.isAxiosError(error)) {
+        const errorMessage = error.response?.data?.error || error.message;
+        return {
+          success: false,
+          venues: [],
+          pagination: {
+            total: 0,
+            limit: 0,
+            offset: 0,
+            hasMore: false,
+          },
+          error: errorMessage,
+        };
+      }
+
       return {
         success: false,
         venues: [],
@@ -244,21 +256,25 @@ export class VenueService {
   // Get venue details by ID
   static async getVenueDetails(id: string): Promise<VenueDetailsResponse> {
     try {
-      const response = await fetch(`${this.baseUrl}/${id}`, {
-        method: 'GET',
+      const response = await axios.get(`${this.baseUrl}/${id}`, {
         headers: {
           'Content-Type': 'application/json',
         },
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return response.data;
     } catch (error) {
       console.error('Error fetching venue details:', error);
+
+      // Handle axios error
+      if (axios.isAxiosError(error)) {
+        const errorMessage = error.response?.data?.error || error.message;
+        return {
+          success: false,
+          error: errorMessage,
+        };
+      }
+
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to fetch venue details',
