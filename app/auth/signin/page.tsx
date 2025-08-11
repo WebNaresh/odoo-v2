@@ -75,7 +75,7 @@ export default function SignIn() {
       // Check user status after a brief delay
       setTimeout(() => {
         checkUserStatus();
-      }, 1500);
+      }, 2000);
     }
   }, []);
 
@@ -84,28 +84,21 @@ export default function SignIn() {
       setLoading(true);
       setError(null);
 
-      console.log("Starting Google sign-in...");
       const result = await signIn("google", {
         callbackUrl: "/auth/signin?step=check",
         redirect: false,
       });
 
-      console.log("Sign-in result:", result);
-
       if (result?.error) {
-        console.error("Sign-in error:", result.error);
         setError("Failed to sign in. Please try again.");
       } else if (result?.url) {
-        console.log("Sign-in successful, URL:", result.url);
         // Check if we need to handle role selection
         if (result.url.includes("step=check")) {
-          console.log("Detected step=check, waiting for session...");
           // Wait a moment for session to be established
           setTimeout(async () => {
             await checkUserStatus();
-          }, 1000);
+          }, 2000);
         } else {
-          console.log("No step=check, redirecting to home");
           router.push("/");
         }
       }
@@ -119,25 +112,31 @@ export default function SignIn() {
 
   const checkUserStatus = async () => {
     try {
-      console.log("Checking user status...");
       const session = await getSession();
-      console.log("Session:", session);
 
-      if (session?.user) {
-        // Check if this is a new user from the session
-        const sessionUser = session.user as any;
-        console.log("Session user:", sessionUser);
-        console.log("Is new user:", sessionUser.isNewUser);
+      if (session?.user?.email) {
+        // Use the timing-based approach as fallback
+        const checkResponse = await fetch("/api/auth/check-user", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: session.user.email }),
+        });
 
-        if (sessionUser.isNewUser === true) {
-          console.log("New user detected, showing role selection");
-          setIsNewUser(true);
-          setAuthStep("role-selection");
-          return;
+        if (checkResponse.ok) {
+          const { user } = await checkResponse.json();
+          const now = new Date();
+          const userCreated = new Date(user?.createdAt);
+          const timeDiff = now.getTime() - userCreated.getTime();
+
+          // If user was created within the last 60 seconds, show role selection
+          if (timeDiff < 60000) {
+            setIsNewUser(true);
+            setAuthStep("role-selection");
+            return;
+          }
         }
       }
 
-      console.log("Existing user, redirecting to home");
       // Existing user or role selection not needed
       router.push("/");
     } catch (err) {
