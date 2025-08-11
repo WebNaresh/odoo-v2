@@ -298,7 +298,7 @@ export default function VenueDetailPage() {
               paymentResult
             );
             toast.success(
-              `Payment successful! Booking confirmed for ${court.name}.`
+              `Payment successful! Booking confirmed for ${court.name}. Redirecting to your bookings...`
             );
 
             // Reset selections after successful payment
@@ -320,8 +320,11 @@ export default function VenueDetailPage() {
               (window as any).refetchTimeSlots();
             }
 
-            // Optionally redirect to bookings page
-            // router.push('/bookings');
+            // Redirect to bookings page after successful payment
+            setTimeout(() => {
+              console.log("🔄 [VENUE PAGE] Redirecting to bookings page");
+              router.push('/bookings');
+            }, 2000); // 2 second delay to show success message
           },
           // Payment failure callback
           (error) => {
