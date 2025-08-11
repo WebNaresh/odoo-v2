@@ -1,51 +1,47 @@
 import { PrismaClient } from "@prisma/client";
 
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
-};
+// Use a global variable for Prisma to prevent multiple instances in development
+const globalForPrisma = global as unknown as { prisma?: PrismaClient };
+
+// Create PrismaNeon adapter instance
 
 export const prisma =
-  globalForPrisma.prisma ??
+  globalForPrisma.prisma ||
   new PrismaClient({
-    log: ["query"],
+    log: [],
   });
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+// Save Prisma instance to the global object in non-production environments
+if (process.env.NODE_ENV !== "production") {
+  globalForPrisma.prisma = prisma;
+}
 
-/**
- * Creates a 2dsphere index on the venue location field for efficient geospatial queries
- * This enables location-based venue discovery using MongoDB's geospatial features
- */
+// Create 2dsphere index on address field for User collection (MongoDB only)
 async function ensure2dSphereIndex() {
   try {
     if (prisma.$runCommandRaw) {
       await prisma.$runCommandRaw({
-        createIndexes: "venues",
+        createIndexes: "Venue",
         indexes: [
           {
             key: { location: "2dsphere" },
             name: "location_2dsphere",
           },
+
         ],
       });
-      console.log("✅ 2dsphere index created successfully on venues.location");
+
     } else {
-      console.error("❌ prisma.$runCommandRaw is not available.");
+      console.error("prisma.$runCommandRaw is not available.");
     }
   } catch (e) {
-    console.warn("⚠️ Could not create 2dsphere index on venues.location:", e);
+    console.warn("Could not create 2dsphere index on User.address:", e);
   }
 }
 
-/**
- * Initialize database indexes and configurations
- * Call this function during application startup
- */
-export async function initializeDatabase() {
-  try {
-    await ensure2dSphereIndex();
-    console.log("✅ Database initialization completed");
-  } catch (error) {
-    console.error("❌ Database initialization failed:", error);
-  }
-}
+// Only run in development
+ensure2dSphereIndex()
+
+  .catch((e) => {
+    console.error("Error ensuring 2dsphere index:", e);
+  });
