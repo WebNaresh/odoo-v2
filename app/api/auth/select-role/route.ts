@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user?.email) {
       return NextResponse.json(
         { error: "Unauthorized" },
@@ -30,6 +30,13 @@ export async function POST(request: NextRequest) {
       data: { role },
     });
 
+    console.log("Role updated in database:", {
+      userId: updatedUser.id,
+      email: updatedUser.email,
+      newRole: updatedUser.role,
+      timestamp: new Date().toISOString()
+    });
+
     return NextResponse.json({
       success: true,
       user: {
@@ -38,6 +45,7 @@ export async function POST(request: NextRequest) {
         name: updatedUser.name,
         role: updatedUser.role,
       },
+      message: "Role updated successfully",
     });
   } catch (error) {
     console.error("Error updating user role:", error);

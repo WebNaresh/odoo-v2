@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { signIn, getSession } from "next-auth/react";
+import { refreshSessionAndWaitForRole } from "@/lib/session-utils";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,13 +43,13 @@ export default function SignIn() {
     {
       value: "USER",
       label: "User",
-      description: "Book sports facilities and manage your reservations",
+      description: "Book sports venues and manage your reservations",
       icon: Users,
     },
     {
       value: "FACILITY_OWNER",
       label: "Facility Owner",
-      description: "List your sports facilities and manage bookings",
+      description: "List your sports venues and manage bookings",
       icon: Building2,
     },
   ];
@@ -185,7 +186,33 @@ export default function SignIn() {
         throw new Error("Failed to update role");
       }
 
-      router.push("/");
+      // Force session refresh to get updated user data with new role
+      try {
+        console.log("Refreshing session and waiting for role update...");
+        const updatedSession = await refreshSessionAndWaitForRole(
+          selectedRole as any,
+          3,
+          15000
+        );
+        console.log(
+          "Session successfully updated with new role:",
+          updatedSession?.user?.role
+        );
+      } catch (error) {
+        console.error("Failed to refresh session with new role:", error);
+        // Fallback to basic session refresh
+        await getSession({ event: "storage" });
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        const fallbackSession = await getSession();
+        console.log("Fallback session:", fallbackSession);
+      }
+
+      // Redirect based on user role and if they're new
+      if (selectedRole === "FACILITY_OWNER" && isNewUser) {
+        router.push("/owner/venues/new");
+      } else {
+        router.push("/");
+      }
     } catch (err) {
       console.error("Role selection error:", err);
       setError("Failed to update your role. Please try again.");
@@ -315,7 +342,7 @@ export default function SignIn() {
           Welcome to QuickCourt
         </h1>
         <p className="text-foreground/70">
-          Sign in to book sports facilities or manage your venue
+          Sign in to book sports venues or manage your venue
         </p>
       </div>
 

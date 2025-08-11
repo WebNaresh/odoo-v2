@@ -76,42 +76,7 @@ const navigationItems: NavItem[] = [
     description: "Manage your account settings",
   },
 
-  // Facility Owner (FACILITY_OWNER) specific navigation
-  {
-    title: "My Facilities",
-    href: "/owner/facilities",
-    icon: Building2,
-    roles: ["FACILITY_OWNER"],
-    description: "Manage your sports facilities",
-  },
-  {
-    title: "Analytics",
-    href: "/owner/analytics",
-    icon: BarChart3,
-    roles: ["FACILITY_OWNER"],
-    description: "View performance metrics and insights",
-  },
-  {
-    title: "Bookings Management",
-    href: "/owner/bookings",
-    icon: ClipboardList,
-    roles: ["FACILITY_OWNER"],
-    description: "Manage facility bookings and schedules",
-  },
-  {
-    title: "Court Management",
-    href: "/owner/courts",
-    icon: Trophy,
-    roles: ["FACILITY_OWNER"],
-    description: "Configure courts and pricing",
-  },
-  {
-    title: "Time Slots",
-    href: "/owner/timeslots",
-    icon: BookOpen,
-    roles: ["FACILITY_OWNER"],
-    description: "Manage availability and schedules",
-  },
+  // Facility Owner navigation moved to dedicated sidebar
 
   // Admin specific navigation
   {
@@ -129,11 +94,11 @@ const navigationItems: NavItem[] = [
     description: "Manage platform users",
   },
   {
-    title: "Facility Approval",
-    href: "/admin/facilities",
+    title: "Venue Approval",
+    href: "/admin/venues",
     icon: Building2,
     roles: ["ADMIN"],
-    description: "Review and approve facilities",
+    description: "Review and approve venues",
   },
 ];
 
@@ -186,7 +151,7 @@ export function MainNav() {
         return {
           greeting: "Facility Owner",
           dashboardLink: "/owner/dashboard",
-          primaryAction: "Manage Facilities",
+          primaryAction: "Dashboard",
         };
       case "ADMIN":
         return {
@@ -273,7 +238,7 @@ export function MainNav() {
               <Search className="h-3 w-3 sm:h-4 sm:w-4 lg:mr-2 text-primary" />
               <span className="hidden lg:inline-flex text-muted-foreground">
                 {userRole === "FACILITY_OWNER"
-                  ? "Search facilities..."
+                  ? "Search venues..."
                   : userRole === "ADMIN"
                   ? "Search platform..."
                   : "Search venues..."}
@@ -347,23 +312,7 @@ export function MainNav() {
                   </DropdownMenuItem>
 
                   {/* Role-specific quick actions */}
-                  {userRole === "FACILITY_OWNER" && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => router.push("/owner/facilities")}
-                      >
-                        <Building2 className="mr-2 h-4 w-4" />
-                        <span>My Facilities</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => router.push("/owner/analytics")}
-                      >
-                        <BarChart3 className="mr-2 h-4 w-4" />
-                        <span>Analytics</span>
-                      </DropdownMenuItem>
-                    </>
-                  )}
+                  {/* Facility Owner navigation moved to dedicated sidebar */}
 
                   {userRole === "USER" && (
                     <>
@@ -391,10 +340,10 @@ export function MainNav() {
                         <span>User Management</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        onClick={() => router.push("/admin/facilities")}
+                        onClick={() => router.push("/admin/venues")}
                       >
                         <Building2 className="mr-2 h-4 w-4" />
-                        <span>Facility Approval</span>
+                        <span>Venue Approval</span>
                       </DropdownMenuItem>
                     </>
                   )}
@@ -495,7 +444,7 @@ export function MainNav() {
                       <Search className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                       <span>
                         {userRole === "FACILITY_OWNER"
-                          ? "Search Facilities"
+                          ? "Search Venues"
                           : userRole === "ADMIN"
                           ? "Search Platform"
                           : "Search Venues"}

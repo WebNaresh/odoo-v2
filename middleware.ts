@@ -5,32 +5,25 @@ import type { NextRequest } from "next/server";
 // Define route patterns for different access levels
 const adminRoutes = [
   "/admin",
-  "/admin/:path*",
+  // "/admin/:path*",
 ];
 
 const facilityOwnerRoutes = [
   "/dashboard/owner",
   "/dashboard/owner/:path*",
-  "/dashboard/facilities",
-  "/dashboard/facilities/:path*",
-  "/dashboard/courts",
-  "/dashboard/courts/:path*",
-  "/dashboard/schedule",
-  "/dashboard/schedule/:path*",
-  "/dashboard/reviews",
-  "/dashboard/reviews/:path*",
-  "/dashboard/payments",
-  "/dashboard/payments/:path*",
+  "/owner",
+  "/owner/:path*",
+  "/api/owner/:path*",
 ];
 
 const userRoutes = [
   "/dashboard",
-  "/dashboard/bookings",
-  "/dashboard/bookings/:path*",
-  "/dashboard/profile",
-  "/dashboard/profile/:path*",
-  "/dashboard/settings",
-  "/dashboard/settings/:path*",
+  // "/dashboard/bookings",
+  // "/dashboard/bookings/:path*",
+  // "/dashboard/profile",
+  // "/dashboard/profile/:path*",
+  // "/dashboard/settings",
+  // "/dashboard/settings/:path*",
 ];
 
 const publicRoutes = [

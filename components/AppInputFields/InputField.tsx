@@ -28,6 +28,7 @@ import InputSelect from "./components/InputSelect";
 import InputSwitch from "./components/InputSwitch";
 import ModernImageInput from "./components/ModernImageInput";
 import MultiImageInput from "./components/multiImageInput";
+import InputCloudinaryImage from "./components/InputCloudinaryImage";
 
 // Base type for form values
 type DefaultFormValues = Record<string, unknown>;
@@ -59,7 +60,8 @@ export interface BaseInputProps<T extends FieldValues = DefaultFormValues> {
     | "yes_no_radio"
     | "switch"
     | "phone"
-    | "modern-image";
+    | "modern-image"
+    | "cloudinary-image";
   className?: string;
   disabled?: boolean;
   autoComplete?: string;
@@ -80,6 +82,13 @@ export interface InputFieldProps<T extends FieldValues = DefaultFormValues>
   iconClassName?: string;
   is_sorted?: true | false;
   isSearchable?: boolean;
+  // Cloudinary image upload props
+  multiple?: boolean;
+  maxFiles?: number;
+  uploadPreset?: string;
+  folder?: string;
+  allowedFormats?: string[];
+  maxFileSize?: number;
 }
 
 const InputField = <T extends FieldValues>({
@@ -98,6 +107,13 @@ const InputField = <T extends FieldValues>({
   isSearchable,
   is_sorted = false,
   onComplete,
+  // Cloudinary image upload props
+  multiple = false,
+  maxFiles = 5,
+  uploadPreset = "ml_default",
+  folder = "venue-images",
+  allowedFormats = ["jpg", "jpeg", "png", "webp"],
+  maxFileSize = 10485760,
 }: InputFieldProps<T>) => {
   const form = useFormContext<T>();
 
@@ -127,6 +143,26 @@ const InputField = <T extends FieldValues>({
         className={className}
         required={required}
         description={description}
+      />
+    );
+  }
+
+  if (type === "cloudinary-image") {
+    return (
+      <InputCloudinaryImage
+        label={label}
+        name={name}
+        placeholder={placeholder}
+        className={className}
+        disabled={disabled}
+        required={required}
+        description={description}
+        multiple={multiple}
+        maxFiles={maxFiles}
+        uploadPreset={uploadPreset}
+        folder={folder}
+        allowedFormats={allowedFormats}
+        maxFileSize={maxFileSize}
       />
     );
   }
