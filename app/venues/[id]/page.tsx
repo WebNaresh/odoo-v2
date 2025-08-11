@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQueryState } from "nuqs";
 import { MainNav } from "@/components/layout/main-nav";
@@ -213,6 +213,19 @@ export default function VenueDetailPage() {
       price: number;
     }[]
   >([]);
+
+  // Debug time slot selection changes
+  useEffect(() => {
+    console.log("🔄 [VENUE PAGE] selectedTimeSlots changed:", {
+      count: selectedTimeSlots.length,
+      slots: selectedTimeSlots.map((s) => ({
+        id: s.id,
+        courtId: s.courtId,
+        startTime: s.startTime,
+        endTime: s.endTime,
+      })),
+    });
+  }, [selectedTimeSlots]);
 
   // State for member count
   const [memberCount, setMemberCount] = useState(1);

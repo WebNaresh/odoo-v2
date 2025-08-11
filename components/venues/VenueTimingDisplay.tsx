@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -94,10 +94,72 @@ export function VenueTimingDisplay({
     TimeSlot[]
   >([]);
 
+  // Helper function to convert external time slot to internal TimeSlot
+  const convertToTimeSlot = (externalSlot: {
+    id: string;
+    courtId: string;
+    startTime: string;
+    endTime: string;
+    date: string;
+    price: number;
+  }): TimeSlot => {
+    // Find the court to get the court name
+    const court = courts.find((c) => c.id === externalSlot.courtId);
+    const courtName = court?.name || "Unknown Court";
+
+    // Calculate duration from start and end time
+    const startTime = new Date(
+      `${externalSlot.date}T${externalSlot.startTime}`
+    );
+    const endTime = new Date(`${externalSlot.date}T${externalSlot.endTime}`);
+    const duration = Math.round(
+      (endTime.getTime() - startTime.getTime()) / (1000 * 60)
+    );
+
+    return {
+      ...externalSlot,
+      courtName,
+      isAvailable: true, // Assume available if selected
+      duration,
+    };
+  };
+
+  // Convert external selected time slots to internal format
+  const convertedExternalSlots =
+    externalSelectedTimeSlots?.map(convertToTimeSlot) || [];
+
   // Use external selected time slots if provided, otherwise use internal state
-  const selectedTimeSlots =
-    externalSelectedTimeSlots || internalSelectedTimeSlots;
+  const selectedTimeSlots = externalSelectedTimeSlots
+    ? convertedExternalSlots
+    : internalSelectedTimeSlots;
   const selectedTimeSlot = externalSelectedTimeSlot || internalSelectedTimeSlot;
+
+  // Debug state changes
+  useEffect(() => {
+    console.log("🔄 [STATE CHANGE] VenueTimingDisplay state updated:", {
+      internalSelectedTimeSlots: internalSelectedTimeSlots.length,
+      internalSelectedTimeSlotIds: internalSelectedTimeSlots.map((s) => s.id),
+      externalSelectedTimeSlots: externalSelectedTimeSlots?.length || 0,
+      externalSelectedTimeSlotIds:
+        externalSelectedTimeSlots?.map((s) => s.id) || [],
+      convertedExternalSlots: convertedExternalSlots.length,
+      finalSelectedTimeSlots: selectedTimeSlots.length,
+      finalSelectedTimeSlotsIds: selectedTimeSlots.map((s) => s.id),
+      selectedTimeSlot: selectedTimeSlot
+        ? {
+            id: selectedTimeSlot.id,
+            courtId: selectedTimeSlot.courtId,
+            startTime: selectedTimeSlot.startTime,
+          }
+        : null,
+    });
+  }, [
+    internalSelectedTimeSlots,
+    externalSelectedTimeSlots,
+    convertedExternalSlots,
+    selectedTimeSlots,
+    selectedTimeSlot,
+  ]);
 
   const {
     data: courtsWithTimeSlots,
@@ -140,6 +202,13 @@ export function VenueTimingDisplay({
   };
 
   const handleTimeSlotSelect = (timeSlot: TimeSlot) => {
+    console.log("🎯 [SLOT SELECTION] Starting slot selection:", {
+      slotId: timeSlot.id,
+      courtId: timeSlot.courtId,
+      startTime: timeSlot.startTime,
+      endTime: timeSlot.endTime,
+    });
+
     const slotData = {
       id: timeSlot.id,
       courtId: timeSlot.courtId,
@@ -150,44 +219,118 @@ export function VenueTimingDisplay({
     };
 
     // Check if slot is already selected
-    const isSelected = selectedTimeSlots.some(
+    const isSelected = internalSelectedTimeSlots.some(
       (slot) => slot.id === timeSlot.id
     );
+
+    console.log("🔍 [SLOT SELECTION] Current state:", {
+      isSelected,
+      currentInternalSlots: internalSelectedTimeSlots.length,
+      currentInternalSlotIds: internalSelectedTimeSlots.map((s) => s.id),
+      externalSelectedTimeSlots: externalSelectedTimeSlots?.length || 0,
+      externalSlotIds: externalSelectedTimeSlots?.map((s) => s.id) || [],
+    });
 
     let newSelectedSlots: TimeSlot[];
     if (isSelected) {
       // Remove slot from selection
-      newSelectedSlots = selectedTimeSlots.filter(
+      newSelectedSlots = internalSelectedTimeSlots.filter(
         (slot) => slot.id !== timeSlot.id
       );
+      console.log("➖ [SLOT SELECTION] Removing slot from selection");
     } else {
       // Add slot to selection
-      newSelectedSlots = [...selectedTimeSlots, timeSlot];
+      newSelectedSlots = [...internalSelectedTimeSlots, timeSlot];
+      console.log("➕ [SLOT SELECTION] Adding slot to selection");
     }
+
+    console.log("📊 [SLOT SELECTION] New selection state:", {
+      newSlotsCount: newSelectedSlots.length,
+      newSlotIds: newSelectedSlots.map((s) => s.id),
+    });
 
     setInternalSelectedTimeSlots(newSelectedSlots);
 
     // Call external handlers if provided
     if (onTimeSlotsSelect) {
-      onTimeSlotsSelect(
-        newSelectedSlots.map((slot) => ({
-          id: slot.id,
-          courtId: slot.courtId,
-          startTime: slot.startTime,
-          endTime: slot.endTime,
-          date: slot.date,
-          price: slot.price,
-        }))
+      const slotsForCallback = newSelectedSlots.map((slot) => ({
+        id: slot.id,
+        courtId: slot.courtId,
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+        date: slot.date,
+        price: slot.price,
+      }));
+
+      console.log(
+        "📤 [SLOT SELECTION] Calling onTimeSlotsSelect with:",
+        slotsForCallback
       );
+      onTimeSlotsSelect(slotsForCallback);
     }
 
     // For backward compatibility with single slot selection
     if (onTimeSlotSelect) {
-      onTimeSlotSelect(newSelectedSlots.length > 0 ? slotData : null);
+      // Only pass single slot data if exactly one slot is selected
+      const singleSlotData = newSelectedSlots.length === 1 ? slotData : null;
+      console.log(
+        "📤 [SLOT SELECTION] Calling onTimeSlotSelect with:",
+        singleSlotData,
+        "| Reason:",
+        newSelectedSlots.length === 1
+          ? "exactly 1 slot selected"
+          : newSelectedSlots.length === 0
+          ? "no slots selected"
+          : `${newSelectedSlots.length} slots selected (multiple)`
+      );
+      onTimeSlotSelect(singleSlotData);
     }
+
+    console.log("✅ [SLOT SELECTION] Selection completed");
   };
 
   const handleBookSlot = () => {
+    console.log("🚀 [BOOK SLOT] Starting booking process");
+    console.log("� [BOOK SLOT] Current state analysis:", {
+      selectedTimeSlot: selectedTimeSlot,
+      selectedTimeSlots: selectedTimeSlots,
+      selectedTimeSlotsCount: selectedTimeSlots.length,
+      internalSelectedTimeSlots: internalSelectedTimeSlots,
+      internalSelectedTimeSlotsCount: internalSelectedTimeSlots.length,
+      externalSelectedTimeSlots: externalSelectedTimeSlots,
+      externalSelectedTimeSlotsCount: externalSelectedTimeSlots?.length || 0,
+      convertedExternalSlots: convertedExternalSlots,
+      convertedExternalSlotsCount: convertedExternalSlots.length,
+    });
+
+    // Debug the selectedTimeSlot derivation
+    console.log("🔍 [BOOK SLOT] selectedTimeSlot derivation:", {
+      externalSelectedTimeSlot: externalSelectedTimeSlot,
+      internalSelectedTimeSlot: internalSelectedTimeSlot,
+      finalSelectedTimeSlot: selectedTimeSlot,
+    });
+
+    if (selectedTimeSlot) {
+      console.log(
+        "✅ [BOOK SLOT] Single slot selected, proceeding with booking"
+      );
+    } else if (selectedTimeSlots.length > 0) {
+      console.log(
+        "⚠️ [BOOK SLOT] Multiple slots selected but no single slot - using first slot"
+      );
+      console.log(
+        "📋 [BOOK SLOT] Available slots:",
+        selectedTimeSlots.map((s) => ({
+          id: s.id,
+          courtId: s.courtId,
+          startTime: s.startTime,
+          endTime: s.endTime,
+        }))
+      );
+    } else {
+      console.log("❌ [BOOK SLOT] No slots selected");
+    }
+
     if (selectedTimeSlot) {
       // Navigate to booking page with selected slot
       window.location.href = `/venues/${venueId}/book?courtId=${selectedTimeSlot.courtId}&date=${selectedTimeSlot.date}&startTime=${selectedTimeSlot.startTime}`;
