@@ -61,22 +61,25 @@ model User {
 }
 
 model Venue {
-  id             String         @id @default(auto()) @map("_id") @db.ObjectId
-  name           String
-  description    String?
-  address        String
-  location       Json? // GeoJSON format: { type: "Point", coordinates: [longitude, latitude] }
-  ownerId        String         @db.ObjectId
-  amenities      String[]
-  photoUrls      String[]
-  approvalStatus ApprovalStatus @default(PENDING)
-  rating         Float?
-  reviewCount    Int            @default(0)
-  operatingHours Json
-  isActive       Boolean        @default(true)
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  sports         String[]
+  id                 String         @id @default(auto()) @map("_id") @db.ObjectId
+  name               String
+  description        String?
+  address            String
+  location           Json? // GeoJSON format: { type: "Point", coordinates: [longitude, latitude] }
+  ownerId            String         @db.ObjectId
+  amenities          String[]
+  photoUrls          String[]
+  approvalStatus     ApprovalStatus @default(PENDING)
+  rejectionReason    String? // Reason for rejection
+  rating             Float?
+  reviewCount        Int            @default(0)
+  operatingHours     Json
+  isActive           Boolean        @default(true)
+  resubmissionCount  Int            @default(0) // Track number of resubmissions
+  lastResubmissionAt DateTime? // Track last resubmission time for cooldown
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  sports             String[]
 
   // Relations
   owner   User     @relation("VenueOwner", fields: [ownerId], references: [id])

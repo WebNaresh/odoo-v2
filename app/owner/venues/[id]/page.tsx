@@ -46,6 +46,7 @@ import {
 } from "lucide-react";
 import { AddCourtModal } from "@/components/courts/AddCourtModal";
 import { CourtList } from "@/components/courts/CourtList";
+import { VenueResubmissionButton } from "@/components/venues/VenueResubmissionButton";
 
 interface Venue {
   id: string;
@@ -60,6 +61,9 @@ interface Venue {
   sports: string[];
   photoUrls: string[];
   approvalStatus: "PENDING" | "APPROVED" | "REJECTED";
+  rejectionReason?: string;
+  resubmissionCount: number;
+  lastResubmissionAt?: string;
   isActive: boolean;
   rating: number;
   reviewCount: number;
@@ -82,7 +86,11 @@ interface Venue {
     courtType: string;
     venueId: string;
     pricePerHour: number;
+    capacity: number;
     operatingHours: any;
+    slotConfig?: any;
+    excludedTimes?: any;
+    slotDuration: number;
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -392,7 +400,10 @@ export default function VenueDetailsPage() {
 
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="destructive" className="flex items-center gap-2">
+              <Button
+                variant="destructive"
+                className="flex items-center gap-2 text-white"
+              >
                 <Trash2 className="h-4 w-4" />
                 Delete Venue
               </Button>
@@ -577,6 +588,15 @@ export default function VenueDetailsPage() {
 
           {/* Right Column - Sidebar Info */}
           <div className="space-y-6">
+            {/* Resubmission Section - Only for rejected venues */}
+            {venue.approvalStatus === "REJECTED" && (
+              <VenueResubmissionButton
+                venueId={venueId}
+                approvalStatus={venue.approvalStatus}
+                rejectionReason={venue.rejectionReason}
+              />
+            )}
+
             {/* Quick Stats */}
             <Card>
               <CardHeader>
