@@ -81,17 +81,12 @@ interface Venue {
     name: string;
     courtType: string;
     venueId: string;
-    sportId: string;
     pricePerHour: number;
     operatingHours: any;
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
     venue?: {
-      id: string;
-      name: string;
-    };
-    sport?: {
       id: string;
       name: string;
     };

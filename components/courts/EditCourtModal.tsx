@@ -32,7 +32,6 @@ import { Switch } from "@/components/ui/switch";
 import { Loader2, Edit } from "lucide-react";
 import { updateCourtSchema, COURT_TYPES } from "@/types/court";
 import type { UpdateCourtData, CourtWithRelations } from "@/types/court";
-import { getSortedSports } from "@/constants/sports";
 
 interface EditCourtModalProps {
   isOpen: boolean;
@@ -49,16 +48,12 @@ export function EditCourtModal({
 }: EditCourtModalProps) {
   const [isLoading, setIsLoading] = useState(false);
 
-  // Use predefined sports sorted by popularity and name
-  const sports = getSortedSports();
-
   const form = useForm<UpdateCourtData>({
     resolver: zodResolver(updateCourtSchema),
     defaultValues: {
       id: "",
       name: "",
       courtType: "Standard",
-      sportId: "",
       pricePerHour: 0,
       isActive: true,
     },
@@ -71,7 +66,6 @@ export function EditCourtModal({
         id: court.id,
         name: court.name,
         courtType: court.courtType as any,
-        sportId: court.sportId,
         pricePerHour: court.pricePerHour,
         operatingHours: court.operatingHours,
         isActive: court.isActive,
@@ -169,37 +163,6 @@ export function EditCourtModal({
                       {COURT_TYPES.map((type) => (
                         <SelectItem key={type} value={type}>
                           {type}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Sport */}
-            <FormField
-              control={form.control}
-              name="sportId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Sport</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select sport" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {sports.map((sport) => (
-                        <SelectItem key={sport.id} value={sport.id}>
-                          <div className="flex items-center justify-between w-full">
-                            <span>{sport.name}</span>
-                            <span className="text-xs text-muted-foreground ml-2">
-                              {sport.category}
-                            </span>
-                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>

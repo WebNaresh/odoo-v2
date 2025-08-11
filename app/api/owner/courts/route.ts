@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { name, courtType, venueId, sportId, pricePerHour, operatingHours, isActive } = validationResult.data;
+    const { name, courtType, venueId, pricePerHour, operatingHours, isActive } = validationResult.data;
 
     // Verify that the venue belongs to the authenticated user
     const venue = await prisma.venue.findFirst({
@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Note: sportId validation could be added here if a Sport model exists in the future
+
 
     // Check if court name already exists in this venue
     const existingCourt = await prisma.court.findFirst({
@@ -177,7 +177,6 @@ export async function POST(request: NextRequest) {
         name,
         courtType,
         venueId,
-        sportId,
         pricePerHour,
         operatingHours,
         isActive,

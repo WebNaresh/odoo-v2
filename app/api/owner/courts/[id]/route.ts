@@ -142,7 +142,7 @@ export async function PUT(
       );
     }
 
-    const { name, courtType, sportId, pricePerHour, operatingHours, isActive } = validationResult.data;
+    const { name, courtType, pricePerHour, operatingHours, isActive } = validationResult.data;
 
     // Verify that the court exists and belongs to the authenticated user
     const existingCourt = await prisma.court.findFirst({
@@ -167,7 +167,7 @@ export async function PUT(
       );
     }
 
-    // Note: sportId validation could be added here if a Sport model exists in the future
+
 
     // If name is being updated, check for duplicates in the same venue
     if (name && name !== existingCourt.name) {
@@ -194,7 +194,6 @@ export async function PUT(
     const updateData: any = {};
     if (name !== undefined) updateData.name = name;
     if (courtType !== undefined) updateData.courtType = courtType;
-    if (sportId !== undefined) updateData.sportId = sportId;
     if (pricePerHour !== undefined) updateData.pricePerHour = pricePerHour;
     if (operatingHours !== undefined) updateData.operatingHours = operatingHours;
     if (isActive !== undefined) updateData.isActive = isActive;

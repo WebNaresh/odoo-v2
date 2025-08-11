@@ -56,7 +56,6 @@ export const createCourtSchema = z.object({
   name: z.string().min(1, "Court name is required").max(100, "Court name must be less than 100 characters"),
   courtType: z.enum(COURT_TYPES),
   venueId: z.string().min(1, "Venue ID is required"),
-  sportId: z.string().min(1, "Sport ID is required"),
   pricePerHour: z.number().min(0, "Price must be a positive number").max(10000, "Price must be reasonable"),
   operatingHours: operatingHoursSchema,
   isActive: z.boolean(),
@@ -67,7 +66,6 @@ export const updateCourtSchema = z.object({
   id: z.string().min(1, "Court ID is required"),
   name: z.string().min(1, "Court name is required").max(100, "Court name must be less than 100 characters").optional(),
   courtType: z.enum(COURT_TYPES).optional(),
-  sportId: z.string().min(1, "Sport ID is required").optional(),
   pricePerHour: z.number().min(0, "Price must be a positive number").max(10000, "Price must be reasonable").optional(),
   operatingHours: operatingHoursSchema.optional(),
   isActive: z.boolean().optional(),
@@ -85,7 +83,6 @@ export interface Court {
   name: string;
   courtType: string;
   venueId: string;
-  sportId: string;
   pricePerHour: number;
   operatingHours: OperatingHours;
   isActive: boolean;
@@ -99,10 +96,6 @@ export interface CourtWithRelations extends Court {
     id: string;
     name: string;
   };
-  sport?: {
-    id: string;
-    name: string;
-  };
   _count?: {
     bookings: number;
     timeSlots: number;
@@ -113,7 +106,6 @@ export interface CourtWithRelations extends Court {
 export interface CourtFormData {
   name: string;
   courtType: CourtType;
-  sportId: string;
   pricePerHour: number;
   operatingHours: OperatingHours;
   isActive: boolean;

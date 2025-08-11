@@ -36,7 +36,6 @@ import {
   DEFAULT_OPERATING_HOURS,
 } from "@/types/court";
 import type { CreateCourtData } from "@/types/court";
-import { getSortedSports } from "@/constants/sports";
 
 interface AddCourtModalProps {
   isOpen: boolean;
@@ -53,16 +52,12 @@ export function AddCourtModal({
 }: AddCourtModalProps) {
   const [isLoading, setIsLoading] = useState(false);
 
-  // Use predefined sports sorted by popularity and name
-  const sports = getSortedSports();
-
   const form = useForm<CreateCourtData>({
     resolver: zodResolver(createCourtSchema),
     defaultValues: {
       name: "",
       courtType: "Standard",
       venueId: venueId,
-      sportId: "",
       pricePerHour: 0,
       operatingHours: DEFAULT_OPERATING_HOURS,
       isActive: true,
@@ -80,14 +75,18 @@ export function AddCourtModal({
   const onSubmit = async (data: CreateCourtData) => {
     setIsLoading(true);
     try {
-      console.log("🏟️ [ADD COURT] Submitting court data:", data);
+      console.log("🏟️ [ADD COURT] Raw form data:", data);
+
+      // Ensure sportId is not included in the submission
+      const { sportId, ...cleanData } = data as any;
+      console.log("🏟️ [ADD COURT] Clean data (sportId removed):", cleanData);
 
       const response = await fetch("/api/owner/courts", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(cleanData),
       });
 
       const result = await response.json();
@@ -162,40 +161,6 @@ export function AddCourtModal({
                       {COURT_TYPES.map((type) => (
                         <SelectItem key={type} value={type}>
                           {type}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Sport */}
-            <FormField
-              control={form.control}
-              name="sportId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Sport</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select sport" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {sports.map((sport) => (
-                        <SelectItem key={sport.id} value={sport.id}>
-                          <div className="flex items-center justify-between w-full">
-                            <span>{sport.name}</span>
-                            <span className="text-xs text-muted-foreground ml-2">
-                              {sport.category}
-                            </span>
-                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
