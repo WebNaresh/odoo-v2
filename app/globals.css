@@ -182,6 +182,116 @@
                 linear-gradient(135deg, oklch(0.52 0.18 152), oklch(0.45 0.16 152)) border-box;
     border: 2px solid transparent;
   }
+
+  /* Responsive utilities */
+  .container-responsive {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .container-responsive {
+      max-width: 640px;
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .container-responsive {
+      max-width: 768px;
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .container-responsive {
+      max-width: 1024px;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .container-responsive {
+      max-width: 1280px;
+    }
+  }
+
+  @media (min-width: 1536px) {
+    .container-responsive {
+      max-width: 1536px;
+    }
+  }
+
+  /* Responsive text sizes */
+  .text-responsive-xs {
+    font-size: 0.75rem;
+    line-height: 1rem;
+  }
+
+  .text-responsive-sm {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+
+  .text-responsive-base {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+
+  .text-responsive-lg {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+  }
+
+  .text-responsive-xl {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+
+  @media (min-width: 640px) {
+    .text-responsive-xs { font-size: 0.875rem; line-height: 1.25rem; }
+    .text-responsive-sm { font-size: 1rem; line-height: 1.5rem; }
+    .text-responsive-base { font-size: 1.125rem; line-height: 1.75rem; }
+    .text-responsive-lg { font-size: 1.25rem; line-height: 1.75rem; }
+    .text-responsive-xl { font-size: 1.5rem; line-height: 2rem; }
+  }
+
+  @media (min-width: 768px) {
+    .text-responsive-xs { font-size: 1rem; line-height: 1.5rem; }
+    .text-responsive-sm { font-size: 1.125rem; line-height: 1.75rem; }
+    .text-responsive-base { font-size: 1.25rem; line-height: 1.75rem; }
+    .text-responsive-lg { font-size: 1.5rem; line-height: 2rem; }
+    .text-responsive-xl { font-size: 1.875rem; line-height: 2.25rem; }
+  }
+
+  /* Responsive spacing */
+  .spacing-responsive-sm {
+    padding: 0.5rem;
+  }
+
+  .spacing-responsive-md {
+    padding: 1rem;
+  }
+
+  .spacing-responsive-lg {
+    padding: 1.5rem;
+  }
+
+  @media (min-width: 640px) {
+    .spacing-responsive-sm { padding: 0.75rem; }
+    .spacing-responsive-md { padding: 1.5rem; }
+    .spacing-responsive-lg { padding: 2rem; }
+  }
+
+  @media (min-width: 768px) {
+    .spacing-responsive-sm { padding: 1rem; }
+    .spacing-responsive-md { padding: 2rem; }
+    .spacing-responsive-lg { padding: 3rem; }
+  }
 }
 
 @layer utilities {

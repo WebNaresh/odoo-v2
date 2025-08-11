@@ -90,29 +90,30 @@ export function MainNav() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b border-primary/10 bg-white/80 backdrop-blur-md supports-[backdrop-filter]:bg-white/60">
       <div className="container flex h-16 items-center">
-        {/* Logo */}
-        <Link href="/" className="flex items-center space-x-2">
-          <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-sm">QC</span>
+        {/* Enhanced Logo */}
+        <Link href="/" className="flex items-center space-x-3 group">
+          <div className="h-10 w-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-primary group-hover:scale-105 transition-transform duration-200">
+            <span className="text-white font-bold text-lg">Q</span>
           </div>
-          <span className="font-bold text-xl">QuickCourt</span>
+          <span className="font-bold text-2xl text-gradient-primary">QuickCourt</span>
         </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-6 text-sm font-medium ml-8">
+        {/* Enhanced Desktop Navigation */}
+        <nav className="hidden md:flex items-center space-x-2 text-sm font-medium ml-8">
           {filteredNavItems.map((item) => {
             const Icon = item.icon;
+            const isActive = pathname === item.href;
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center space-x-2 transition-colors hover:text-foreground/80",
-                  pathname === item.href
-                    ? "text-foreground"
-                    : "text-foreground/60"
+                  "flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-200 hover:bg-primary/10",
+                  isActive
+                    ? "text-primary bg-primary/10 font-semibold"
+                    : "text-foreground/70 hover:text-primary"
                 )}
               >
                 {Icon && <Icon className="h-4 w-4" />}
@@ -140,13 +141,13 @@ export function MainNav() {
           ) : session ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8">
+                <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-primary/10 transition-colors">
+                  <Avatar className="h-10 w-10 border-2 border-primary/20">
                     <AvatarImage
                       src={session.user?.image || ""}
                       alt={session.user?.name || ""}
                     />
-                    <AvatarFallback>
+                    <AvatarFallback className="bg-gradient-primary text-white font-semibold">
                       {session.user?.name?.charAt(0) || "U"}
                     </AvatarFallback>
                   </Avatar>
@@ -183,44 +184,82 @@ export function MainNav() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button onClick={handleSignIn} size="sm">
-              Sign In
-            </Button>
+            <div className="flex items-center space-x-3">
+              <Button
+                onClick={handleSignIn}
+                variant="ghost"
+                className="text-primary hover:bg-primary/10 font-semibold"
+              >
+                Sign In
+              </Button>
+              <Button
+                onClick={() => router.push("/auth/signup")}
+                className="bg-gradient-primary hover:shadow-primary text-white font-semibold px-6 rounded-xl transition-all duration-200 hover:scale-105"
+              >
+                Get Started
+              </Button>
+            </div>
           )}
 
-          {/* Mobile Menu */}
+          {/* Enhanced Mobile Menu */}
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
               <Button
                 variant="ghost"
-                className="md:hidden h-8 w-8 p-0"
+                className="md:hidden h-10 w-10 p-0 hover:bg-primary/10 text-primary"
                 onClick={() => setIsOpen(true)}
               >
-                <Menu className="h-4 w-4" />
+                <Menu className="h-5 w-5" />
                 <span className="sr-only">Toggle menu</span>
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-              <nav className="flex flex-col space-y-4">
+              <nav className="flex flex-col space-y-2 mt-8">
                 {filteredNavItems.map((item) => {
                   const Icon = item.icon;
+                  const isActive = pathname === item.href;
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        "flex items-center space-x-2 text-sm font-medium transition-colors hover:text-foreground/80",
-                        pathname === item.href
-                          ? "text-foreground"
-                          : "text-foreground/60"
+                        "flex items-center space-x-3 px-4 py-3 rounded-xl text-base font-medium transition-all duration-200",
+                        isActive
+                          ? "text-primary bg-primary/10 font-semibold"
+                          : "text-foreground/70 hover:text-primary hover:bg-primary/5"
                       )}
                       onClick={() => setIsOpen(false)}
                     >
-                      {Icon && <Icon className="h-4 w-4" />}
+                      {Icon && <Icon className="h-5 w-5" />}
                       <span>{item.title}</span>
                     </Link>
                   );
                 })}
+
+                {/* Mobile Auth Buttons */}
+                {!session && (
+                  <div className="flex flex-col space-y-3 mt-8 pt-6 border-t border-primary/10">
+                    <Button
+                      onClick={() => {
+                        handleSignIn();
+                        setIsOpen(false);
+                      }}
+                      variant="outline"
+                      className="border-primary/20 text-primary hover:bg-primary/10 font-semibold"
+                    >
+                      Sign In
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        router.push("/auth/signup");
+                        setIsOpen(false);
+                      }}
+                      className="bg-gradient-primary text-white font-semibold"
+                    >
+                      Get Started
+                    </Button>
+                  </div>
+                )}
               </nav>
             </SheetContent>
           </Sheet>
