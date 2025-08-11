@@ -100,22 +100,46 @@ function generateTimeSlots(
     if (!isExcluded) {
       // Check availability against real booking data
       let isAvailable = true;
+
+      console.log(`🔍 [TIME SLOTS] Checking slot ${startTimeStr}-${endTimeStr} for court ${court.id}:`, {
+        hasAvailabilityData: !!(availability && availability[court.id]),
+        availabilityKeys: availability ? Object.keys(availability) : [],
+        courtId: court.id,
+        startTimeStr,
+        endTimeStr,
+      });
+
       if (availability && availability[court.id]) {
         const courtAvailability = availability[court.id];
+        console.log(`📊 [TIME SLOTS] Court ${court.id} availability data:`, {
+          courtName: courtAvailability.courtName,
+          capacity: courtAvailability.capacity,
+          bookedSlotsCount: courtAvailability.bookedSlots.length,
+          bookedSlots: courtAvailability.bookedSlots,
+        });
+
         const bookedSlot = courtAvailability.bookedSlots.find(
           slot => slot.startTime === startTimeStr && slot.endTime === endTimeStr
         );
 
+        console.log(`🔍 [TIME SLOTS] Looking for slot ${startTimeStr}-${endTimeStr}:`, {
+          found: !!bookedSlot,
+          bookedSlot,
+          searchingFor: { startTime: startTimeStr, endTime: endTimeStr },
+        });
+
         if (bookedSlot) {
           // Disable slot if it has any bookings (regardless of capacity)
           isAvailable = false;
-          console.log(`🔍 [TIME SLOTS] Slot ${startTimeStr}-${endTimeStr} for court ${court.id}:`, {
+          console.log(`❌ [TIME SLOTS] DISABLING slot ${startTimeStr}-${endTimeStr} for court ${court.id}:`, {
             bookedPlayers: bookedSlot.bookedPlayers,
             availableSpots: bookedSlot.availableSpots,
             isFullyBooked: bookedSlot.isFullyBooked,
             isAvailable,
             reason: "Slot has existing bookings - disabled",
           });
+        } else {
+          console.log(`✅ [TIME SLOTS] Slot ${startTimeStr}-${endTimeStr} is available (no bookings found)`);
         }
       } else {
         console.log(`📊 [TIME SLOTS] No availability data for court ${court.id}, defaulting to available`);
@@ -161,8 +185,17 @@ export function useCourtTimeSlots(courts: any[], selectedDate: Date = new Date()
             const data = await response.json();
             if (data.success) {
               availability = data.availability || {};
-              console.log("📊 [COURT TIME SLOTS] Fetched availability data:", availability);
+              console.log("📊 [COURT TIME SLOTS] Fetched availability data:", {
+                success: data.success,
+                date: data.date,
+                availabilityKeys: Object.keys(availability),
+                fullAvailability: availability,
+              });
+            } else {
+              console.error("❌ [COURT TIME SLOTS] API returned error:", data);
             }
+          } else {
+            console.error("❌ [COURT TIME SLOTS] API request failed:", response.status, response.statusText);
           }
         } catch (error) {
           console.error("❌ [COURT TIME SLOTS] Failed to fetch availability:", error);
