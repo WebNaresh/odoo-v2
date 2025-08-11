@@ -107,8 +107,18 @@ function generateTimeSlots(
         );
 
         if (bookedSlot) {
-          isAvailable = !bookedSlot.isFullyBooked;
+          // Disable slot if it has any bookings (regardless of capacity)
+          isAvailable = false;
+          console.log(`🔍 [TIME SLOTS] Slot ${startTimeStr}-${endTimeStr} for court ${court.id}:`, {
+            bookedPlayers: bookedSlot.bookedPlayers,
+            availableSpots: bookedSlot.availableSpots,
+            isFullyBooked: bookedSlot.isFullyBooked,
+            isAvailable,
+            reason: "Slot has existing bookings - disabled",
+          });
         }
+      } else {
+        console.log(`📊 [TIME SLOTS] No availability data for court ${court.id}, defaulting to available`);
       }
 
       slots.push({
