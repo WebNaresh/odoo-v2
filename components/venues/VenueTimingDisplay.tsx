@@ -35,6 +35,25 @@ interface VenueTimingDisplayProps {
   venueName: string;
   courts: any[];
   selectedCourtId?: string;
+  selectedCourtIds?: string[];
+  onTimeSlotSelect?: (
+    timeSlot: {
+      id: string;
+      courtId: string;
+      startTime: string;
+      endTime: string;
+      date: string;
+      price: number;
+    } | null
+  ) => void;
+  selectedTimeSlot?: {
+    id: string;
+    courtId: string;
+    startTime: string;
+    endTime: string;
+    date: string;
+    price: number;
+  } | null;
   className?: string;
 }
 
@@ -43,12 +62,17 @@ export function VenueTimingDisplay({
   venueName,
   courts,
   selectedCourtId,
+  selectedCourtIds,
+  onTimeSlotSelect,
+  selectedTimeSlot: externalSelectedTimeSlot,
   className,
 }: VenueTimingDisplayProps) {
   const [selectedDate, setSelectedDate] = useState(startOfDay(new Date()));
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(
-    null
-  );
+  const [internalSelectedTimeSlot, setInternalSelectedTimeSlot] =
+    useState<TimeSlot | null>(null);
+
+  // Use external selected time slot if provided, otherwise use internal state
+  const selectedTimeSlot = externalSelectedTimeSlot || internalSelectedTimeSlot;
 
   const {
     data: courtsWithTimeSlots,
@@ -56,10 +80,20 @@ export function VenueTimingDisplay({
     error,
   } = useCourtTimeSlots(courts, selectedDate);
 
-  // Filter courts based on selectedCourtId if provided
-  const filteredCourts = selectedCourtId
-    ? courtsWithTimeSlots?.filter((court) => court.id === selectedCourtId)
-    : courtsWithTimeSlots;
+  // Filter courts based on selectedCourtId or selectedCourtIds if provided
+  const filteredCourts = (() => {
+    if (selectedCourtIds && selectedCourtIds.length > 0) {
+      return courtsWithTimeSlots?.filter((court) =>
+        selectedCourtIds.includes(court.id)
+      );
+    }
+    if (selectedCourtId) {
+      return courtsWithTimeSlots?.filter(
+        (court) => court.id === selectedCourtId
+      );
+    }
+    return courtsWithTimeSlots;
+  })();
 
   // Generate next 7 days for date selection
   const availableDates = Array.from({ length: 7 }, (_, i) =>
@@ -68,11 +102,30 @@ export function VenueTimingDisplay({
 
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date);
-    setSelectedTimeSlot(null); // Reset selected time slot when date changes
+    setInternalSelectedTimeSlot(null); // Reset selected time slot when date changes
+
+    // Reset external time slot if handler provided
+    if (onTimeSlotSelect) {
+      onTimeSlotSelect(null);
+    }
   };
 
   const handleTimeSlotSelect = (timeSlot: TimeSlot) => {
-    setSelectedTimeSlot(timeSlot);
+    const slotData = {
+      id: timeSlot.id,
+      courtId: timeSlot.courtId,
+      startTime: timeSlot.startTime,
+      endTime: timeSlot.endTime,
+      date: timeSlot.date,
+      price: timeSlot.price,
+    };
+
+    setInternalSelectedTimeSlot(timeSlot);
+
+    // Call external handler if provided
+    if (onTimeSlotSelect) {
+      onTimeSlotSelect(slotData);
+    }
   };
 
   const handleBookSlot = () => {
@@ -186,10 +239,18 @@ export function VenueTimingDisplay({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Clock className="h-5 w-5" />
-          {selectedCourtId ? "Court Time Slots" : "Available Times"}
+          {(selectedCourtIds && selectedCourtIds.length > 0) || selectedCourtId
+            ? "Court Time Slots"
+            : "Available Times"}
         </CardTitle>
         <CardDescription>
-          {selectedCourtId
+          {selectedCourtIds && selectedCourtIds.length > 0
+            ? `Available time slots for ${
+                selectedCourtIds.length
+              } selected court${
+                selectedCourtIds.length > 1 ? "s" : ""
+              } at ${venueName}`
+            : selectedCourtId
             ? `Available time slots for selected court at ${venueName}`
             : `Select a date and time slot at ${venueName}`}
         </CardDescription>
@@ -240,7 +301,7 @@ export function VenueTimingDisplay({
               </div>
 
               {court.timeSlots.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                   {court.timeSlots.map((slot) => (
                     <Button
                       key={slot.id}
@@ -249,7 +310,7 @@ export function VenueTimingDisplay({
                       }
                       size="sm"
                       className={cn(
-                        "flex flex-col h-auto py-2 px-3",
+                        "flex flex-col h-auto py-3 px-2 min-h-[4.5rem] text-center",
                         !slot.isAvailable && "opacity-50 cursor-not-allowed",
                         slot.isPopular &&
                           selectedTimeSlot?.id !== slot.id &&
@@ -258,19 +319,25 @@ export function VenueTimingDisplay({
                       disabled={!slot.isAvailable}
                       onClick={() => handleTimeSlotSelect(slot)}
                     >
-                      <span className="font-medium">
-                        {formatTime(slot.startTime)} -{" "}
+                      <span className="font-medium text-xs leading-tight">
+                        {formatTime(slot.startTime)}
+                      </span>
+                      <span className="text-xs text-muted-foreground">to</span>
+                      <span className="font-medium text-xs leading-tight">
                         {formatTime(slot.endTime)}
                       </span>
-                      <div className="flex items-center gap-1 text-xs">
-                        <IndianRupee className="h-3 w-3" />
-                        <span>{slot.price}</span>
-                        {slot.isPopular && (
-                          <Badge variant="secondary" className="text-xs ml-1">
-                            Popular
-                          </Badge>
-                        )}
+                      <div className="flex items-center justify-center gap-1 text-xs mt-1">
+                        <IndianRupee className="h-3 w-3 flex-shrink-0" />
+                        <span className="truncate">{slot.price}</span>
                       </div>
+                      {slot.isPopular && (
+                        <Badge
+                          variant="secondary"
+                          className="text-[10px] px-1 py-0 mt-1"
+                        >
+                          Popular
+                        </Badge>
+                      )}
                     </Button>
                   ))}
                 </div>

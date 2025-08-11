@@ -32,6 +32,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useVenueDetails } from "@/hooks/use-venues";
@@ -83,6 +84,7 @@ const mockVenue = {
       name: "Basketball Court 1",
       sport: "Basketball",
       pricePerHour: 800,
+      capacity: 10,
       features: ["Professional flooring", "LED lighting", "Sound system"],
     },
     {
@@ -90,6 +92,7 @@ const mockVenue = {
       name: "Tennis Court A",
       sport: "Tennis",
       pricePerHour: 600,
+      capacity: 4,
       features: ["Clay surface", "Floodlights", "Ball machine available"],
     },
     {
@@ -97,6 +100,7 @@ const mockVenue = {
       name: "Badminton Court 1",
       sport: "Badminton",
       pricePerHour: 500,
+      capacity: 4,
       features: [
         "Wooden flooring",
         "Professional nets",
@@ -163,10 +167,48 @@ export default function VenueDetailPage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorited, setIsFavorited] = useState(false);
 
-  // URL state management for selected court
-  const [selectedCourtId, setSelectedCourtId] = useQueryState("selectedCourt", {
-    defaultValue: "",
-  });
+  // URL state management for selected courts (multiple selection)
+  const [selectedCourtIds, setSelectedCourtIds] = useQueryState(
+    "selectedCourts",
+    {
+      defaultValue: "",
+    }
+  );
+
+  // Convert string to array for multiple court selection
+  const selectedCourtIdsArray = selectedCourtIds
+    ? selectedCourtIds.split(",")
+    : [];
+
+  const updateSelectedCourts = (courtIds: string[]) => {
+    setSelectedCourtIds(courtIds.join(","));
+  };
+
+  // State for selected time slot
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<{
+    id: string;
+    courtId: string;
+    startTime: string;
+    endTime: string;
+    date: string;
+    price: number;
+  } | null>(null);
+
+  // State for member count
+  const [memberCount, setMemberCount] = useState(1);
+
+  // Convert 24-hour format to 12-hour format
+  const formatTime = (time: string) => {
+    if (!time) return "";
+
+    const [hourStr, minute] = time.split(":");
+    const hour = parseInt(hourStr);
+
+    if (hour === 0) return `12:${minute} AM`;
+    if (hour < 12) return `${hour}:${minute} AM`;
+    if (hour === 12) return `12:${minute} PM`;
+    return `${hour - 12}:${minute} PM`;
+  };
 
   // Fetch venue details using the ID from params
   const {
@@ -179,13 +221,59 @@ export default function VenueDetailPage() {
   const venue = venueResponse?.success ? venueResponse.venue : null;
 
   const handleBookNow = () => {
-    if (venue) {
-      router.push(`/venues/${venue.id}/book`);
+    if (!venue) return;
+
+    // Validation: Check if at least one court is selected
+    if (selectedCourtIdsArray.length === 0) {
+      toast.error("Please select at least one court first");
+      return;
     }
+
+    // Validation: Check if time slot is selected
+    if (!selectedTimeSlot) {
+      toast.error("Please select a time slot first");
+      return;
+    }
+
+    // Validation: Check member count against court capacity
+    const selectedCourts = venue.courts?.filter((court) =>
+      selectedCourtIdsArray.includes(court.id)
+    );
+
+    const hasCapacityIssue = selectedCourts?.some((court) => {
+      const courtCapacity = (court as any).capacity || 10;
+      return memberCount > courtCapacity;
+    });
+
+    if (hasCapacityIssue) {
+      toast.error(
+        `Member count exceeds court capacity. Please reduce the number of players or select different courts.`
+      );
+      return;
+    }
+
+    // Navigate to booking page with selected courts, time slot, and member count
+    router.push(
+      `/venues/${venue.id}/book?courtIds=${selectedCourtIds}&date=${selectedTimeSlot.date}&startTime=${selectedTimeSlot.startTime}&endTime=${selectedTimeSlot.endTime}&memberCount=${memberCount}`
+    );
   };
 
   const handleCourtSelect = (courtId: string) => {
-    setSelectedCourtId(courtId);
+    const currentSelection = [...selectedCourtIdsArray];
+    const isSelected = currentSelection.includes(courtId);
+
+    if (isSelected) {
+      // Remove court from selection
+      const newSelection = currentSelection.filter((id) => id !== courtId);
+      updateSelectedCourts(newSelection);
+    } else {
+      // Add court to selection
+      const newSelection = [...currentSelection, courtId];
+      updateSelectedCourts(newSelection);
+    }
+
+    // Reset time slot when court selection changes
+    setSelectedTimeSlot(null);
   };
 
   // Loading state
@@ -288,7 +376,7 @@ export default function VenueDetailPage() {
           Back to venues
         </Button>
 
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Image Gallery */}
@@ -437,7 +525,7 @@ export default function VenueDetailPage() {
                     <Card
                       key={court.id}
                       className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
-                        selectedCourtId === court.id
+                        selectedCourtIdsArray.includes(court.id)
                           ? "ring-2 ring-primary ring-offset-2 shadow-lg"
                           : ""
                       }`}
@@ -447,16 +535,27 @@ export default function VenueDetailPage() {
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
-                              <CardTitle className="text-lg">
+                              <input
+                                type="checkbox"
+                                checked={selectedCourtIdsArray.includes(
+                                  court.id
+                                )}
+                                onChange={() => handleCourtSelect(court.id)}
+                                className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                              <CardTitle className="text-lg truncate">
                                 {court.name}
                               </CardTitle>
-                              {selectedCourtId === court.id && (
+                              {selectedCourtIdsArray.includes(court.id) && (
                                 <Badge variant="default" className="text-xs">
                                   Selected
                                 </Badge>
                               )}
                             </div>
-                            <CardDescription>{court.courtType}</CardDescription>
+                            <CardDescription className="ml-6">
+                              {court.courtType}
+                            </CardDescription>
                           </div>
                           <div className="text-right">
                             <div className="flex items-center gap-1 text-lg font-bold">
@@ -483,25 +582,44 @@ export default function VenueDetailPage() {
                               </span>
                             </div>
                             <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                              <Clock className="h-3 w-3" />
-                              <span>Available for booking</span>
+                              <Users className="h-3 w-3" />
+                              <span>
+                                Max {(court as any).capacity || 10} players
+                              </span>
                             </div>
                           </div>
 
                           {court.features && court.features.length > 0 && (
                             <div>
                               <h4 className="font-medium text-sm">Features:</h4>
-                              <ul className="text-sm text-muted-foreground space-y-1">
+                              <div className="flex flex-wrap gap-1 mt-1">
                                 {court.features.map((feature, index) => (
-                                  <li key={index}>• {feature}</li>
+                                  <Badge
+                                    key={index}
+                                    variant="outline"
+                                    className="text-xs"
+                                  >
+                                    {feature}
+                                  </Badge>
                                 ))}
-                              </ul>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Capacity Warning */}
+                          {memberCount > ((court as any).capacity || 10) && (
+                            <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 p-2 rounded">
+                              <AlertCircle className="h-4 w-4" />
+                              <span>
+                                Exceeds capacity (
+                                {(court as any).capacity || 10} max)
+                              </span>
                             </div>
                           )}
 
                           <Button
                             variant={
-                              selectedCourtId === court.id
+                              selectedCourtIdsArray.includes(court.id)
                                 ? "default"
                                 : "outline"
                             }
@@ -513,8 +631,8 @@ export default function VenueDetailPage() {
                               handleCourtSelect(court.id);
                             }}
                           >
-                            {selectedCourtId === court.id
-                              ? "Selected - View Times"
+                            {selectedCourtIdsArray.includes(court.id)
+                              ? "Selected"
                               : "Select Court"}
                           </Button>
                         </div>
@@ -695,24 +813,80 @@ export default function VenueDetailPage() {
                   )}
                 </div>
 
-                <Button className="w-full" size="lg" onClick={handleBookNow}>
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Book Now
-                </Button>
-
-                <div className="text-center text-xs text-muted-foreground">
-                  Free cancellation up to 2 hours before
+                {/* Member Count Selector */}
+                <div className="space-y-3">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Number of Players
+                  </label>
+                  <div className="flex items-center justify-between bg-muted/50 rounded-lg p-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setMemberCount(Math.max(1, memberCount - 1))
+                      }
+                      disabled={memberCount <= 1}
+                      className="h-8 w-8 p-0"
+                    >
+                      -
+                    </Button>
+                    <div className="flex flex-col items-center">
+                      <span className="text-2xl font-bold">{memberCount}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {memberCount === 1 ? "player" : "players"}
+                      </span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setMemberCount(memberCount + 1)}
+                      disabled={memberCount >= 20} // Max limit
+                      className="h-8 w-8 p-0"
+                    >
+                      +
+                    </Button>
+                  </div>
+                  <div className="text-xs text-muted-foreground text-center">
+                    Court capacity varies by sport type
+                  </div>
                 </div>
+
+                {/* Selection Summary */}
+                {(selectedCourtIdsArray.length > 0 || selectedTimeSlot) && (
+                  <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 space-y-2">
+                    <h4 className="font-medium text-sm">Current Selection</h4>
+                    {selectedCourtIdsArray.length > 0 && (
+                      <div className="text-xs text-muted-foreground">
+                        <span className="font-medium">Courts:</span>{" "}
+                        {selectedCourtIdsArray.length} selected
+                      </div>
+                    )}
+                    {selectedTimeSlot && (
+                      <div className="text-xs text-muted-foreground">
+                        <span className="font-medium">Time:</span>{" "}
+                        {formatTime(selectedTimeSlot.startTime)} -{" "}
+                        {formatTime(selectedTimeSlot.endTime)}
+                      </div>
+                    )}
+                    <div className="text-xs text-muted-foreground">
+                      <span className="font-medium">Players:</span>{" "}
+                      {memberCount}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
             {/* Court Timing Display */}
-            {selectedCourtId && venue && venue.courts && (
+            {selectedCourtIdsArray.length > 0 && venue && venue.courts && (
               <VenueTimingDisplay
                 venueId={venue.id}
                 venueName={venue.name}
                 courts={venue.courts}
-                selectedCourtId={selectedCourtId}
+                selectedCourtIds={selectedCourtIdsArray}
+                onTimeSlotSelect={setSelectedTimeSlot}
+                selectedTimeSlot={selectedTimeSlot}
               />
             )}
 
