@@ -69,16 +69,13 @@ export default function SignIn() {
     const urlParams = new URLSearchParams(window.location.search);
     const stepParam = urlParams.get("step");
 
-    console.log("🔗 URL params check - step:", stepParam);
-
     if (stepParam === "check") {
-      console.log("✅ Found step=check, initiating user status check");
       // Clean up URL first
       window.history.replaceState({}, document.title, window.location.pathname);
       // Check user status after a brief delay
       setTimeout(() => {
         checkUserStatus();
-      }, 3000); // Increased delay to match handleGoogleSignIn
+      }, 3000);
     }
   }, []);
 
@@ -87,29 +84,21 @@ export default function SignIn() {
       setLoading(true);
       setError(null);
 
-      console.log("🚀 Starting Google sign-in...");
-
       const result = await signIn("google", {
         callbackUrl: "/auth/signin?step=check",
         redirect: false,
       });
 
-      console.log("📝 Sign-in result:", result);
-
       if (result?.error) {
-        console.error("❌ Sign-in error:", result.error);
         setError("Failed to sign in. Please try again.");
       } else if (result?.url) {
-        console.log("✅ Sign-in successful, URL:", result.url);
-
         // Always check user status after successful sign-in
-        console.log("🔍 Checking user status...");
         setTimeout(async () => {
           await checkUserStatus();
-        }, 3000); // Increased timeout to ensure session is established
+        }, 3000);
       }
     } catch (error) {
-      console.error("💥 Unexpected error:", error);
+      console.error("Sign in error:", error);
       setError("An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
@@ -118,17 +107,12 @@ export default function SignIn() {
 
   const checkUserStatus = async () => {
     try {
-      console.log("🔍 Checking user status...");
       const session = await getSession();
-      console.log("📋 Session data:", session);
 
       if (!session?.user?.email) {
-        console.log("❌ No session or email found, redirecting to home");
         router.push("/");
         return;
       }
-
-      console.log("📧 User email:", session.user.email);
 
       // Check user creation time
       const checkResponse = await fetch("/api/auth/check-user", {
@@ -137,21 +121,16 @@ export default function SignIn() {
         body: JSON.stringify({ email: session.user.email }),
       });
 
-      console.log("🌐 API response status:", checkResponse.status);
-
       if (!checkResponse.ok) {
-        console.error("❌ API request failed:", checkResponse.status);
         router.push("/");
         return;
       }
 
       const responseData = await checkResponse.json();
-      console.log("📊 API response data:", responseData);
 
       const { user } = responseData;
 
       if (!user) {
-        console.log("❌ No user data found, redirecting to home");
         router.push("/");
         return;
       }
@@ -160,29 +139,16 @@ export default function SignIn() {
       const userCreated = new Date(user.createdAt);
       const timeDiff = now.getTime() - userCreated.getTime();
 
-      console.log("⏰ Time comparison:");
-      console.log("  - Now:", now.toISOString());
-      console.log("  - User created:", userCreated.toISOString());
-      console.log("  - Time difference (ms):", timeDiff);
-      console.log(
-        "  - Time difference (seconds):",
-        Math.round(timeDiff / 1000)
-      );
-
       // If user was created within the last 2 minutes, show role selection
       if (timeDiff < 120000) {
-        // 2 minutes instead of 1 minute for more reliability
-        console.log("🎯 New user detected! Showing role selection...");
         setIsNewUser(true);
         setAuthStep("role-selection");
         return;
       }
 
-      console.log("👤 Existing user, redirecting to home");
       router.push("/");
     } catch (err) {
-      console.error("💥 Error checking user status:", err);
-      // Fallback to home page
+      console.error("Error checking user status:", err);
       router.push("/");
     }
   };
@@ -194,7 +160,6 @@ export default function SignIn() {
     }
 
     try {
-      console.log("🎯 Starting role selection for:", selectedRole);
       setLoading(true);
       setError(null);
       setAuthStep("completing");
@@ -207,22 +172,13 @@ export default function SignIn() {
         body: JSON.stringify({ role: selectedRole }),
       });
 
-      console.log("🌐 Role selection API response:", response.status);
-
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error("❌ Role selection failed:", errorData);
         throw new Error("Failed to update role");
       }
 
-      const responseData = await response.json();
-      console.log("✅ Role selection successful:", responseData);
-
-      // Role updated successfully, redirect to home
-      console.log("🏠 Redirecting to home page...");
       router.push("/");
     } catch (err) {
-      console.error("💥 Role selection error:", err);
+      console.error("Role selection error:", err);
       setError("Failed to update your role. Please try again.");
       setAuthStep("role-selection");
     } finally {
