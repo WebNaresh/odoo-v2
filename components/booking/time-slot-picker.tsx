@@ -27,24 +27,27 @@ interface TimeSlotPickerProps {
   className?: string;
 }
 
-// Mock time slots data
+// Mock time slots data - using deterministic values for SSR compatibility
 const generateTimeSlots = (date: Date): TimeSlot[] => {
   const slots: TimeSlot[] = [];
   const isWeekend = date.getDay() === 0 || date.getDay() === 6;
   const basePrice = isWeekend ? 800 : 600;
-  
+
+  // Use date as seed for deterministic "random" values
+  const dateSeed = date.getDate() + date.getMonth() * 31;
+
   // Generate slots from 6 AM to 11 PM
   for (let hour = 6; hour < 23; hour++) {
     const startTime = `${hour.toString().padStart(2, '0')}:00`;
     const endTime = `${(hour + 1).toString().padStart(2, '0')}:00`;
-    
+
     // Peak hours (6-9 PM) cost more
     const isPeakHour = hour >= 18 && hour <= 21;
     const price = isPeakHour ? basePrice + 200 : basePrice;
-    
-    // Random availability for demo
-    const isAvailable = Math.random() > 0.3;
-    
+
+    // Deterministic availability based on hour and date
+    const isAvailable = (dateSeed + hour) % 5 !== 0; // ~80% availability
+
     slots.push({
       id: `slot-${hour}`,
       startTime,
@@ -52,10 +55,10 @@ const generateTimeSlots = (date: Date): TimeSlot[] => {
       price,
       isAvailable,
       isPopular: isPeakHour && isAvailable,
-      courtName: `Court ${Math.floor(Math.random() * 3) + 1}`,
+      courtName: `Court ${((dateSeed + hour) % 3) + 1}`,
     });
   }
-  
+
   return slots;
 };
 

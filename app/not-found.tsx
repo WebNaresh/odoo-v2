@@ -64,7 +64,7 @@ export default function NotFound() {
 
           {/* Header */}
           <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-6">
-            Page Not Found
+          Coming Soon....
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
             The page you're looking for doesn't exist. But don't worry, there are plenty of 
