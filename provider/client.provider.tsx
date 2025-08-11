@@ -18,7 +18,7 @@ export const ClientProvider = ({ children }: Props) => {
       <QueryClientProvider client={queryClient}>
         <NuqsAdapter>
           <Toaster toastOptions={{ duration: 7000 }} />
-          <Suspense>{children}</Suspense>
+          <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
         </NuqsAdapter>
       </QueryClientProvider>
     </SessionProvider>

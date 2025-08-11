@@ -366,7 +366,7 @@ export function MainNav() {
                   Sign In
                 </Button>
                 <Button
-                  onClick={() => router.push("/auth/signup")}
+                  onClick={() => router.push("/auth/signin")}
                   size="sm"
                   className="bg-gradient-primary hover:shadow-primary text-white font-semibold px-3 sm:px-4 lg:px-6 rounded-xl transition-all duration-200 hover:scale-105 text-xs sm:text-sm"
                 >
@@ -470,7 +470,7 @@ export function MainNav() {
                       </Button>
                       <Button
                         onClick={() => {
-                          router.push("/auth/signup");
+                          router.push("/auth/signin");
                           setIsOpen(false);
                         }}
                         className="w-full bg-gradient-primary text-white font-semibold py-3 text-base"
