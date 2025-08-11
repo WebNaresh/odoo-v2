@@ -26,6 +26,12 @@ import {
   Shield,
   Home,
   MapPin,
+  BarChart3,
+  Users,
+  ClipboardList,
+  Trophy,
+  BookOpen,
+  CreditCard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -34,38 +40,118 @@ interface NavItem {
   href: string;
   icon?: React.ComponentType<{ className?: string }>;
   roles?: string[];
+  description?: string;
 }
 
+// Define navigation items for different user roles
 const navigationItems: NavItem[] = [
+  // Public navigation items (visible to all users)
   {
     title: "Home",
     href: "/",
     icon: Home,
+    description: "Return to homepage",
   },
+
+  // Customer (USER) specific navigation
   {
-    title: "Find Venues",
+    title: "Browse Venues",
     href: "/venues",
     icon: MapPin,
+    roles: ["USER"],
+    description: "Find and book sports facilities",
   },
   {
     title: "My Bookings",
-    href: "/dashboard/bookings",
+    href: "/bookings",
     icon: Calendar,
-    roles: ["USER", "FACILITY_OWNER", "ADMIN"],
+    roles: ["USER"],
+    description: "View and manage your reservations",
   },
+  {
+    title: "Profile",
+    href: "/profile",
+    icon: User,
+    roles: ["USER"],
+    description: "Manage your account settings",
+  },
+
+  // Facility Owner (FACILITY_OWNER) specific navigation
   {
     title: "My Facilities",
-    href: "/dashboard/facilities",
+    href: "/owner/facilities",
     icon: Building2,
-    roles: ["FACILITY_OWNER", "ADMIN"],
+    roles: ["FACILITY_OWNER"],
+    description: "Manage your sports facilities",
   },
   {
-    title: "Admin Panel",
+    title: "Analytics",
+    href: "/owner/analytics",
+    icon: BarChart3,
+    roles: ["FACILITY_OWNER"],
+    description: "View performance metrics and insights",
+  },
+  {
+    title: "Bookings Management",
+    href: "/owner/bookings",
+    icon: ClipboardList,
+    roles: ["FACILITY_OWNER"],
+    description: "Manage facility bookings and schedules",
+  },
+  {
+    title: "Court Management",
+    href: "/owner/courts",
+    icon: Trophy,
+    roles: ["FACILITY_OWNER"],
+    description: "Configure courts and pricing",
+  },
+  {
+    title: "Time Slots",
+    href: "/owner/timeslots",
+    icon: BookOpen,
+    roles: ["FACILITY_OWNER"],
+    description: "Manage availability and schedules",
+  },
+
+  // Admin specific navigation
+  {
+    title: "Admin Dashboard",
     href: "/admin",
     icon: Shield,
     roles: ["ADMIN"],
+    description: "System administration panel",
+  },
+  {
+    title: "User Management",
+    href: "/admin/users",
+    icon: Users,
+    roles: ["ADMIN"],
+    description: "Manage platform users",
+  },
+  {
+    title: "Facility Approval",
+    href: "/admin/facilities",
+    icon: Building2,
+    roles: ["ADMIN"],
+    description: "Review and approve facilities",
   },
 ];
+
+// Type for user roles
+type UserRole = "USER" | "FACILITY_OWNER" | "ADMIN";
+
+// Extended session type to include role
+interface ExtendedUser {
+  id?: string;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  role?: UserRole;
+}
+
+interface ExtendedSession {
+  user?: ExtendedUser;
+}
 
 export function MainNav() {
   const { data: session, status } = useSession();
@@ -73,13 +159,52 @@ export function MainNav() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
-  const userRole = session?.user?.role;
+  // Type-safe role extraction
+  const userRole = (session as ExtendedSession)?.user?.role;
+  const isAuthenticated = !!session;
 
+  // Filter navigation items based on user role and authentication status
   const filteredNavItems = navigationItems.filter((item) => {
-    if (!item.roles) return true;
-    if (!session) return false;
-    return item.roles.includes(userRole || "");
+    // If no roles specified, show to everyone
+    if (!item.roles || item.roles.length === 0) {
+      return true;
+    }
+
+    // If user is not authenticated, don't show role-specific items
+    if (!isAuthenticated) {
+      return false;
+    }
+
+    // Show item if user's role is in the allowed roles
+    return userRole && item.roles.includes(userRole);
   });
+
+  // Get role-specific greeting and dashboard link
+  const getRoleSpecificInfo = () => {
+    switch (userRole) {
+      case "FACILITY_OWNER":
+        return {
+          greeting: "Facility Owner",
+          dashboardLink: "/owner/dashboard",
+          primaryAction: "Manage Facilities",
+        };
+      case "ADMIN":
+        return {
+          greeting: "Administrator",
+          dashboardLink: "/admin",
+          primaryAction: "Admin Panel",
+        };
+      case "USER":
+      default:
+        return {
+          greeting: "Customer",
+          dashboardLink: "/dashboard",
+          primaryAction: "My Dashboard",
+        };
+    }
+  };
+
+  const roleInfo = getRoleSpecificInfo();
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: "/" });
@@ -94,9 +219,14 @@ export function MainNav() {
       <div className="container mx-auto px-3 sm:px-4 lg:px-6">
         <div className="flex h-14 sm:h-16 lg:h-18 items-center justify-between">
           {/* Enhanced Responsive Logo */}
-          <Link href="/" className="flex items-center space-x-2 sm:space-x-3 group flex-shrink-0">
+          <Link
+            href="/"
+            className="flex items-center space-x-2 sm:space-x-3 group flex-shrink-0"
+          >
             <div className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 rounded-xl bg-gradient-primary flex items-center justify-center shadow-primary group-hover:scale-105 transition-transform duration-200">
-              <span className="text-white font-bold text-sm sm:text-lg lg:text-xl">Q</span>
+              <span className="text-white font-bold text-sm sm:text-lg lg:text-xl">
+                Q
+              </span>
             </div>
             <span className="font-bold text-lg sm:text-xl lg:text-2xl text-gradient-primary hidden xs:block">
               QuickCourt
@@ -121,7 +251,7 @@ export function MainNav() {
                 >
                   {Icon && <Icon className="h-4 w-4 flex-shrink-0" />}
                   <span className="hidden xl:inline">{item.title}</span>
-                  <span className="xl:hidden">{item.title.split(' ')[0]}</span>
+                  <span className="xl:hidden">{item.title.split(" ")[0]}</span>
                 </Link>
               );
             })}
@@ -141,7 +271,13 @@ export function MainNav() {
               onClick={() => router.push("/search")}
             >
               <Search className="h-3 w-3 sm:h-4 sm:w-4 lg:mr-2 text-primary" />
-              <span className="hidden lg:inline-flex text-muted-foreground">Search venues...</span>
+              <span className="hidden lg:inline-flex text-muted-foreground">
+                {userRole === "FACILITY_OWNER"
+                  ? "Search facilities..."
+                  : userRole === "ADMIN"
+                  ? "Search platform..."
+                  : "Search venues..."}
+              </span>
             </Button>
 
             {/* Enhanced Responsive User Menu */}
@@ -150,7 +286,10 @@ export function MainNav() {
             ) : session ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 rounded-full hover:bg-primary/10 transition-colors">
+                  <Button
+                    variant="ghost"
+                    className="relative h-8 w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 rounded-full hover:bg-primary/10 transition-colors"
+                  >
                     <Avatar className="h-8 w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 border-2 border-primary/20">
                       <AvatarImage
                         src={session.user?.image || ""}
@@ -162,36 +301,111 @@ export function MainNav() {
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      {session.user?.name}
-                    </p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {session.user?.email}
-                    </p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      Role: {session.user?.role}
-                    </p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => router.push("/dashboard/profile")}>
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push("/dashboard/settings")}>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                <DropdownMenuContent className="w-64" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {session.user?.name}
+                      </p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {session.user?.email}
+                      </p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="text-xs leading-none text-muted-foreground">
+                          {roleInfo.greeting}
+                        </span>
+                        {userRole === "FACILITY_OWNER" && (
+                          <Building2 className="h-3 w-3 text-blue-500" />
+                        )}
+                        {userRole === "ADMIN" && (
+                          <Shield className="h-3 w-3 text-red-500" />
+                        )}
+                        {userRole === "USER" && (
+                          <User className="h-3 w-3 text-green-500" />
+                        )}
+                      </div>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+
+                  {/* Role-specific dashboard link */}
+                  <DropdownMenuItem
+                    onClick={() => router.push(roleInfo.dashboardLink)}
+                  >
+                    <Home className="mr-2 h-4 w-4" />
+                    <span>{roleInfo.primaryAction}</span>
+                  </DropdownMenuItem>
+
+                  {/* Common profile and settings */}
+                  <DropdownMenuItem onClick={() => router.push("/profile")}>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push("/settings")}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
+                  </DropdownMenuItem>
+
+                  {/* Role-specific quick actions */}
+                  {userRole === "FACILITY_OWNER" && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => router.push("/owner/facilities")}
+                      >
+                        <Building2 className="mr-2 h-4 w-4" />
+                        <span>My Facilities</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => router.push("/owner/analytics")}
+                      >
+                        <BarChart3 className="mr-2 h-4 w-4" />
+                        <span>Analytics</span>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+
+                  {userRole === "USER" && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => router.push("/bookings")}
+                      >
+                        <Calendar className="mr-2 h-4 w-4" />
+                        <span>My Bookings</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => router.push("/venues")}>
+                        <MapPin className="mr-2 h-4 w-4" />
+                        <span>Browse Venues</span>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+
+                  {userRole === "ADMIN" && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => router.push("/admin/users")}
+                      >
+                        <Users className="mr-2 h-4 w-4" />
+                        <span>User Management</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => router.push("/admin/facilities")}
+                      >
+                        <Building2 className="mr-2 h-4 w-4" />
+                        <span>Facility Approval</span>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <div className="flex items-center space-x-2 sm:space-x-3">
                 <Button
@@ -225,15 +439,22 @@ export function MainNav() {
                   <span className="sr-only">Toggle menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[280px] sm:w-[350px] md:w-[400px] p-0">
+              <SheetContent
+                side="right"
+                className="w-[280px] sm:w-[350px] md:w-[400px] p-0"
+              >
                 <div className="flex flex-col h-full">
                   {/* Mobile Header */}
                   <div className="flex items-center justify-between p-4 sm:p-6 border-b border-primary/10">
                     <div className="flex items-center space-x-3">
                       <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-primary">
-                        <span className="text-white font-bold text-sm sm:text-lg">Q</span>
+                        <span className="text-white font-bold text-sm sm:text-lg">
+                          Q
+                        </span>
                       </div>
-                      <span className="font-bold text-lg sm:text-xl text-gradient-primary">QuickCourt</span>
+                      <span className="font-bold text-lg sm:text-xl text-gradient-primary">
+                        QuickCourt
+                      </span>
                     </div>
                   </div>
 
@@ -254,7 +475,9 @@ export function MainNav() {
                           )}
                           onClick={() => setIsOpen(false)}
                         >
-                          {Icon && <Icon className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0" />}
+                          {Icon && (
+                            <Icon className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0" />
+                          )}
                           <span>{item.title}</span>
                         </Link>
                       );
@@ -270,7 +493,13 @@ export function MainNav() {
                       }}
                     >
                       <Search className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-                      <span>Search Venues</span>
+                      <span>
+                        {userRole === "FACILITY_OWNER"
+                          ? "Search Facilities"
+                          : userRole === "ADMIN"
+                          ? "Search Platform"
+                          : "Search Venues"}
+                      </span>
                     </Button>
                   </nav>
 
@@ -299,7 +528,7 @@ export function MainNav() {
                     </div>
                   )}
                 </div>
-                </SheetContent>
+              </SheetContent>
             </Sheet>
           </div>
         </div>
