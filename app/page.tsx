@@ -22,6 +22,7 @@ import {
   Shield,
 } from "lucide-react";
 import { useFeaturedVenues } from "@/hooks/use-venues";
+import Link from "next/link";
 
 const popularSports = [
   { name: "Basketball", icon: "🏀", venues: 45 },
@@ -324,12 +325,13 @@ export default function Home() {
                           </Badge>
                         )}
                       </div>
+                      <Link href={`/venues/${venue.id}`}>
                       <Button
                         className="w-full"
-                        onClick={() => router.push(`/venues/${venue.id}`)}
+                
                       >
                         View Details
-                      </Button>
+                      </Button></Link>
                     </CardContent>
                   </Card>
                 ))}
