@@ -8,14 +8,39 @@ const adminRoutes = [
   "/admin/:path*",
 ];
 
+const facilityOwnerRoutes = [
+  "/dashboard/owner",
+  "/dashboard/owner/:path*",
+  "/dashboard/facilities",
+  "/dashboard/facilities/:path*",
+  "/dashboard/courts",
+  "/dashboard/courts/:path*",
+  "/dashboard/schedule",
+  "/dashboard/schedule/:path*",
+  "/dashboard/reviews",
+  "/dashboard/reviews/:path*",
+  "/dashboard/payments",
+  "/dashboard/payments/:path*",
+];
+
 const userRoutes = [
   "/dashboard",
-
+  "/dashboard/bookings",
+  "/dashboard/bookings/:path*",
+  "/dashboard/profile",
+  "/dashboard/profile/:path*",
+  "/dashboard/settings",
+  "/dashboard/settings/:path*",
 ];
 
 const publicRoutes = [
   "/",
   "/auth/signin",
+  "/auth/signup",
+  "/venues",
+  "/venues/:path*",
+  "/search",
+  "/search/:path*",
   "/api/auth/:path*",
 ];
 
@@ -39,6 +64,11 @@ function isPublicRoute(path: string): boolean {
 // Helper function to check if route requires admin access
 function isAdminRoute(path: string): boolean {
   return matchesPattern(path, adminRoutes);
+}
+
+// Helper function to check if route requires facility owner access
+function isFacilityOwnerRoute(path: string): boolean {
+  return matchesPattern(path, facilityOwnerRoutes);
 }
 
 // Helper function to check if route requires user access
@@ -75,9 +105,18 @@ export default withAuth(
       return NextResponse.next();
     }
 
-    // Check user routes (accessible by both USER and ADMIN)
+    // Check facility owner routes (accessible by FACILITY_OWNER and ADMIN)
+    if (isFacilityOwnerRoute(pathname)) {
+      if (userRole !== "FACILITY_OWNER" && userRole !== "ADMIN") {
+        const accessDeniedUrl = new URL("/access-denied", req.url);
+        return NextResponse.redirect(accessDeniedUrl);
+      }
+      return NextResponse.next();
+    }
+
+    // Check user routes (accessible by USER, FACILITY_OWNER, and ADMIN)
     if (isUserRoute(pathname)) {
-      if (userRole !== "USER" && userRole !== "ADMIN") {
+      if (!["USER", "FACILITY_OWNER", "ADMIN"].includes(userRole)) {
         const accessDeniedUrl = new URL("/access-denied", req.url);
         return NextResponse.redirect(accessDeniedUrl);
       }

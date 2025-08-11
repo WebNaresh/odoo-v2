@@ -22,17 +22,22 @@ export const authOptions: NextAuthOptions = {
                     });
 
                     if (!existingUser) {
-                        // Create new user if doesn't exist
-                        await prisma.user.create({
+                        // Create new user with temporary role for role selection
+                        const newUser = await prisma.user.create({
                             data: {
                                 googleId: profile.sub,
                                 email: user.email!,
                                 name: user.name,
                                 image: user.image,
                                 emailVerified: user.email ? new Date() : null,
-                                role: "USER", // Default role for new users
+                                role: "USER", // Temporary default, will be updated after role selection
                             },
                         });
+
+                        // Mark this as a new user in the account object for later use
+                        if (account) {
+                            (account as any).isNewUser = true;
+                        }
                     } else {
                         // Update existing user with latest info
                         await prisma.user.update({
@@ -42,6 +47,11 @@ export const authOptions: NextAuthOptions = {
                                 image: user.image,
                             },
                         });
+
+                        // Mark as existing user
+                        if (account) {
+                            (account as any).isNewUser = false;
+                        }
                     }
                     return true;
                 } catch (error) {
@@ -69,6 +79,11 @@ export const authOptions: NextAuthOptions = {
                     token.role = dbUser.role;
                     token.createdAt = dbUser.createdAt;
                     token.updatedAt = dbUser.updatedAt;
+
+                    // Include new user flag from account
+                    if (account && (account as any).isNewUser !== undefined) {
+                        token.isNewUser = (account as any).isNewUser;
+                    }
                 }
             }
             return token;
@@ -87,6 +102,7 @@ export const authOptions: NextAuthOptions = {
                 sessionUser.role = token.role as string;
                 sessionUser.createdAt = token.createdAt as Date;
                 sessionUser.updatedAt = token.updatedAt as Date;
+                sessionUser.isNewUser = token.isNewUser as boolean;
             }
             return session;
         },
