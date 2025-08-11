@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-hot-toast";
 import {
@@ -18,6 +18,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import {
   Select,
@@ -29,9 +30,34 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Edit } from "lucide-react";
-import { updateCourtSchema, COURT_TYPES } from "@/types/court";
-import type { UpdateCourtData, CourtWithRelations } from "@/types/court";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
+  Loader2,
+  Edit,
+  Trash2,
+  Clock,
+  Users,
+  Calendar,
+  Settings,
+  X,
+  Plus,
+} from "lucide-react";
+import {
+  updateCourtSchema,
+  COURT_TYPES,
+  DEFAULT_TIME_SLOT_CONFIG,
+  DEFAULT_EXCLUDED_TIMES,
+  DEFAULT_SLOT_DURATION,
+  DEFAULT_CAPACITY,
+  SLOT_DURATION_OPTIONS,
+} from "@/types/court";
+import type {
+  UpdateCourtData,
+  CourtWithRelations,
+  ExcludedTimeRange,
+  TimeSlotConfig,
+} from "@/types/court";
 
 interface EditCourtModalProps {
   isOpen: boolean;
@@ -55,8 +81,22 @@ export function EditCourtModal({
       name: "",
       courtType: "Standard",
       pricePerHour: 0,
+      capacity: DEFAULT_CAPACITY,
+      slotConfig: DEFAULT_TIME_SLOT_CONFIG,
+      excludedTimes: DEFAULT_EXCLUDED_TIMES,
+      slotDuration: DEFAULT_SLOT_DURATION,
       isActive: true,
     },
+  });
+
+  // Field array for excluded times
+  const {
+    fields: excludedTimeFields,
+    append: appendExcludedTime,
+    remove: removeExcludedTime,
+  } = useFieldArray({
+    control: form.control,
+    name: "excludedTimes",
   });
 
   // Update form when court changes
@@ -67,7 +107,11 @@ export function EditCourtModal({
         name: court.name,
         courtType: court.courtType as any,
         pricePerHour: court.pricePerHour,
+        capacity: court.capacity || DEFAULT_CAPACITY,
         operatingHours: court.operatingHours,
+        slotConfig: court.slotConfig || DEFAULT_TIME_SLOT_CONFIG,
+        excludedTimes: court.excludedTimes || DEFAULT_EXCLUDED_TIMES,
+        slotDuration: court.slotDuration || DEFAULT_SLOT_DURATION,
         isActive: court.isActive,
       });
     }
@@ -117,7 +161,7 @@ export function EditCourtModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Edit className="h-5 w-5" />
@@ -193,6 +237,252 @@ export function EditCourtModal({
                 </FormItem>
               )}
             />
+
+            {/* Court Capacity */}
+            <FormField
+              control={form.control}
+              name="capacity"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Court Capacity
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="10"
+                      {...field}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Maximum number of people/players the court can accommodate
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Time Slot Configuration */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                <h3 className="text-lg font-semibold">
+                  Time Slot Configuration
+                </h3>
+              </div>
+              <Separator />
+
+              {/* Slot Duration */}
+              <FormField
+                control={form.control}
+                name="slotDuration"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Booking Slot Duration</FormLabel>
+                    <Select
+                      onValueChange={(value) => field.onChange(parseInt(value))}
+                      value={field.value?.toString()}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select slot duration" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {SLOT_DURATION_OPTIONS.map((option) => (
+                          <SelectItem
+                            key={option.value}
+                            value={option.value.toString()}
+                          >
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      How long each booking slot should be
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Time Slot Range */}
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="slotConfig.startTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Available From</FormLabel>
+                      <FormControl>
+                        <Input type="time" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="slotConfig.endTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Available Until</FormLabel>
+                      <FormControl>
+                        <Input type="time" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Excluded Times */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <FormLabel className="text-base">Break Periods</FormLabel>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      appendExcludedTime({
+                        id: Date.now().toString(),
+                        name: "",
+                        startTime: "12:00",
+                        endTime: "13:00",
+                        days: [
+                          "monday",
+                          "tuesday",
+                          "wednesday",
+                          "thursday",
+                          "friday",
+                        ],
+                      });
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Break Period
+                  </Button>
+                </div>
+                <FormDescription>
+                  Define periods when the court is not available for booking
+                  (e.g., lunch break, maintenance)
+                </FormDescription>
+
+                {excludedTimeFields.map((field, index) => (
+                  <div
+                    key={field.id}
+                    className="border rounded-lg p-4 space-y-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <FormField
+                        control={form.control}
+                        name={`excludedTimes.${index}.name`}
+                        render={({ field }) => (
+                          <FormItem className="flex-1 mr-4">
+                            <FormLabel>Break Name</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="e.g., Lunch Break, Maintenance"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeExcludedTime(index)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name={`excludedTimes.${index}.startTime`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Start Time</FormLabel>
+                            <FormControl>
+                              <Input type="time" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name={`excludedTimes.${index}.endTime`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>End Time</FormLabel>
+                            <FormControl>
+                              <Input type="time" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name={`excludedTimes.${index}.days`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Days</FormLabel>
+                          <div className="flex flex-wrap gap-2">
+                            {[
+                              "monday",
+                              "tuesday",
+                              "wednesday",
+                              "thursday",
+                              "friday",
+                              "saturday",
+                              "sunday",
+                            ].map((day) => (
+                              <Badge
+                                key={day}
+                                variant={
+                                  field.value?.includes(day)
+                                    ? "default"
+                                    : "outline"
+                                }
+                                className="cursor-pointer"
+                                onClick={() => {
+                                  const currentDays = field.value || [];
+                                  if (currentDays.includes(day)) {
+                                    field.onChange(
+                                      currentDays.filter((d) => d !== day)
+                                    );
+                                  } else {
+                                    field.onChange([...currentDays, day]);
+                                  }
+                                }}
+                              >
+                                {day.charAt(0).toUpperCase() + day.slice(1, 3)}
+                              </Badge>
+                            ))}
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
 
             {/* Active Status */}
             <FormField
