@@ -49,6 +49,7 @@ import {
   Mail,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 interface NavItem {
   title: string;
@@ -201,21 +202,18 @@ export function MainNav() {
           {/* Enhanced Logo with Animation */}
           <Link
             href="/"
-            className="flex items-center space-x-3 group flex-shrink-0 hover:scale-105 transition-all duration-300"
+            className="flex items-center "
           >
-            <div className="relative">
-              <div className="h-10 w-10 sm:h-12 sm:w-12 lg:h-14 lg:w-14 rounded-2xl bg-gradient-to-br from-[#00884d] to-[#00a855] flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-300">
-                <span className="text-white font-bold text-lg sm:text-xl lg:text-2xl">
-                  Q
-                </span>
+            
+              <div className=" ">
+                <Image src="/bg-logo.png" alt="QuickCourt Logo" width={60} height={60} />
               </div>
-              <div className="absolute -inset-1 bg-gradient-to-br from-[#00884d] to-[#00a855] rounded-2xl blur opacity-20 group-hover:opacity-40 transition-opacity duration-300"></div>
-            </div>
+              
             <div className="hidden sm:block">
-              <span className="font-bold text-xl sm:text-2xl lg:text-3xl bg-gradient-to-r from-[#00884d] to-[#00a855] bg-clip-text text-transparent">
+              <span className="font-bold text-sm sm:text-sm lg:text-xl bg-gradient-to-r from-[#00884d] to-[#00a855] bg-clip-text text-transparent">
                 QuickCourt
               </span>
-              <div className="text-xs text-gray-500 font-medium">Sports Booking Platform</div>
+                <div className="text-xs text-gray-500 font-medium">Sports Booking Platform</div>
             </div>
           </Link>
 
