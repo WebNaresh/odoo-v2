@@ -3,12 +3,9 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
-    // Fetch all active venues with related data
+    // Fetch all active and approved venues with related data
     const venues = await prisma.venue.findMany({
-      where: {
-        isActive: true,
 
-      },
       include: {
         courts: {
           select: {
@@ -73,6 +70,7 @@ export async function GET() {
     const totalCount = await prisma.venue.count({
       where: {
         isActive: true,
+        approvalStatus: "APPROVED", // Only count approved venues
       },
     });
 
