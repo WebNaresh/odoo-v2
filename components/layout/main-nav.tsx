@@ -373,18 +373,7 @@ export function MainNav() {
 
                   {/* Enhanced Menu Items */}
                   <div className="px-2 py-1">
-                    <DropdownMenuItem
-                      onClick={() => router.push(roleInfo.dashboardLink)}
-                      className="flex items-center space-x-3 px-3 py-3 rounded-xl hover:bg-[#00884d]/5 transition-colors duration-200 cursor-pointer"
-                    >
-                      <div className="w-8 h-8 bg-[#00884d]/10 rounded-lg flex items-center justify-center">
-                        <Home className="h-4 w-4 text-[#00884d]" />
-                      </div>
-                      <div className="flex-1">
-                        <span className="font-medium text-gray-900">{roleInfo.primaryAction}</span>
-                        <p className="text-xs text-gray-500">Access your main dashboard</p>
-                      </div>
-                    </DropdownMenuItem>
+                   
 
                     <DropdownMenuItem
                       onClick={() => router.push("/profile")}
@@ -399,18 +388,7 @@ export function MainNav() {
                       </div>
                     </DropdownMenuItem>
 
-                    <DropdownMenuItem
-                      onClick={() => router.push("/settings")}
-                      className="flex items-center space-x-3 px-3 py-3 rounded-xl hover:bg-[#00884d]/5 transition-colors duration-200 cursor-pointer"
-                    >
-                      <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                        <Settings className="h-4 w-4 text-gray-600" />
-                      </div>
-                      <div className="flex-1">
-                        <span className="font-medium text-gray-900">Settings</span>
-                        <p className="text-xs text-gray-500">Preferences and privacy</p>
-                      </div>
-                    </DropdownMenuItem>
+
                   </div>
 
                   {/* Role-specific quick actions */}
