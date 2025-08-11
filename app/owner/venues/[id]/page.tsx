@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
+import Image from "next/image";
 import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import {
@@ -43,6 +44,8 @@ import {
   Loader2,
   Trophy,
 } from "lucide-react";
+import { AddCourtModal } from "@/components/courts/AddCourtModal";
+import { CourtList } from "@/components/courts/CourtList";
 
 interface Venue {
   id: string;
@@ -76,9 +79,26 @@ interface Venue {
   courts: Array<{
     id: string;
     name: string;
-    courtType?: string;
-    pricePerHour?: number;
+    courtType: string;
+    venueId: string;
+    sportId: string;
+    pricePerHour: number;
+    operatingHours: any;
     isActive: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+    venue?: {
+      id: string;
+      name: string;
+    };
+    sport?: {
+      id: string;
+      name: string;
+    };
+    _count?: {
+      bookings: number;
+      timeSlots: number;
+    };
   }>;
   reviews: Array<{
     id: string;
@@ -100,6 +120,10 @@ export default function VenueDetailsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Court management state
+  const [isAddCourtModalOpen, setIsAddCourtModalOpen] = useState(false);
+  const [courtsRefreshKey, setCourtsRefreshKey] = useState(0);
 
   // Fetch venue details
   useEffect(() => {
@@ -223,6 +247,35 @@ export default function VenueDetailsPage() {
         </div>
       );
     });
+  };
+
+  // Court management functions
+  const handleCourtAdded = () => {
+    // Refresh venue data to update court count and list
+    setCourtsRefreshKey((prev) => prev + 1);
+    // Re-fetch venue details to update court count
+    const fetchVenueDetails = async () => {
+      try {
+        const response = await fetch(`/api/owner/venues/${venueId}`);
+        const data = await response.json();
+        if (data.success) {
+          setVenue(data.venue);
+        }
+      } catch (error) {
+        console.error("Error refreshing venue details:", error);
+      }
+    };
+    fetchVenueDetails();
+  };
+
+  const handleCourtUpdated = () => {
+    // Refresh venue data
+    handleCourtAdded();
+  };
+
+  const handleCourtDeleted = () => {
+    // Refresh venue data
+    handleCourtAdded();
   };
 
   if (isLoading) {
@@ -468,9 +521,11 @@ export default function VenueDetailsPage() {
                         key={index}
                         className="aspect-square rounded-lg overflow-hidden bg-muted"
                       >
-                        <img
+                        <Image
                           src={url}
                           alt={`${venue.name} photo ${index + 1}`}
+                          width={300}
+                          height={300}
                           className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
                           onClick={() => window.open(url, "_blank")}
                         />
@@ -508,9 +563,7 @@ export default function VenueDetailsPage() {
                   </span>
                   <Button
                     size="sm"
-                    onClick={() =>
-                      router.push(`/owner/venues/${venueId}/courts`)
-                    }
+                    onClick={() => setIsAddCourtModalOpen(true)}
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Court
@@ -518,69 +571,11 @@ export default function VenueDetailsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {venue.courts.length > 0 ? (
-                  <div className="space-y-3">
-                    {venue.courts.map((court) => (
-                      <div
-                        key={court.id}
-                        className="flex items-center justify-between p-3 border rounded-lg"
-                      >
-                        <div>
-                          <h4 className="font-medium">{court.name}</h4>
-                          <div className="flex items-center gap-2 mt-1">
-                            {court.courtType && (
-                              <Badge variant="outline" className="text-xs">
-                                {court.courtType}
-                              </Badge>
-                            )}
-                            <Badge
-                              variant={court.isActive ? "default" : "secondary"}
-                              className="text-xs"
-                            >
-                              {court.isActive ? "Active" : "Inactive"}
-                            </Badge>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          {court.pricePerHour && (
-                            <p className="font-semibold">
-                              ₹{court.pricePerHour}/hr
-                            </p>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() =>
-                              router.push(
-                                `/owner/venues/${venueId}/courts/${court.id}`
-                              )
-                            }
-                          >
-                            Manage
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground mb-2">
-                      No courts added yet
-                    </p>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Add courts to start accepting bookings
-                    </p>
-                    <Button
-                      onClick={() =>
-                        router.push(`/owner/venues/${venueId}/courts/new`)
-                      }
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add First Court
-                    </Button>
-                  </div>
-                )}
+                <CourtList
+                  courts={venue.courts}
+                  onCourtUpdated={handleCourtUpdated}
+                  onCourtDeleted={handleCourtDeleted}
+                />
               </CardContent>
             </Card>
           </div>
@@ -729,6 +724,14 @@ export default function VenueDetailsPage() {
             </Card>
           </div>
         </div>
+
+        {/* Add Court Modal */}
+        <AddCourtModal
+          isOpen={isAddCourtModalOpen}
+          onClose={() => setIsAddCourtModalOpen(false)}
+          venueId={venueId}
+          onCourtAdded={handleCourtAdded}
+        />
       </div>
     </div>
   );

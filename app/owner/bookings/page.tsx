@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import {
   Card,
@@ -51,7 +51,7 @@ import {
   Clock,
   IndianRupee,
   Loader2,
-  AlertCircle
+  AlertCircle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -102,68 +102,73 @@ export default function OwnerBookingsPage() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Filters
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [venueFilter, setVenueFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [dateFilter, setDateFilter] = useState<string>("");
-  
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalBookings, setTotalBookings] = useState(0);
-  
+
   // Dialog state
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const fetchBookings = async (page = 1) => {
-    try {
-      setLoading(true);
-      setError(null);
+  const fetchBookings = useCallback(
+    async (page = 1) => {
+      try {
+        setLoading(true);
+        setError(null);
 
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: "20"
-      });
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: "20",
+        });
 
-      if (statusFilter && statusFilter !== "all") params.append("status", statusFilter);
-      if (venueFilter && venueFilter !== "all") params.append("venueId", venueFilter);
-      if (dateFilter) params.append("startDate", dateFilter);
+        if (statusFilter && statusFilter !== "all")
+          params.append("status", statusFilter);
+        if (venueFilter && venueFilter !== "all")
+          params.append("venueId", venueFilter);
+        if (dateFilter) params.append("startDate", dateFilter);
 
-      const response = await fetch(`/api/owner/bookings?${params}`);
-      
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          setBookings(data.bookings);
-          setVenues(data.venues || []);
-          setCurrentPage(data.pagination.page);
-          setTotalPages(data.pagination.totalPages);
-          setTotalBookings(data.pagination.total);
+        const response = await fetch(`/api/owner/bookings?${params}`);
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setBookings(data.bookings);
+            setVenues(data.venues || []);
+            setCurrentPage(data.pagination.page);
+            setTotalPages(data.pagination.totalPages);
+            setTotalBookings(data.pagination.total);
+          } else {
+            throw new Error(data.error || "Failed to fetch bookings");
+          }
         } else {
-          throw new Error(data.error || "Failed to fetch bookings");
+          throw new Error("Failed to fetch bookings");
         }
-      } else {
-        throw new Error("Failed to fetch bookings");
+      } catch (error) {
+        console.error("Error fetching bookings:", error);
+        setError("Failed to load bookings. Please try again.");
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error fetching bookings:", error);
-      setError("Failed to load bookings. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [statusFilter, venueFilter, dateFilter]
+  );
 
   useEffect(() => {
     fetchBookings();
-  }, [statusFilter, venueFilter, dateFilter]);
+  }, [fetchBookings]);
 
   const handleStatusUpdate = async (bookingId: string, newStatus: string) => {
     try {
       setUpdating(bookingId);
-      
+
       const response = await fetch("/api/owner/bookings", {
         method: "PATCH",
         headers: {
@@ -179,9 +184,9 @@ export default function OwnerBookingsPage() {
         const data = await response.json();
         if (data.success) {
           // Update the booking in the list
-          setBookings(prev => 
-            prev.map(booking => 
-              booking.id === bookingId 
+          setBookings((prev) =>
+            prev.map((booking) =>
+              booking.id === bookingId
                 ? { ...booking, status: newStatus.toLowerCase() }
                 : booking
             )
@@ -231,7 +236,7 @@ export default function OwnerBookingsPage() {
     }
   };
 
-  const filteredBookings = bookings.filter(booking => {
+  const filteredBookings = bookings.filter((booking) => {
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       return (
@@ -337,7 +342,7 @@ export default function OwnerBookingsPage() {
                 />
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <Label>Status</Label>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -353,7 +358,7 @@ export default function OwnerBookingsPage() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-2">
               <Label>Venue</Label>
               <Select value={venueFilter} onValueChange={setVenueFilter}>
@@ -370,7 +375,7 @@ export default function OwnerBookingsPage() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="date">Date</Label>
               <Input
@@ -387,9 +392,7 @@ export default function OwnerBookingsPage() {
       {/* Bookings Table */}
       <Card>
         <CardHeader>
-          <CardTitle>
-            Bookings ({totalBookings})
-          </CardTitle>
+          <CardTitle>Bookings ({totalBookings})</CardTitle>
           <CardDescription>
             Showing {filteredBookings.length} of {totalBookings} bookings
           </CardDescription>
@@ -419,36 +422,51 @@ export default function OwnerBookingsPage() {
                             <User className="h-4 w-4 text-primary" />
                           </div>
                           <div>
-                            <p className="font-medium">{booking.customer.name}</p>
-                            <p className="text-xs text-muted-foreground">{booking.customer.email}</p>
+                            <p className="font-medium">
+                              {booking.customer.name}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {booking.customer.email}
+                            </p>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div>
                           <p className="font-medium">{booking.venue.name}</p>
-                          <p className="text-sm text-muted-foreground">{booking.court.name}</p>
-                          <p className="text-xs text-muted-foreground">{booking.court.type}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {booking.court.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {booking.court.type}
+                          </p>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div>
-                          <p className="font-medium">{new Date(booking.bookingDate).toLocaleDateString()}</p>
+                          <p className="font-medium">
+                            {new Date(booking.bookingDate).toLocaleDateString()}
+                          </p>
                           <p className="text-sm text-muted-foreground">
-                            {new Date(booking.startTime).toLocaleTimeString()} - {new Date(booking.endTime).toLocaleTimeString()}
+                            {new Date(booking.startTime).toLocaleTimeString()} -{" "}
+                            {new Date(booking.endTime).toLocaleTimeString()}
                           </p>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
                           <Clock className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-sm">{booking.duration} min</span>
+                          <span className="text-sm">
+                            {booking.duration} min
+                          </span>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
                           <IndianRupee className="h-3 w-3 text-muted-foreground" />
-                          <span className="font-medium">₹{booking.totalPrice}</span>
+                          <span className="font-medium">
+                            ₹{booking.totalPrice}
+                          </span>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -457,7 +475,11 @@ export default function OwnerBookingsPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge className={getPaymentStatusColor(booking.paymentStatus)}>
+                        <Badge
+                          className={getPaymentStatusColor(
+                            booking.paymentStatus
+                          )}
+                        >
                           {booking.paymentStatus}
                         </Badge>
                       </TableCell>
@@ -547,35 +569,70 @@ export default function OwnerBookingsPage() {
                 <div>
                   <h4 className="font-semibold mb-2">Customer Information</h4>
                   <div className="space-y-2 text-sm">
-                    <p><span className="font-medium">Name:</span> {selectedBooking.customer.name}</p>
-                    <p><span className="font-medium">Email:</span> {selectedBooking.customer.email}</p>
+                    <p>
+                      <span className="font-medium">Name:</span>{" "}
+                      {selectedBooking.customer.name}
+                    </p>
+                    <p>
+                      <span className="font-medium">Email:</span>{" "}
+                      {selectedBooking.customer.email}
+                    </p>
                   </div>
                 </div>
 
                 <div>
                   <h4 className="font-semibold mb-2">Booking Details</h4>
                   <div className="space-y-2 text-sm">
-                    <p><span className="font-medium">Venue:</span> {selectedBooking.venue.name}</p>
-                    <p><span className="font-medium">Court:</span> {selectedBooking.court.name}</p>
-                    <p><span className="font-medium">Type:</span> {selectedBooking.court.type}</p>
+                    <p>
+                      <span className="font-medium">Venue:</span>{" "}
+                      {selectedBooking.venue.name}
+                    </p>
+                    <p>
+                      <span className="font-medium">Court:</span>{" "}
+                      {selectedBooking.court.name}
+                    </p>
+                    <p>
+                      <span className="font-medium">Type:</span>{" "}
+                      {selectedBooking.court.type}
+                    </p>
                   </div>
                 </div>
 
                 <div>
                   <h4 className="font-semibold mb-2">Schedule</h4>
                   <div className="space-y-2 text-sm">
-                    <p><span className="font-medium">Date:</span> {new Date(selectedBooking.bookingDate).toLocaleDateString()}</p>
-                    <p><span className="font-medium">Time:</span> {new Date(selectedBooking.startTime).toLocaleTimeString()} - {new Date(selectedBooking.endTime).toLocaleTimeString()}</p>
-                    <p><span className="font-medium">Duration:</span> {selectedBooking.duration} minutes</p>
+                    <p>
+                      <span className="font-medium">Date:</span>{" "}
+                      {new Date(
+                        selectedBooking.bookingDate
+                      ).toLocaleDateString()}
+                    </p>
+                    <p>
+                      <span className="font-medium">Time:</span>{" "}
+                      {new Date(selectedBooking.startTime).toLocaleTimeString()}{" "}
+                      - {new Date(selectedBooking.endTime).toLocaleTimeString()}
+                    </p>
+                    <p>
+                      <span className="font-medium">Duration:</span>{" "}
+                      {selectedBooking.duration} minutes
+                    </p>
                   </div>
                 </div>
 
                 <div>
                   <h4 className="font-semibold mb-2">Payment</h4>
                   <div className="space-y-2 text-sm">
-                    <p><span className="font-medium">Amount:</span> ₹{selectedBooking.totalPrice}</p>
-                    <p><span className="font-medium">Status:</span>
-                      <Badge className={`ml-2 ${getPaymentStatusColor(selectedBooking.paymentStatus)}`}>
+                    <p>
+                      <span className="font-medium">Amount:</span> ₹
+                      {selectedBooking.totalPrice}
+                    </p>
+                    <p>
+                      <span className="font-medium">Status:</span>
+                      <Badge
+                        className={`ml-2 ${getPaymentStatusColor(
+                          selectedBooking.paymentStatus
+                        )}`}
+                      >
                         {selectedBooking.paymentStatus}
                       </Badge>
                     </p>
@@ -586,21 +643,33 @@ export default function OwnerBookingsPage() {
               <div>
                 <h4 className="font-semibold mb-2">Update Status</h4>
                 <div className="flex gap-2">
-                  {["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED"].map((status) => (
-                    <Button
-                      key={status}
-                      size="sm"
-                      variant={selectedBooking.status.toUpperCase() === status ? "default" : "outline"}
-                      onClick={() => handleStatusUpdate(selectedBooking.id, status)}
-                      disabled={updating === selectedBooking.id}
-                      style={selectedBooking.status.toUpperCase() === status ? { backgroundColor: "#00884d" } : {}}
-                    >
-                      {updating === selectedBooking.id ? (
-                        <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                      ) : null}
-                      {status}
-                    </Button>
-                  ))}
+                  {["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED"].map(
+                    (status) => (
+                      <Button
+                        key={status}
+                        size="sm"
+                        variant={
+                          selectedBooking.status.toUpperCase() === status
+                            ? "default"
+                            : "outline"
+                        }
+                        onClick={() =>
+                          handleStatusUpdate(selectedBooking.id, status)
+                        }
+                        disabled={updating === selectedBooking.id}
+                        style={
+                          selectedBooking.status.toUpperCase() === status
+                            ? { backgroundColor: "#00884d" }
+                            : {}
+                        }
+                      >
+                        {updating === selectedBooking.id ? (
+                          <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                        ) : null}
+                        {status}
+                      </Button>
+                    )
+                  )}
                 </div>
               </div>
             </div>

@@ -23,7 +23,7 @@ export const authOptions: NextAuthOptions = {
 
                     if (!existingUser) {
                         // Create new user with temporary role for role selection
-                        const newUser = await prisma.user.create({
+                        await prisma.user.create({
                             data: {
                                 googleId: profile.sub,
                                 email: user.email!,
@@ -61,7 +61,7 @@ export const authOptions: NextAuthOptions = {
             }
             return true;
         },
-        async jwt({ token, account, profile, trigger }) {
+        async jwt({ token, account, profile }) {
             // Always fetch fresh user data from database to ensure we have the latest role
             if (token.email) {
                 const dbUser = await prisma.user.findUnique({
@@ -95,7 +95,6 @@ export const authOptions: NextAuthOptions = {
         async session({ session, token }) {
             if (token && session.user) {
                 // Include all user fields from database in the session
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const sessionUser = session.user as any;
                 sessionUser.id = token.id as string;
                 sessionUser.googleId = token.googleId as string;

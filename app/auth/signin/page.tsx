@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { signIn, getSession } from "next-auth/react";
 import { refreshSessionAndWaitForRole } from "@/lib/session-utils";
 import { useRouter } from "next/navigation";
@@ -54,67 +54,7 @@ export default function SignIn() {
     },
   ];
 
-  useEffect(() => {
-    // Check if user is already signed in, but don't redirect if we're in the middle of role selection flow
-    const checkSession = async () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const stepParam = urlParams.get("step");
-
-      // If we have step=check, let the role selection flow handle the redirect
-      if (stepParam === "check") {
-        return;
-      }
-
-      const session = await getSession();
-      if (session) {
-        router.push("/");
-      }
-    };
-    checkSession();
-  }, [router]);
-
-  // Check if user needs role selection after Google OAuth
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const stepParam = urlParams.get("step");
-
-    if (stepParam === "check") {
-      // Clean up URL first
-      window.history.replaceState({}, document.title, window.location.pathname);
-      // Check user status after a brief delay
-      setTimeout(() => {
-        checkUserStatus();
-      }, 3000);
-    }
-  }, []);
-
-  const handleGoogleSignIn = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const result = await signIn("google", {
-        callbackUrl: "/auth/signin?step=check",
-        redirect: false,
-      });
-
-      if (result?.error) {
-        setError("Failed to sign in. Please try again.");
-      } else if (result?.url) {
-        // Always check user status after successful sign-in
-        setTimeout(async () => {
-          await checkUserStatus();
-        }, 3000);
-      }
-    } catch (error) {
-      console.error("Sign in error:", error);
-      setError("An unexpected error occurred. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const checkUserStatus = async () => {
+  const checkUserStatus = useCallback(async () => {
     try {
       const session = await getSession();
 
@@ -160,6 +100,66 @@ export default function SignIn() {
     } catch (err) {
       console.error("Error checking user status:", err);
       router.push("/");
+    }
+  }, [router, setIsNewUser, setAuthStep]);
+
+  useEffect(() => {
+    // Check if user is already signed in, but don't redirect if we're in the middle of role selection flow
+    const checkSession = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const stepParam = urlParams.get("step");
+
+      // If we have step=check, let the role selection flow handle the redirect
+      if (stepParam === "check") {
+        return;
+      }
+
+      const session = await getSession();
+      if (session) {
+        router.push("/");
+      }
+    };
+    checkSession();
+  }, [router]);
+
+  // Check if user needs role selection after Google OAuth
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const stepParam = urlParams.get("step");
+
+    if (stepParam === "check") {
+      // Clean up URL first
+      window.history.replaceState({}, document.title, window.location.pathname);
+      // Check user status after a brief delay
+      setTimeout(() => {
+        checkUserStatus();
+      }, 3000);
+    }
+  }, [checkUserStatus]);
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const result = await signIn("google", {
+        callbackUrl: "/auth/signin?step=check",
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError("Failed to sign in. Please try again.");
+      } else if (result?.url) {
+        // Always check user status after successful sign-in
+        setTimeout(async () => {
+          await checkUserStatus();
+        }, 3000);
+      }
+    } catch (error) {
+      console.error("Sign in error:", error);
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 

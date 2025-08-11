@@ -2,8 +2,15 @@
 
 import { useSession } from "next-auth/react";
 import { useState } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { RefreshCw, User, Shield, Building2 } from "lucide-react";
 
@@ -57,13 +64,15 @@ export default function SessionDebugPage() {
               Debug session data and role information
             </p>
           </div>
-          
-          <Button 
+
+          <Button
             onClick={handleRefreshSession}
             disabled={isRefreshing}
             className="flex items-center gap-2"
           >
-            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+            />
             Refresh Session
           </Button>
         </div>
@@ -79,11 +88,15 @@ export default function SessionDebugPage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Status:</span>
-                  <Badge variant={status === "authenticated" ? "default" : "secondary"}>
+                  <Badge
+                    variant={
+                      status === "authenticated" ? "default" : "secondary"
+                    }
+                  >
                     {status}
                   </Badge>
                 </div>
-                
+
                 {session?.user?.role && (
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Role:</span>
@@ -103,25 +116,31 @@ export default function SessionDebugPage() {
           <Card>
             <CardHeader>
               <CardTitle>User Information</CardTitle>
-              <CardDescription>Current user details from session</CardDescription>
+              <CardDescription>
+                Current user details from session
+              </CardDescription>
             </CardHeader>
             <CardContent>
               {session?.user ? (
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
                     {session.user.image && (
-                      <img
+                      <Image
                         src={session.user.image}
                         alt="Profile"
+                        width={40}
+                        height={40}
                         className="w-10 h-10 rounded-full"
                       />
                     )}
                     <div>
                       <p className="font-medium">{session.user.name}</p>
-                      <p className="text-sm text-muted-foreground">{session.user.email}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {session.user.email}
+                      </p>
                     </div>
                   </div>
-                  
+
                   {(session.user as any).id && (
                     <div className="text-xs text-muted-foreground">
                       ID: {(session.user as any).id}
@@ -138,7 +157,9 @@ export default function SessionDebugPage() {
           <Card className="md:col-span-2">
             <CardHeader>
               <CardTitle>Raw Session Data</CardTitle>
-              <CardDescription>Complete session object for debugging</CardDescription>
+              <CardDescription>
+                Complete session object for debugging
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <pre className="bg-muted p-4 rounded-lg text-xs overflow-auto max-h-96">
@@ -155,48 +176,52 @@ export default function SessionDebugPage() {
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
-                  onClick={() => window.location.href = "/"}
+                  onClick={() => (window.location.href = "/")}
                 >
                   Home
                 </Button>
-                
+
                 {session?.user?.role === "FACILITY_OWNER" && (
                   <>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
-                      onClick={() => window.location.href = "/owner/facilities"}
+                      onClick={() =>
+                        (window.location.href = "/owner/facilities")
+                      }
                     >
                       My Facilities
                     </Button>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
-                      onClick={() => window.location.href = "/owner/facilities/new"}
+                      onClick={() =>
+                        (window.location.href = "/owner/facilities/new")
+                      }
                     >
                       Add Facility
                     </Button>
                   </>
                 )}
-                
+
                 {session?.user?.role === "ADMIN" && (
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
-                    onClick={() => window.location.href = "/admin"}
+                    onClick={() => (window.location.href = "/admin")}
                   >
                     Admin Panel
                   </Button>
                 )}
-                
+
                 {session?.user?.role === "USER" && (
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
-                    onClick={() => window.location.href = "/dashboard"}
+                    onClick={() => (window.location.href = "/dashboard")}
                   >
                     Dashboard
                   </Button>

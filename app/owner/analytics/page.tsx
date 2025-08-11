@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import {
   Card,
@@ -33,7 +33,7 @@ import {
   Pie,
   Cell,
   Area,
-  AreaChart
+  AreaChart,
 } from "recharts";
 import {
   TrendingUp,
@@ -47,7 +47,7 @@ import {
   RefreshCw,
   Download,
   Loader2,
-  AlertCircle
+  AlertCircle,
 } from "lucide-react";
 
 interface AnalyticsData {
@@ -107,7 +107,14 @@ interface AnalyticsData {
   };
 }
 
-const COLORS = ['#00884d', '#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444'];
+const COLORS = [
+  "#00884d",
+  "#10b981",
+  "#3b82f6",
+  "#8b5cf6",
+  "#f59e0b",
+  "#ef4444",
+];
 
 export default function OwnerAnalyticsPage() {
   const { data: session } = useSession();
@@ -117,39 +124,42 @@ export default function OwnerAnalyticsPage() {
   const [period, setPeriod] = useState("month");
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchAnalytics = async (isRefresh = false) => {
-    try {
-      if (isRefresh) {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
-      }
-      setError(null);
-
-      const response = await fetch(`/api/owner/analytics?period=${period}`);
-      
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          setAnalytics(data.analytics);
+  const fetchAnalytics = useCallback(
+    async (isRefresh = false) => {
+      try {
+        if (isRefresh) {
+          setRefreshing(true);
         } else {
-          throw new Error(data.error || "Failed to fetch analytics");
+          setLoading(true);
         }
-      } else {
-        throw new Error("Failed to fetch analytics");
+        setError(null);
+
+        const response = await fetch(`/api/owner/analytics?period=${period}`);
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setAnalytics(data.analytics);
+          } else {
+            throw new Error(data.error || "Failed to fetch analytics");
+          }
+        } else {
+          throw new Error("Failed to fetch analytics");
+        }
+      } catch (error) {
+        console.error("Error fetching analytics:", error);
+        setError("Failed to load analytics. Please try again.");
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
       }
-    } catch (error) {
-      console.error("Error fetching analytics:", error);
-      setError("Failed to load analytics. Please try again.");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+    },
+    [period]
+  );
 
   useEffect(() => {
     fetchAnalytics();
-  }, [period]);
+  }, [fetchAnalytics]);
 
   const handleRefresh = () => {
     fetchAnalytics(true);
@@ -257,19 +267,33 @@ export default function OwnerAnalyticsPage() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Total Revenue
+                </CardTitle>
                 <IndianRupee className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">₹{analytics.summary.totalRevenue.toLocaleString()}</div>
+                <div className="text-2xl font-bold">
+                  ₹{analytics.summary.totalRevenue.toLocaleString()}
+                </div>
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   {analytics.monthlyComparison.growth.revenue >= 0 ? (
                     <TrendingUp className="h-3 w-3 text-green-600" />
                   ) : (
                     <TrendingDown className="h-3 w-3 text-red-600" />
                   )}
-                  <span className={analytics.monthlyComparison.growth.revenue >= 0 ? "text-green-600" : "text-red-600"}>
-                    {analytics.monthlyComparison.growth.revenue >= 0 ? "+" : ""}{(analytics.monthlyComparison.growth.revenue || 0).toFixed(1)}%
+                  <span
+                    className={
+                      analytics.monthlyComparison.growth.revenue >= 0
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }
+                  >
+                    {analytics.monthlyComparison.growth.revenue >= 0 ? "+" : ""}
+                    {(analytics.monthlyComparison.growth.revenue || 0).toFixed(
+                      1
+                    )}
+                    %
                   </span>
                   <span>from last month</span>
                 </div>
@@ -278,19 +302,35 @@ export default function OwnerAnalyticsPage() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Total Bookings
+                </CardTitle>
                 <Calendar className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{analytics.summary.totalBookings}</div>
+                <div className="text-2xl font-bold">
+                  {analytics.summary.totalBookings}
+                </div>
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   {analytics.monthlyComparison.growth.bookings >= 0 ? (
                     <TrendingUp className="h-3 w-3 text-green-600" />
                   ) : (
                     <TrendingDown className="h-3 w-3 text-red-600" />
                   )}
-                  <span className={analytics.monthlyComparison.growth.bookings >= 0 ? "text-green-600" : "text-red-600"}>
-                    {analytics.monthlyComparison.growth.bookings >= 0 ? "+" : ""}{(analytics.monthlyComparison.growth.bookings || 0).toFixed(1)}%
+                  <span
+                    className={
+                      analytics.monthlyComparison.growth.bookings >= 0
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }
+                  >
+                    {analytics.monthlyComparison.growth.bookings >= 0
+                      ? "+"
+                      : ""}
+                    {(analytics.monthlyComparison.growth.bookings || 0).toFixed(
+                      1
+                    )}
+                    %
                   </span>
                   <span>from last month</span>
                 </div>
@@ -299,11 +339,15 @@ export default function OwnerAnalyticsPage() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Avg. Booking Value</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Avg. Booking Value
+                </CardTitle>
                 <IndianRupee className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">₹{(analytics.summary.avgBookingValue || 0).toFixed(0)}</div>
+                <div className="text-2xl font-bold">
+                  ₹{(analytics.summary.avgBookingValue || 0).toFixed(0)}
+                </div>
                 <p className="text-xs text-muted-foreground">
                   Per booking average
                 </p>
@@ -312,11 +356,15 @@ export default function OwnerAnalyticsPage() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Unique Customers</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Unique Customers
+                </CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{analytics.summary.uniqueCustomers}</div>
+                <div className="text-2xl font-bold">
+                  {analytics.summary.uniqueCustomers}
+                </div>
                 <p className="text-xs text-muted-foreground">
                   Active customers
                 </p>
@@ -329,7 +377,9 @@ export default function OwnerAnalyticsPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Revenue Trends</CardTitle>
-                <CardDescription>Revenue over time ({period}ly)</CardDescription>
+                <CardDescription>
+                  Revenue over time ({period}ly)
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
@@ -338,7 +388,10 @@ export default function OwnerAnalyticsPage() {
                     <XAxis dataKey="date" />
                     <YAxis />
                     <Tooltip
-                      formatter={(value) => [`₹${Number(value).toLocaleString()}`, 'Revenue']}
+                      formatter={(value) => [
+                        `₹${Number(value).toLocaleString()}`,
+                        "Revenue",
+                      ]}
                     />
                     <Area
                       type="monotone"
@@ -355,7 +408,9 @@ export default function OwnerAnalyticsPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Booking Trends</CardTitle>
-                <CardDescription>Bookings over time ({period}ly)</CardDescription>
+                <CardDescription>
+                  Bookings over time ({period}ly)
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
@@ -363,9 +418,7 @@ export default function OwnerAnalyticsPage() {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" />
                     <YAxis />
-                    <Tooltip
-                      formatter={(value) => [value, 'Bookings']}
-                    />
+                    <Tooltip formatter={(value) => [value, "Bookings"]} />
                     <Line
                       type="monotone"
                       dataKey="value"
@@ -392,9 +445,7 @@ export default function OwnerAnalyticsPage() {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="label" />
                     <YAxis />
-                    <Tooltip
-                      formatter={(value) => [value, 'Bookings']}
-                    />
+                    <Tooltip formatter={(value) => [value, "Bookings"]} />
                     <Bar dataKey="bookings" fill="#00884d" />
                   </BarChart>
                 </ResponsiveContainer>
@@ -414,17 +465,25 @@ export default function OwnerAnalyticsPage() {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
+                      label={({ name, percent }) =>
+                        `${name} ${((percent || 0) * 100).toFixed(0)}%`
+                      }
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="revenue"
                     >
                       {analytics.sportPopularity.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
                       ))}
                     </Pie>
                     <Tooltip
-                      formatter={(value) => [`₹${Number(value).toLocaleString()}`, 'Revenue']}
+                      formatter={(value) => [
+                        `₹${Number(value).toLocaleString()}`,
+                        "Revenue",
+                      ]}
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -436,7 +495,9 @@ export default function OwnerAnalyticsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Venue Performance</CardTitle>
-              <CardDescription>Detailed performance metrics for each venue</CardDescription>
+              <CardDescription>
+                Detailed performance metrics for each venue
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -445,31 +506,48 @@ export default function OwnerAnalyticsPage() {
                     <div className="flex items-center justify-between mb-3">
                       <div>
                         <h3 className="font-semibold">{venue.name}</h3>
-                        <p className="text-sm text-muted-foreground">{venue.courtsCount} courts</p>
+                        <p className="text-sm text-muted-foreground">
+                          {venue.courtsCount} courts
+                        </p>
                       </div>
                       <div className="flex items-center gap-1">
                         <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="font-medium">{(venue.avgRating || 0).toFixed(1)}</span>
+                        <span className="font-medium">
+                          {(venue.avgRating || 0).toFixed(1)}
+                        </span>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div>
                         <p className="text-sm text-muted-foreground">Revenue</p>
-                        <p className="font-medium">₹{venue.revenue.toLocaleString()}</p>
+                        <p className="font-medium">
+                          ₹{venue.revenue.toLocaleString()}
+                        </p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Bookings</p>
+                        <p className="text-sm text-muted-foreground">
+                          Bookings
+                        </p>
                         <p className="font-medium">{venue.bookingCount}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Occupancy</p>
-                        <p className="font-medium">{(venue.occupancyRate || 0).toFixed(1)}%</p>
+                        <p className="text-sm text-muted-foreground">
+                          Occupancy
+                        </p>
+                        <p className="font-medium">
+                          {(venue.occupancyRate || 0).toFixed(1)}%
+                        </p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Avg/Booking</p>
+                        <p className="text-sm text-muted-foreground">
+                          Avg/Booking
+                        </p>
                         <p className="font-medium">
-                          ₹{venue.bookingCount > 0 ? (venue.revenue / venue.bookingCount).toFixed(0) : 0}
+                          ₹
+                          {venue.bookingCount > 0
+                            ? (venue.revenue / venue.bookingCount).toFixed(0)
+                            : 0}
                         </p>
                       </div>
                     </div>
@@ -484,23 +562,42 @@ export default function OwnerAnalyticsPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Customer Insights</CardTitle>
-                <CardDescription>Customer behavior and patterns</CardDescription>
+                <CardDescription>
+                  Customer behavior and patterns
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-muted-foreground">Total Customers</p>
-                      <p className="text-2xl font-bold">{analytics.customerInsights.totalCustomers}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Total Customers
+                      </p>
+                      <p className="text-2xl font-bold">
+                        {analytics.customerInsights.totalCustomers}
+                      </p>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">Avg Bookings/Customer</p>
-                      <p className="text-2xl font-bold">{(analytics.customerInsights.avgBookingsPerCustomer || 0).toFixed(1)}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Avg Bookings/Customer
+                      </p>
+                      <p className="text-2xl font-bold">
+                        {(
+                          analytics.customerInsights.avgBookingsPerCustomer || 0
+                        ).toFixed(1)}
+                      </p>
                     </div>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground mb-2">Avg Revenue/Customer</p>
-                    <p className="text-xl font-bold">₹{(analytics.customerInsights.avgRevenuePerCustomer || 0).toFixed(0)}</p>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Avg Revenue/Customer
+                    </p>
+                    <p className="text-xl font-bold">
+                      ₹
+                      {(
+                        analytics.customerInsights.avgRevenuePerCustomer || 0
+                      ).toFixed(0)}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -509,24 +606,37 @@ export default function OwnerAnalyticsPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Top Customers</CardTitle>
-                <CardDescription>Highest revenue generating customers</CardDescription>
+                <CardDescription>
+                  Highest revenue generating customers
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {analytics.customerInsights.topCustomers.slice(0, 5).map((customer, index) => (
-                    <div key={customer.id} className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                          <span className="text-sm font-medium">{index + 1}</span>
+                  {analytics.customerInsights.topCustomers
+                    .slice(0, 5)
+                    .map((customer, index) => (
+                      <div
+                        key={customer.id}
+                        className="flex items-center justify-between"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                            <span className="text-sm font-medium">
+                              {index + 1}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="font-medium">{customer.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {customer.bookings} bookings
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium">{customer.name}</p>
-                          <p className="text-xs text-muted-foreground">{customer.bookings} bookings</p>
-                        </div>
+                        <p className="font-medium">
+                          ₹{customer.revenue.toLocaleString()}
+                        </p>
                       </div>
-                      <p className="font-medium">₹{customer.revenue.toLocaleString()}</p>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </CardContent>
             </Card>
