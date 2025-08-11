@@ -127,6 +127,14 @@ export async function POST(request: NextRequest) {
       coordinates: body.location?.coordinates
     });
 
+    // Transform sports objects to strings if needed
+    if (body.sports && Array.isArray(body.sports)) {
+      body.sports = body.sports.map((sport: any) =>
+        typeof sport === 'string' ? sport : sport.value || sport.label || sport
+      );
+      console.log("🏃 [VENUE API] Transformed sports:", body.sports);
+    }
+
     // Validate request data
     console.log("🔍 [VENUE API] Starting validation with createVenueSchema");
     const validationResult = createVenueSchema.safeParse(body);
