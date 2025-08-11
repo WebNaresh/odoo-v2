@@ -120,12 +120,12 @@ export async function POST(request: NextRequest) {
     const validationResult = createCourtSchema.safeParse(body);
 
     if (!validationResult.success) {
-      console.log("❌ [COURTS API] Validation failed:", validationResult.error.errors);
+      console.log("❌ [COURTS API] Validation failed:", validationResult.error.issues);
       return NextResponse.json(
         {
           success: false,
           error: "Validation failed",
-          details: validationResult.error.errors
+          details: validationResult.error.issues
         },
         { status: 400 }
       );
@@ -151,20 +151,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify that the sport exists
-    const sport = await prisma.sport.findUnique({
-      where: { id: sportId }
-    });
-
-    if (!sport) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Sport not found"
-        },
-        { status: 404 }
-      );
-    }
+    // Note: sportId validation could be added here if a Sport model exists in the future
 
     // Check if court name already exists in this venue
     const existingCourt = await prisma.court.findFirst({

@@ -3,7 +3,7 @@ import { z } from "zod";
 // Court type options
 export const COURT_TYPES = [
   "Indoor",
-  "Outdoor", 
+  "Outdoor",
   "Premium",
   "Standard",
   "Professional",
@@ -72,7 +72,7 @@ export const updateCourtSchema = z.object({
   sportId: z.string().min(1, "Sport ID is required").optional(),
   pricePerHour: z.number().min(0, "Price must be a positive number").max(10000, "Price must be reasonable").optional(),
   operatingHours: operatingHoursSchema.optional(),
-  isActive: z.boolean().optional(),
+  isActive: z.boolean().default(true),
 });
 
 // TypeScript types derived from schemas

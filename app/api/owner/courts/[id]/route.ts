@@ -131,12 +131,12 @@ export async function PUT(
     const validationResult = updateCourtSchema.safeParse(dataWithId);
 
     if (!validationResult.success) {
-      console.log("❌ [COURT UPDATE API] Validation failed:", validationResult.error.errors);
+      console.log("❌ [COURT UPDATE API] Validation failed:", validationResult.error.issues);
       return NextResponse.json(
         {
           success: false,
           error: "Validation failed",
-          details: validationResult.error.errors
+          details: validationResult.error.issues
         },
         { status: 400 }
       );
@@ -167,22 +167,7 @@ export async function PUT(
       );
     }
 
-    // If sportId is being updated, verify that the sport exists
-    if (sportId && sportId !== existingCourt.sportId) {
-      const sport = await prisma.sport.findUnique({
-        where: { id: sportId }
-      });
-
-      if (!sport) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Sport not found"
-          },
-          { status: 404 }
-        );
-      }
-    }
+    // Note: sportId validation could be added here if a Sport model exists in the future
 
     // If name is being updated, check for duplicates in the same venue
     if (name && name !== existingCourt.name) {
@@ -258,7 +243,7 @@ export async function PUT(
 }
 
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {

@@ -32,9 +32,8 @@ import {
 } from "lucide-react";
 import { type CreateVenueData, AVAILABLE_AMENITIES } from "@/types/venue";
 
-interface VenueFormData extends CreateVenueData {
-  // photoUrls will be handled by the Cloudinary component
-}
+// Use CreateVenueData directly since no additional fields are needed
+type VenueFormData = CreateVenueData;
 
 // Client-side validation is now handled manually in the onSubmit function
 

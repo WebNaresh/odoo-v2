@@ -95,8 +95,7 @@ export const authOptions: NextAuthOptions = {
         async session({ session, token }) {
             if (token && session.user) {
                 // Include all user fields from database in the session
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const sessionUser = session.user as any;
+                const sessionUser = session.user as any; // eslint-disable-line @typescript-eslint/no-explicit-any
                 sessionUser.id = token.id as string;
                 sessionUser.googleId = token.googleId as string;
                 sessionUser.email = token.email as string;

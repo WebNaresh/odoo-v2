@@ -1,23 +1,86 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 
-export async function GET(request: NextRequest) {
+// Mock sports data since there's no Sport model in the current schema
+const MOCK_SPORTS = [
+  {
+    id: "basketball",
+    name: "Basketball",
+    category: "Indoor",
+    description: "Fast-paced team sport played on a court with hoops",
+    isPopular: true,
+  },
+  {
+    id: "tennis",
+    name: "Tennis",
+    category: "Outdoor",
+    description: "Racket sport played on a court with a net",
+    isPopular: true,
+  },
+  {
+    id: "football",
+    name: "Football",
+    category: "Outdoor",
+    description: "Team sport played on a large field with goals",
+    isPopular: true,
+  },
+  {
+    id: "badminton",
+    name: "Badminton",
+    category: "Indoor",
+    description: "Racket sport played with a shuttlecock",
+    isPopular: true,
+  },
+  {
+    id: "cricket",
+    name: "Cricket",
+    category: "Outdoor",
+    description: "Bat-and-ball game played between two teams",
+    isPopular: true,
+  },
+  {
+    id: "swimming",
+    name: "Swimming",
+    category: "Aquatic",
+    description: "Water sport and recreational activity",
+    isPopular: false,
+  },
+  {
+    id: "volleyball",
+    name: "Volleyball",
+    category: "Indoor/Outdoor",
+    description: "Team sport played with a ball over a net",
+    isPopular: false,
+  },
+  {
+    id: "squash",
+    name: "Squash",
+    category: "Indoor",
+    description: "Racket sport played in a four-walled court",
+    isPopular: false,
+  },
+  {
+    id: "table-tennis",
+    name: "Table Tennis",
+    category: "Indoor",
+    description: "Paddle sport played on a table with a net",
+    isPopular: false,
+  },
+  {
+    id: "hockey",
+    name: "Hockey",
+    category: "Outdoor",
+    description: "Team sport played with sticks and a ball or puck",
+    isPopular: false,
+  },
+];
+
+export async function GET(_request: NextRequest) {
   try {
-    // Get all sports - this endpoint can be public for venue creation
-    const sports = await prisma.sport.findMany({
-      select: {
-        id: true,
-        name: true,
-        category: true,
-        description: true,
-        isPopular: true,
-      },
-      orderBy: [
-        { isPopular: 'desc' },
-        { name: 'asc' }
-      ]
+    // Return mock sports data sorted by popularity
+    const sports = MOCK_SPORTS.sort((a, b) => {
+      if (a.isPopular && !b.isPopular) return -1;
+      if (!a.isPopular && b.isPopular) return 1;
+      return a.name.localeCompare(b.name);
     });
 
     return NextResponse.json({
@@ -27,95 +90,9 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error fetching sports:", error);
     return NextResponse.json(
-      { 
+      {
         success: false,
-        error: "Failed to fetch sports" 
-      },
-      { status: 500 }
-    );
-  }
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.email) {
-      return NextResponse.json(
-        { 
-          success: false,
-          error: "Unauthorized" 
-        },
-        { status: 401 }
-      );
-    }
-
-    // Only allow ADMIN users to create new sports
-    if (session.user.role !== "ADMIN") {
-      return NextResponse.json(
-        { 
-          success: false,
-          error: "Only administrators can create new sports" 
-        },
-        { status: 403 }
-      );
-    }
-
-    const { name, category, description, isPopular } = await request.json();
-
-    // Validate required fields
-    if (!name || !category) {
-      return NextResponse.json(
-        { 
-          success: false,
-          error: "Name and category are required" 
-        },
-        { status: 400 }
-      );
-    }
-
-    // Check if sport already exists
-    const existingSport = await prisma.sport.findUnique({
-      where: { name }
-    });
-
-    if (existingSport) {
-      return NextResponse.json(
-        { 
-          success: false,
-          error: "A sport with this name already exists" 
-        },
-        { status: 409 }
-      );
-    }
-
-    // Create new sport
-    const sport = await prisma.sport.create({
-      data: {
-        name,
-        category,
-        description,
-        isPopular: isPopular || false,
-      },
-      select: {
-        id: true,
-        name: true,
-        category: true,
-        description: true,
-        isPopular: true,
-      }
-    });
-
-    return NextResponse.json({
-      success: true,
-      sport,
-    });
-  } catch (error) {
-    console.error("Error creating sport:", error);
-    return NextResponse.json(
-      { 
-        success: false,
-        error: "Failed to create sport" 
+        error: "Failed to fetch sports"
       },
       { status: 500 }
     );

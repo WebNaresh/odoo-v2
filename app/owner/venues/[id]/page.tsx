@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
+import Image from "next/image";
 import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import {
@@ -520,9 +521,11 @@ export default function VenueDetailsPage() {
                         key={index}
                         className="aspect-square rounded-lg overflow-hidden bg-muted"
                       >
-                        <img
+                        <Image
                           src={url}
                           alt={`${venue.name} photo ${index + 1}`}
+                          width={300}
+                          height={300}
                           className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
                           onClick={() => window.open(url, "_blank")}
                         />
