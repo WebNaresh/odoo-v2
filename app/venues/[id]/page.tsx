@@ -38,6 +38,7 @@ import { toast } from "react-hot-toast";
 import { useVenueDetails } from "@/hooks/use-venues";
 import { VenueTimingDisplay } from "@/components/venues/VenueTimingDisplay";
 import { RelatedVenues } from "@/components/venues/RelatedVenues";
+import { BookingConfirmationDialog } from "@/components/bookings/BookingConfirmationDialog";
 import Image from "next/image";
 
 // Mock venue data
@@ -168,6 +169,22 @@ export default function VenueDetailPage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorited, setIsFavorited] = useState(false);
 
+  // Booking state
+  const [showBookingDialog, setShowBookingDialog] = useState(false);
+  const [selectedBookingSlot, setSelectedBookingSlot] = useState<{
+    id: string;
+    courtId: string;
+    courtName: string;
+    venueName: string;
+    venueAddress: string;
+    date: string;
+    startTime: string;
+    endTime: string;
+    price: number;
+    maxCapacity: number;
+    currentBookings: number;
+  } | null>(null);
+
   // URL state management for selected courts (multiple selection)
   const [selectedCourtIds, setSelectedCourtIds] = useQueryState(
     "selectedCourts",
@@ -238,43 +255,46 @@ export default function VenueDetailPage() {
       return;
     }
 
+    // For now, handle single time slot booking
+    if (selectedTimeSlots.length > 1) {
+      toast.error("Please select only one time slot for booking");
+      return;
+    }
+
+    const timeSlot = selectedTimeSlots[0];
+    const court = venue.courts?.find((c) => c.id === timeSlot.courtId);
+
+    if (!court) {
+      toast.error("Court not found");
+      return;
+    }
+
     // Validation: Check member count against court capacity
-    const selectedCourts = venue.courts?.filter((court) =>
-      selectedCourtIdsArray.includes(court.id)
-    );
-
-    const hasCapacityIssue = selectedCourts?.some((court) => {
-      const courtCapacity = (court as any).capacity || 10;
-      return memberCount > courtCapacity;
-    });
-
-    if (hasCapacityIssue) {
+    const courtCapacity = (court as any).capacity || 10;
+    if (memberCount > courtCapacity) {
       toast.error(
-        `Member count exceeds court capacity. Please reduce the number of players or select different courts.`
+        `Member count exceeds court capacity (${courtCapacity} max). Please reduce the number of players.`
       );
       return;
     }
 
-    // Navigate to booking page with selected courts, time slots, and member count
-    const timeSlotParams = selectedTimeSlots
-      .map(
-        (slot) =>
-          `timeSlots[]=${encodeURIComponent(
-            JSON.stringify({
-              id: slot.id,
-              courtId: slot.courtId,
-              startTime: slot.startTime,
-              endTime: slot.endTime,
-              date: slot.date,
-              price: slot.price,
-            })
-          )}`
-      )
-      .join("&");
+    // Set up booking slot data
+    setSelectedBookingSlot({
+      id: timeSlot.id,
+      courtId: timeSlot.courtId,
+      courtName: court.name,
+      venueName: venue.name,
+      venueAddress: venue.address,
+      date: timeSlot.date,
+      startTime: timeSlot.startTime,
+      endTime: timeSlot.endTime,
+      price: timeSlot.price,
+      maxCapacity: courtCapacity,
+      currentBookings: 0, // This should come from the time slot data
+    });
 
-    router.push(
-      `/venues/${venue.id}/book?courtIds=${selectedCourtIds}&${timeSlotParams}&memberCount=${memberCount}`
-    );
+    // Show booking confirmation dialog
+    setShowBookingDialog(true);
   };
 
   const handleCourtSelect = (courtId: string) => {
@@ -1007,6 +1027,17 @@ export default function VenueDetailPage() {
           <RelatedVenues currentVenueId={venue.id} limit={8} />
         </div>
       </main>
+
+      {/* Booking Confirmation Dialog */}
+      <BookingConfirmationDialog
+        isOpen={showBookingDialog}
+        onClose={() => {
+          setShowBookingDialog(false);
+          setSelectedBookingSlot(null);
+        }}
+        timeSlot={selectedBookingSlot}
+        initialPlayerCount={memberCount}
+      />
     </div>
   );
 }

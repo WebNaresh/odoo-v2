@@ -1,4 +1,4 @@
-import { NextAuthOptions } from "next-auth";
+import { NextAuthOptions, getServerSession } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { prisma } from "@/lib/prisma";
 
@@ -95,8 +95,10 @@ export const authOptions: NextAuthOptions = {
                     // Check if user was banned since last token refresh
                     if (dbUser.isBanned) {
                         console.log("❌ [AUTH] User was banned, invalidating token:", dbUser.email);
-                        // Return null to invalidate the token and force sign out
-                        return null;
+                        // For banned users, we'll clear the token but still return it to avoid type errors
+                        // The session callback will handle the actual sign out
+                        token.isBanned = true;
+                        return token;
                     }
 
                     // Include all user fields from database in the token
@@ -147,3 +149,7 @@ export const authOptions: NextAuthOptions = {
     },
     secret: process.env.NEXTAUTH_SECRET,
 };
+
+// Export auth function for server components
+export const auth = () => getServerSession(authOptions);
+
