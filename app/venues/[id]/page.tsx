@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQueryState } from "nuqs";
+import { useSession } from "next-auth/react";
 import { MainNav } from "@/components/layout/main-nav";
 import { Button } from "@/components/ui/button";
 import {
@@ -166,6 +167,7 @@ const amenityIcons: Record<
 export default function VenueDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorited, setIsFavorited] = useState(false);
 
@@ -184,6 +186,24 @@ export default function VenueDetailPage() {
     maxCapacity: number;
     currentBookings: number;
   } | null>(null);
+
+  // Multiple booking queue state
+  const [bookingQueue, setBookingQueue] = useState<
+    Array<{
+      id: string;
+      courtId: string;
+      courtName: string;
+      venueName: string;
+      venueAddress: string;
+      date: string;
+      startTime: string;
+      endTime: string;
+      price: number;
+      maxCapacity: number;
+      currentBookings: number;
+    }>
+  >([]);
+  const [currentBookingIndex, setCurrentBookingIndex] = useState(0);
 
   // URL state management for selected courts (multiple selection)
   const [selectedCourtIds, setSelectedCourtIds] = useQueryState(
@@ -227,6 +247,45 @@ export default function VenueDetailPage() {
     });
   }, [selectedTimeSlots]);
 
+  // Handle booking queue progression
+  const handleBookingComplete = () => {
+    console.log("✅ [VENUE PAGE] Booking completed, checking queue");
+
+    if (
+      bookingQueue.length > 0 &&
+      currentBookingIndex < bookingQueue.length - 1
+    ) {
+      // Move to next booking in queue
+      const nextIndex = currentBookingIndex + 1;
+      setCurrentBookingIndex(nextIndex);
+      setSelectedBookingSlot(bookingQueue[nextIndex]);
+
+      console.log(
+        `📋 [VENUE PAGE] Moving to booking ${nextIndex + 1}/${
+          bookingQueue.length
+        }`
+      );
+
+      // Keep dialog open for next booking
+      setShowBookingDialog(true);
+
+      toast.success(
+        `Booking ${currentBookingIndex + 1} completed! Proceeding to booking ${
+          nextIndex + 1
+        }...`
+      );
+    } else {
+      // All bookings completed
+      console.log("🎉 [VENUE PAGE] All bookings completed");
+      setBookingQueue([]);
+      setCurrentBookingIndex(0);
+      setSelectedBookingSlot(null);
+      setShowBookingDialog(false);
+
+      toast.success("All bookings completed successfully!");
+    }
+  };
+
   // State for member count
   const [memberCount, setMemberCount] = useState(1);
 
@@ -256,6 +315,26 @@ export default function VenueDetailPage() {
   const handleBookNow = () => {
     if (!venue) return;
 
+    // Check if user is logged in
+    if (status === "loading") {
+      toast.error("Please wait while we check your login status...");
+      return;
+    }
+
+    if (status === "unauthenticated" || !session?.user) {
+      toast.error("Please log in to book a venue");
+      router.push(
+        `/auth/signin?callbackUrl=${encodeURIComponent(window.location.href)}`
+      );
+      return;
+    }
+
+    console.log("✅ [VENUE PAGE] User is authenticated:", {
+      userId: session.user.id,
+      userEmail: session.user.email,
+      userRole: session.user.role,
+    });
+
     // Validation: Check if at least one court is selected
     if (selectedCourtIdsArray.length === 0) {
       toast.error("Please select at least one court first");
@@ -268,46 +347,111 @@ export default function VenueDetailPage() {
       return;
     }
 
-    // For now, handle single time slot booking
-    if (selectedTimeSlots.length > 1) {
-      toast.error("Please select only one time slot for booking");
-      return;
-    }
+    console.log(
+      "🎯 [VENUE PAGE] Starting booking process for",
+      selectedTimeSlots.length,
+      "slots"
+    );
 
-    const timeSlot = selectedTimeSlots[0];
-    const court = venue.courts?.find((c) => c.id === timeSlot.courtId);
+    // Handle multiple time slot bookings
+    if (selectedTimeSlots.length === 1) {
+      // Single slot booking
+      const timeSlot = selectedTimeSlots[0];
+      const court = venue.courts?.find((c) => c.id === timeSlot.courtId);
 
-    if (!court) {
-      toast.error("Court not found");
-      return;
-    }
+      if (!court) {
+        toast.error("Court not found");
+        return;
+      }
 
-    // Validation: Check member count against court capacity
-    const courtCapacity = (court as any).capacity || 10;
-    if (memberCount > courtCapacity) {
-      toast.error(
-        `Member count exceeds court capacity (${courtCapacity} max). Please reduce the number of players.`
+      // Validation: Check member count against court capacity
+      const courtCapacity = (court as any).capacity || 10;
+      if (memberCount > courtCapacity) {
+        toast.error(
+          `Member count exceeds court capacity (${courtCapacity} max). Please reduce the number of players.`
+        );
+        return;
+      }
+
+      console.log("✅ [VENUE PAGE] Single slot booking - showing dialog");
+
+      // Set up booking slot data
+      setSelectedBookingSlot({
+        id: timeSlot.id,
+        courtId: timeSlot.courtId,
+        courtName: court.name,
+        venueName: venue.name,
+        venueAddress: venue.address,
+        date: timeSlot.date,
+        startTime: timeSlot.startTime,
+        endTime: timeSlot.endTime,
+        price: timeSlot.price,
+        maxCapacity: courtCapacity,
+        currentBookings: 0, // This should come from the time slot data
+      });
+
+      // Show booking confirmation dialog
+      setShowBookingDialog(true);
+    } else if (selectedTimeSlots.length > 1) {
+      // Multiple slot booking
+      console.log(
+        "🚀 [VENUE PAGE] Multiple slot booking - creating separate bookings"
       );
-      return;
+
+      // Validate all slots
+      for (const timeSlot of selectedTimeSlots) {
+        const court = venue.courts?.find((c) => c.id === timeSlot.courtId);
+        if (!court) {
+          toast.error(`Court not found for slot ${timeSlot.startTime}`);
+          return;
+        }
+
+        const courtCapacity = (court as any).capacity || 10;
+        if (memberCount > courtCapacity) {
+          toast.error(
+            `Member count exceeds court capacity (${courtCapacity} max) for ${court.name}. Please reduce the number of players.`
+          );
+          return;
+        }
+      }
+
+      // Create bookings for each slot
+      toast.success(
+        `Creating ${selectedTimeSlots.length} separate bookings...`
+      );
+
+      // Prepare booking queue
+      const bookingSlots = selectedTimeSlots.map((timeSlot) => {
+        const court = venue.courts?.find((c) => c.id === timeSlot.courtId);
+        return {
+          id: timeSlot.id,
+          courtId: timeSlot.courtId,
+          courtName: court?.name || "Unknown Court",
+          venueName: venue.name,
+          venueAddress: venue.address,
+          date: timeSlot.date,
+          startTime: timeSlot.startTime,
+          endTime: timeSlot.endTime,
+          price: timeSlot.price,
+          maxCapacity: (court as any)?.capacity || 10,
+          currentBookings: 0,
+        };
+      });
+
+      console.log("📋 [VENUE PAGE] Setting up booking queue:", bookingSlots);
+
+      // Set up the booking queue
+      setBookingQueue(bookingSlots);
+      setCurrentBookingIndex(0);
+
+      // Start with the first booking
+      setSelectedBookingSlot(bookingSlots[0]);
+      setShowBookingDialog(true);
+
+      toast.success(
+        `Processing ${selectedTimeSlots.length} bookings. Please confirm each booking dialog.`
+      );
     }
-
-    // Set up booking slot data
-    setSelectedBookingSlot({
-      id: timeSlot.id,
-      courtId: timeSlot.courtId,
-      courtName: court.name,
-      venueName: venue.name,
-      venueAddress: venue.address,
-      date: timeSlot.date,
-      startTime: timeSlot.startTime,
-      endTime: timeSlot.endTime,
-      price: timeSlot.price,
-      maxCapacity: courtCapacity,
-      currentBookings: 0, // This should come from the time slot data
-    });
-
-    // Show booking confirmation dialog
-    setShowBookingDialog(true);
   };
 
   const handleCourtSelect = (courtId: string) => {
@@ -1047,9 +1191,32 @@ export default function VenueDetailPage() {
         onClose={() => {
           setShowBookingDialog(false);
           setSelectedBookingSlot(null);
+          // Reset queue if user cancels
+          if (bookingQueue.length > 0) {
+            setBookingQueue([]);
+            setCurrentBookingIndex(0);
+          }
+        }}
+        onSuccess={() => {
+          // Handle successful booking
+          if (bookingQueue.length > 0) {
+            handleBookingComplete();
+          } else {
+            // Single booking completed
+            setShowBookingDialog(false);
+            setSelectedBookingSlot(null);
+          }
         }}
         timeSlot={selectedBookingSlot}
         initialPlayerCount={memberCount}
+        queueInfo={
+          bookingQueue.length > 0
+            ? {
+                current: currentBookingIndex + 1,
+                total: bookingQueue.length,
+              }
+            : undefined
+        }
       />
     </div>
   );

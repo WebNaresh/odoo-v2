@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import {
   Card,
   CardContent,
@@ -87,6 +88,7 @@ export function VenueTimingDisplay({
   selectedTimeSlots: externalSelectedTimeSlots,
   className,
 }: VenueTimingDisplayProps) {
+  const { data: session, status } = useSession();
   const [selectedDate, setSelectedDate] = useState(startOfDay(new Date()));
   const [internalSelectedTimeSlot, setInternalSelectedTimeSlot] =
     useState<TimeSlot | null>(null);
@@ -291,6 +293,38 @@ export function VenueTimingDisplay({
 
   const handleBookSlot = () => {
     console.log("🚀 [BOOK SLOT] Starting booking process");
+
+    // Check if user is logged in
+    if (status === "loading") {
+      console.log("⏳ [BOOK SLOT] Authentication status loading...");
+      if (typeof window !== "undefined" && (window as any).showToast) {
+        (window as any).showToast(
+          "Please wait while we check your login status...",
+          "error"
+        );
+      }
+      return;
+    }
+
+    if (status === "unauthenticated" || !session?.user) {
+      console.log("❌ [BOOK SLOT] User not authenticated");
+      if (typeof window !== "undefined") {
+        if ((window as any).showToast) {
+          (window as any).showToast("Please log in to book a venue", "error");
+        }
+        // Redirect to login with current page as callback
+        window.location.href = `/auth/signin?callbackUrl=${encodeURIComponent(
+          window.location.href
+        )}`;
+      }
+      return;
+    }
+
+    console.log("✅ [BOOK SLOT] User is authenticated:", {
+      userId: session.user.id,
+      userEmail: session.user.email,
+      userRole: session.user.role,
+    });
     console.log("� [BOOK SLOT] Current state analysis:", {
       selectedTimeSlot: selectedTimeSlot,
       selectedTimeSlots: selectedTimeSlots,
@@ -314,9 +348,11 @@ export function VenueTimingDisplay({
       console.log(
         "✅ [BOOK SLOT] Single slot selected, proceeding with booking"
       );
+      // Navigate to booking page with selected slot
+      window.location.href = `/venues/${venueId}/book?courtId=${selectedTimeSlot.courtId}&date=${selectedTimeSlot.date}&startTime=${selectedTimeSlot.startTime}`;
     } else if (selectedTimeSlots.length > 0) {
       console.log(
-        "⚠️ [BOOK SLOT] Multiple slots selected but no single slot - using first slot"
+        "✅ [BOOK SLOT] Multiple slots selected, proceeding with multiple bookings"
       );
       console.log(
         "📋 [BOOK SLOT] Available slots:",
@@ -327,13 +363,50 @@ export function VenueTimingDisplay({
           endTime: s.endTime,
         }))
       );
+
+      // For multiple slots, we need to handle them differently
+      // Option 1: Create separate bookings for each slot
+      // Option 2: Navigate to a multi-slot booking page
+      // For now, let's create separate bookings for each slot
+
+      console.log("🚀 [BOOK SLOT] Creating multiple bookings...");
+
+      // Call a function to handle multiple slot bookings
+      if (
+        typeof window !== "undefined" &&
+        (window as any).handleMultipleSlotBookings
+      ) {
+        (window as any).handleMultipleSlotBookings(selectedTimeSlots);
+      } else {
+        // Fallback: Navigate to booking page with multiple slots as URL params
+        const slotsParam = selectedTimeSlots
+          .map(
+            (slot) =>
+              `slot=${encodeURIComponent(
+                JSON.stringify({
+                  id: slot.id,
+                  courtId: slot.courtId,
+                  startTime: slot.startTime,
+                  endTime: slot.endTime,
+                  date: slot.date,
+                  price: slot.price,
+                })
+              )}`
+          )
+          .join("&");
+
+        console.log("🔗 [BOOK SLOT] Navigating to multi-slot booking page");
+        window.location.href = `/venues/${venueId}/book-multiple?${slotsParam}`;
+      }
     } else {
       console.log("❌ [BOOK SLOT] No slots selected");
-    }
-
-    if (selectedTimeSlot) {
-      // Navigate to booking page with selected slot
-      window.location.href = `/venues/${venueId}/book?courtId=${selectedTimeSlot.courtId}&date=${selectedTimeSlot.date}&startTime=${selectedTimeSlot.startTime}`;
+      // Show error message to user
+      if (typeof window !== "undefined" && (window as any).showToast) {
+        (window as any).showToast(
+          "Please select at least one time slot",
+          "error"
+        );
+      }
     }
   };
 
@@ -621,10 +694,19 @@ export function VenueTimingDisplay({
                 </div>
               </div>
 
-              <Button className="w-full mt-3" onClick={handleBookSlot}>
+              <Button
+                className="w-full mt-3"
+                onClick={handleBookSlot}
+                disabled={status === "loading"}
+              >
                 <Calendar className="h-4 w-4 mr-2" />
-                Book {selectedTimeSlots.length} Slot
-                {selectedTimeSlots.length > 1 ? "s" : ""}
+                {status === "loading"
+                  ? "Checking login..."
+                  : status === "unauthenticated"
+                  ? "Login to Book"
+                  : `Book ${selectedTimeSlots.length} Slot${
+                      selectedTimeSlots.length > 1 ? "s" : ""
+                    }`}
               </Button>
             </div>
           </div>

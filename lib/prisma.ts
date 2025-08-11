@@ -21,7 +21,7 @@ async function ensure2dSphereIndex() {
   try {
     if (prisma.$runCommandRaw) {
       await prisma.$runCommandRaw({
-        createIndexes: "Venue",
+        createIndexes: "venues",
         indexes: [
           {
             key: { location: "2dsphere" },

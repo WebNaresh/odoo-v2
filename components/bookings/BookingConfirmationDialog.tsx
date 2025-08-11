@@ -25,12 +25,16 @@ import {
   AlertCircle,
   CheckCircle,
 } from "lucide-react";
-import { useCreateBooking, useBookingConflictCheck } from "@/hooks/use-bookings";
+import {
+  useCreateBooking,
+  useBookingConflictCheck,
+} from "@/hooks/use-bookings";
 import { format } from "date-fns";
 
 interface BookingConfirmationDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
   timeSlot: {
     id: string;
     courtId: string;
@@ -45,17 +49,25 @@ interface BookingConfirmationDialogProps {
     currentBookings: number;
   } | null;
   initialPlayerCount?: number;
+  queueInfo?: {
+    current: number;
+    total: number;
+  };
 }
 
 export function BookingConfirmationDialog({
   isOpen,
   onClose,
+  onSuccess,
   timeSlot,
   initialPlayerCount = 1,
+  queueInfo,
 }: BookingConfirmationDialogProps) {
   const [playerCount, setPlayerCount] = useState(initialPlayerCount);
   const [notes, setNotes] = useState("");
-  const [step, setStep] = useState<"confirm" | "processing" | "success" | "error">("confirm");
+  const [step, setStep] = useState<
+    "confirm" | "processing" | "success" | "error"
+  >("confirm");
 
   const createBookingMutation = useCreateBooking();
   const conflictCheckMutation = useBookingConflictCheck();
@@ -94,10 +106,18 @@ export function BookingConfirmationDialog({
 
       if (result.success) {
         setStep("success");
-        // Auto-close after 3 seconds
-        setTimeout(() => {
-          handleClose();
-        }, 3000);
+        // Call onSuccess callback if provided
+        if (onSuccess) {
+          // For queue bookings, call onSuccess immediately
+          setTimeout(() => {
+            onSuccess();
+          }, 1500);
+        } else {
+          // Auto-close after 3 seconds for single bookings
+          setTimeout(() => {
+            handleClose();
+          }, 3000);
+        }
       } else {
         setStep("error");
       }
@@ -118,19 +138,55 @@ export function BookingConfirmationDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {step === "confirm" && <Calendar className="h-5 w-5" />}
-            {step === "processing" && <Loader2 className="h-5 w-5 animate-spin" />}
-            {step === "success" && <CheckCircle className="h-5 w-5 text-green-600" />}
-            {step === "error" && <AlertCircle className="h-5 w-5 text-red-600" />}
-            
-            {step === "confirm" && "Confirm Booking"}
+            {step === "processing" && (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            )}
+            {step === "success" && (
+              <CheckCircle className="h-5 w-5 text-green-600" />
+            )}
+            {step === "error" && (
+              <AlertCircle className="h-5 w-5 text-red-600" />
+            )}
+
+            {step === "confirm" && (
+              <div className="flex items-center gap-2">
+                <span>Confirm Booking</span>
+                {queueInfo && (
+                  <Badge variant="secondary" className="text-xs">
+                    {queueInfo.current} of {queueInfo.total}
+                  </Badge>
+                )}
+              </div>
+            )}
             {step === "processing" && "Processing Booking..."}
             {step === "success" && "Booking Confirmed!"}
             {step === "error" && "Booking Failed"}
           </DialogTitle>
           <DialogDescription>
-            {step === "confirm" && "Review your booking details before confirming."}
-            {step === "processing" && "Please wait while we process your booking."}
-            {step === "success" && "Your booking has been successfully created."}
+            {step === "confirm" && (
+              <div>
+                <span>Review your booking details before confirming.</span>
+                {queueInfo && queueInfo.total > 1 && (
+                  <div className="text-sm text-muted-foreground mt-1">
+                    This is booking {queueInfo.current} of {queueInfo.total}.
+                    You'll be prompted for each booking.
+                  </div>
+                )}
+              </div>
+            )}
+            {step === "processing" &&
+              "Please wait while we process your booking."}
+            {step === "success" && (
+              <div>
+                <span>Your booking has been successfully created.</span>
+                {queueInfo && queueInfo.current < queueInfo.total && (
+                  <div className="text-sm text-green-600 mt-1">
+                    Proceeding to booking {queueInfo.current + 1} of{" "}
+                    {queueInfo.total}...
+                  </div>
+                )}
+              </div>
+            )}
             {step === "error" && "There was an issue creating your booking."}
           </DialogDescription>
         </DialogHeader>
@@ -143,7 +199,9 @@ export function BookingConfirmationDialog({
                 <MapPin className="h-4 w-4 text-muted-foreground" />
                 <div>
                   <p className="font-medium">{timeSlot.venueName}</p>
-                  <p className="text-sm text-muted-foreground">{timeSlot.venueAddress}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {timeSlot.venueAddress}
+                  </p>
                 </div>
               </div>
 
@@ -182,7 +240,9 @@ export function BookingConfirmationDialog({
                   value={playerCount}
                   onChange={(e) => {
                     const value = parseInt(e.target.value) || 1;
-                    setPlayerCount(Math.min(Math.max(1, value), availableSpots));
+                    setPlayerCount(
+                      Math.min(Math.max(1, value), availableSpots)
+                    );
                   }}
                   className="w-20 text-center"
                   min="1"
@@ -192,7 +252,9 @@ export function BookingConfirmationDialog({
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => setPlayerCount(Math.min(availableSpots, playerCount + 1))}
+                  onClick={() =>
+                    setPlayerCount(Math.min(availableSpots, playerCount + 1))
+                  }
                   disabled={playerCount >= availableSpots}
                 >
                   +
@@ -265,9 +327,9 @@ export function BookingConfirmationDialog({
             <AlertCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
             <p className="text-lg font-medium mb-2">Booking Failed</p>
             <p className="text-muted-foreground">
-              {createBookingMutation.error?.message || 
-               conflictCheckMutation.error?.message || 
-               "Please try again or contact support."}
+              {createBookingMutation.error?.message ||
+                conflictCheckMutation.error?.message ||
+                "Please try again or contact support."}
             </p>
           </div>
         )}
@@ -278,7 +340,7 @@ export function BookingConfirmationDialog({
               <Button variant="outline" onClick={handleClose}>
                 Cancel
               </Button>
-              <Button 
+              <Button
                 onClick={handleConfirmBooking}
                 disabled={playerCount > availableSpots || playerCount < 1}
               >
@@ -291,13 +353,15 @@ export function BookingConfirmationDialog({
               <Button variant="outline" onClick={handleClose}>
                 Close
               </Button>
-              <Button onClick={() => setStep("confirm")}>
-                Try Again
-              </Button>
+              <Button onClick={() => setStep("confirm")}>Try Again</Button>
             </>
           )}
           {(step === "processing" || step === "success") && (
-            <Button variant="outline" onClick={handleClose} disabled={step === "processing"}>
+            <Button
+              variant="outline"
+              onClick={handleClose}
+              disabled={step === "processing"}
+            >
               {step === "success" ? "Close" : "Cancel"}
             </Button>
           )}
