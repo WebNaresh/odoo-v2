@@ -3,6 +3,15 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Custom responsive breakpoints for logo */
+@media (min-width: 475px) {
+  .xs\:w-9 { width: 2.25rem; }
+  .xs\:h-9 { height: 2.25rem; }
+  .xs\:text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+  .xs\:text-xs { font-size: 0.75rem; line-height: 1rem; }
+  .xs\:block { display: block; }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
