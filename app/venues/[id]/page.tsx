@@ -4,10 +4,15 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { MainNav } from "@/components/layout/main-nav";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Star,
@@ -25,10 +30,11 @@ import {
   IndianRupee,
   ChevronLeft,
   ChevronRight,
-  Loader2
+  Loader2,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useVenueDetails } from "@/hooks/use-venues";
+import Image from "next/image";
 
 // Mock venue data
 const mockVenue = {
@@ -38,14 +44,23 @@ const mockVenue = {
   address: "123 Sports Street, Downtown, Mumbai, Maharashtra 400001",
   rating: 4.8,
   reviewCount: 124,
-  description: "Premier sports facility with state-of-the-art courts and amenities. Perfect for both casual players and serious athletes.",
+  description:
+    "Premier sports facility with state-of-the-art courts and amenities. Perfect for both casual players and serious athletes.",
   images: [
     "/api/placeholder/800/600",
     "/api/placeholder/800/600",
     "/api/placeholder/800/600",
     "/api/placeholder/800/600",
   ],
-  amenities: ["Parking", "Changing Rooms", "Cafeteria", "WiFi", "Equipment Rental", "Shower", "Locker"],
+  amenities: [
+    "Parking",
+    "Changing Rooms",
+    "Cafeteria",
+    "WiFi",
+    "Equipment Rental",
+    "Shower",
+    "Locker",
+  ],
   sports: ["Basketball", "Tennis", "Badminton", "Squash"],
   operatingHours: {
     weekdays: "6:00 AM - 11:00 PM",
@@ -75,7 +90,11 @@ const mockVenue = {
       name: "Badminton Court 1",
       sport: "Badminton",
       pricePerHour: 500,
-      features: ["Wooden flooring", "Professional nets", "Shuttlecock included"],
+      features: [
+        "Wooden flooring",
+        "Professional nets",
+        "Shuttlecock included",
+      ],
     },
   ],
   reviews: [
@@ -86,7 +105,8 @@ const mockVenue = {
         avatar: "/api/placeholder/40/40",
       },
       rating: 5,
-      comment: "Excellent facility with great courts and amenities. Staff is very helpful and the booking process is smooth.",
+      comment:
+        "Excellent facility with great courts and amenities. Staff is very helpful and the booking process is smooth.",
       date: "2024-01-10",
       helpful: 12,
     },
@@ -97,7 +117,8 @@ const mockVenue = {
         avatar: "/api/placeholder/40/40",
       },
       rating: 4,
-      comment: "Good courts and clean facilities. Parking can be a bit crowded during peak hours but overall great experience.",
+      comment:
+        "Good courts and clean facilities. Parking can be a bit crowded during peak hours but overall great experience.",
       date: "2024-01-08",
       helpful: 8,
     },
@@ -108,21 +129,25 @@ const mockVenue = {
         avatar: "/api/placeholder/40/40",
       },
       rating: 5,
-      comment: "Love playing here! The basketball court is professional grade and the lighting is perfect for evening games.",
+      comment:
+        "Love playing here! The basketball court is professional grade and the lighting is perfect for evening games.",
       date: "2024-01-05",
       helpful: 15,
     },
   ],
 };
 
-const amenityIcons: Record<string, React.ComponentType<{ className?: string }>> = {
-  "Parking": Car,
-  "WiFi": Wifi,
-  "Cafeteria": Coffee,
+const amenityIcons: Record<
+  string,
+  React.ComponentType<{ className?: string }>
+> = {
+  Parking: Car,
+  WiFi: Wifi,
+  Cafeteria: Coffee,
   "Changing Rooms": Users,
   "Equipment Rental": Users,
-  "Shower": Users,
-  "Locker": Users,
+  Shower: Users,
+  Locker: Users,
 };
 
 export default function VenueDetailPage() {
@@ -182,9 +207,11 @@ export default function VenueDetailPage() {
             <div className="text-6xl mb-4">🏟️</div>
             <h3 className="text-xl font-semibold mb-2">Venue not found</h3>
             <p className="text-muted-foreground mb-4">
-              {error instanceof Error ? error.message : "The venue you're looking for doesn't exist or has been removed."}
+              {error instanceof Error
+                ? error.message
+                : "The venue you're looking for doesn't exist or has been removed."}
             </p>
-            <Button onClick={() => router.push('/venues')}>
+            <Button onClick={() => router.push("/venues")}>
               Browse All Venues
             </Button>
           </div>
@@ -195,7 +222,9 @@ export default function VenueDetailPage() {
 
   const handleFavoriteToggle = () => {
     setIsFavorited(!isFavorited);
-    toast.success(isFavorited ? "Removed from favorites" : "Added to favorites");
+    toast.success(
+      isFavorited ? "Removed from favorites" : "Added to favorites"
+    );
   };
 
   const handleShare = async () => {
@@ -219,9 +248,10 @@ export default function VenueDetailPage() {
     }
   };
 
-  const images = venue?.photoUrls && venue.photoUrls.length > 0
-    ? venue.photoUrls
-    : ["/api/placeholder/800/600"]; // Fallback image
+  const images =
+    venue?.photoUrls && venue.photoUrls.length > 0
+      ? venue.photoUrls
+      : ["/api/placeholder/800/600"]; // Fallback image
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
@@ -234,14 +264,10 @@ export default function VenueDetailPage() {
   return (
     <div className="min-h-screen bg-background">
       <MainNav />
-      
+
       <main className="container mx-auto px-4 py-8">
         {/* Back Button */}
-        <Button
-          variant="ghost"
-          className="mb-6"
-          onClick={() => router.back()}
-        >
+        <Button variant="ghost" className="mb-6" onClick={() => router.back()}>
           <ChevronLeft className="h-4 w-4 mr-2" />
           Back to venues
         </Button>
@@ -253,7 +279,9 @@ export default function VenueDetailPage() {
             <Card className="overflow-hidden">
               <div className="relative aspect-video">
                 {images[currentImageIndex] ? (
-                  <img
+                  <Image
+                    width={1800}
+                    height={800}
                     src={images[currentImageIndex]}
                     alt={`${venue.name} - Image ${currentImageIndex + 1}`}
                     className="w-full h-full object-cover"
@@ -270,8 +298,12 @@ export default function VenueDetailPage() {
                     className="bg-white/90 hover:bg-white"
                     onClick={handleFavoriteToggle}
                   >
-                    <Heart 
-                      className={`h-4 w-4 ${isFavorited ? "fill-red-500 text-red-500" : "text-gray-600"}`} 
+                    <Heart
+                      className={`h-4 w-4 ${
+                        isFavorited
+                          ? "fill-red-500 text-red-500"
+                          : "text-gray-600"
+                      }`}
                     />
                   </Button>
                   <Button
@@ -283,7 +315,7 @@ export default function VenueDetailPage() {
                     <Share2 className="h-4 w-4 text-gray-600" />
                   </Button>
                 </div>
-                
+
                 {/* Image Navigation */}
                 {images.length > 1 && (
                   <>
@@ -358,8 +390,13 @@ export default function VenueDetailPage() {
                   {venue.amenities.map((amenity) => {
                     const Icon = amenityIcons[amenity];
                     return (
-                      <div key={amenity} className="flex items-center gap-2 text-sm">
-                        {Icon && <Icon className="h-4 w-4 text-muted-foreground" />}
+                      <div
+                        key={amenity}
+                        className="flex items-center gap-2 text-sm"
+                      >
+                        {Icon && (
+                          <Icon className="h-4 w-4 text-muted-foreground" />
+                        )}
                         {amenity}
                       </div>
                     );
@@ -372,7 +409,9 @@ export default function VenueDetailPage() {
             <Tabs defaultValue="courts" className="space-y-4">
               <TabsList>
                 <TabsTrigger value="courts">Courts & Pricing</TabsTrigger>
-                <TabsTrigger value="reviews">Reviews ({venue.reviewCount})</TabsTrigger>
+                <TabsTrigger value="reviews">
+                  Reviews ({venue.reviewCount})
+                </TabsTrigger>
                 <TabsTrigger value="info">Information</TabsTrigger>
               </TabsList>
 
@@ -383,7 +422,9 @@ export default function VenueDetailPage() {
                       <CardHeader>
                         <div className="flex items-center justify-between">
                           <div>
-                            <CardTitle className="text-lg">{court.name}</CardTitle>
+                            <CardTitle className="text-lg">
+                              {court.name}
+                            </CardTitle>
                             <CardDescription>{court.courtType}</CardDescription>
                           </div>
                           <div className="text-right">
@@ -391,15 +432,23 @@ export default function VenueDetailPage() {
                               <IndianRupee className="h-4 w-4" />
                               {court.pricePerHour}
                             </div>
-                            <div className="text-sm text-muted-foreground">per hour</div>
+                            <div className="text-sm text-muted-foreground">
+                              per hour
+                            </div>
                           </div>
                         </div>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-2">
                           <div className="flex items-center gap-2 text-sm">
-                            <span className={`inline-block w-2 h-2 rounded-full ${court.isActive ? 'bg-green-500' : 'bg-red-500'}`} />
-                            <span>{court.isActive ? 'Available' : 'Unavailable'}</span>
+                            <span
+                              className={`inline-block w-2 h-2 rounded-full ${
+                                court.isActive ? "bg-green-500" : "bg-red-500"
+                              }`}
+                            />
+                            <span>
+                              {court.isActive ? "Available" : "Unavailable"}
+                            </span>
                           </div>
                           {court.features && court.features.length > 0 && (
                             <div>
@@ -418,7 +467,9 @@ export default function VenueDetailPage() {
                 ) : (
                   <div className="text-center py-8">
                     <div className="text-4xl mb-4">🏟️</div>
-                    <h3 className="text-lg font-semibold mb-2">No courts available</h3>
+                    <h3 className="text-lg font-semibold mb-2">
+                      No courts available
+                    </h3>
                     <p className="text-muted-foreground">
                       This venue doesn't have any active courts at the moment.
                     </p>
@@ -434,12 +485,16 @@ export default function VenueDetailPage() {
                         <div className="flex items-start gap-4">
                           <Avatar>
                             <AvatarImage src={review.user.image || undefined} />
-                            <AvatarFallback>{review.user.name.charAt(0)}</AvatarFallback>
+                            <AvatarFallback>
+                              {review.user.name.charAt(0)}
+                            </AvatarFallback>
                           </Avatar>
                           <div className="flex-1">
                             <div className="flex items-center justify-between mb-2">
                               <div>
-                                <h4 className="font-medium">{review.user.name}</h4>
+                                <h4 className="font-medium">
+                                  {review.user.name}
+                                </h4>
                                 <div className="flex items-center gap-1">
                                   {Array.from({ length: 5 }).map((_, i) => (
                                     <Star
@@ -454,7 +509,9 @@ export default function VenueDetailPage() {
                                 </div>
                               </div>
                               <span className="text-sm text-muted-foreground">
-                                {new Date(review.createdAt).toLocaleDateString()}
+                                {new Date(
+                                  review.createdAt
+                                ).toLocaleDateString()}
                               </span>
                             </div>
                             <p className="text-sm mb-2">{review.comment}</p>
@@ -466,7 +523,9 @@ export default function VenueDetailPage() {
                 ) : (
                   <div className="text-center py-8">
                     <div className="text-4xl mb-4">💬</div>
-                    <h3 className="text-lg font-semibold mb-2">No reviews yet</h3>
+                    <h3 className="text-lg font-semibold mb-2">
+                      No reviews yet
+                    </h3>
                     <p className="text-muted-foreground">
                       Be the first to review this venue!
                     </p>
@@ -483,17 +542,23 @@ export default function VenueDetailPage() {
                     <div className="grid gap-4">
                       <div>
                         <h4 className="font-medium mb-1">Address</h4>
-                        <p className="text-sm text-muted-foreground">{venue.address}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {venue.address}
+                        </p>
                       </div>
                       {venue.owner.email && (
                         <div>
                           <h4 className="font-medium mb-1">Email</h4>
-                          <p className="text-sm text-muted-foreground">{venue.owner.email}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {venue.owner.email}
+                          </p>
                         </div>
                       )}
                       <div>
                         <h4 className="font-medium mb-1">Owner</h4>
-                        <p className="text-sm text-muted-foreground">{venue.owner.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {venue.owner.name}
+                        </p>
                       </div>
                     </div>
                   </CardContent>
@@ -505,15 +570,19 @@ export default function VenueDetailPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
-                      {venue.operatingHours && typeof venue.operatingHours === 'object' ? (
-                        Object.entries(venue.operatingHours as Record<string, any>).map(([day, hours]) => (
+                      {venue.operatingHours &&
+                      typeof venue.operatingHours === "object" ? (
+                        Object.entries(
+                          venue.operatingHours as Record<string, any>
+                        ).map(([day, hours]) => (
                           <div key={day} className="flex justify-between">
                             <span className="capitalize">{day}</span>
                             <span>
                               {hours?.isOpen
-                                ? `${hours.openTime || 'N/A'} - ${hours.closeTime || 'N/A'}`
-                                : 'Closed'
-                              }
+                                ? `${hours.openTime || "N/A"} - ${
+                                    hours.closeTime || "N/A"
+                                  }`
+                                : "Closed"}
                             </span>
                           </div>
                         ))
@@ -544,7 +613,7 @@ export default function VenueDetailPage() {
                   <div className="text-2xl font-bold">Starting from</div>
                   <div className="flex items-center justify-center gap-1 text-3xl font-bold text-primary">
                     <IndianRupee className="h-6 w-6" />
-                    {venue.minPrice || 'N/A'}
+                    {venue.minPrice || "N/A"}
                   </div>
                   <div className="text-sm text-muted-foreground">per hour</div>
                   {venue.priceRange && (
@@ -553,12 +622,12 @@ export default function VenueDetailPage() {
                     </div>
                   )}
                 </div>
-                
+
                 <Button className="w-full" size="lg" onClick={handleBookNow}>
                   <Calendar className="h-4 w-4 mr-2" />
                   Book Now
                 </Button>
-                
+
                 <div className="text-center text-xs text-muted-foreground">
                   Free cancellation up to 2 hours before
                 </div>
