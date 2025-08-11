@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { UserProfileSection } from "@/components/layout/user-profile-section";
+import { usePendingBookingsCount } from "@/hooks/use-owner-bookings";
 import {
   Building2,
   BarChart3,
@@ -34,7 +35,7 @@ interface SidebarItem {
   isNew?: boolean;
 }
 
-const sidebarItems: SidebarItem[] = [
+const getBaseSidebarItems = (): SidebarItem[] => [
   {
     title: "Dashboard",
     href: "/owner/dashboard",
@@ -55,7 +56,6 @@ const sidebarItems: SidebarItem[] = [
     icon: ClipboardList,
     description: "Manage bookings and schedules",
     category: "main",
-    badge: "3", // This would be dynamic in real app
   },
   {
     title: "Analytics",
@@ -98,6 +98,9 @@ export default function OwnerSidebar({ className }: OwnerSidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
+  // Fetch pending bookings count
+  const { data: pendingBookingsCount = 0 } = usePendingBookingsCount();
+
   // Auto-collapse on mobile
   useEffect(() => {
     const handleResize = () => {
@@ -124,11 +127,22 @@ export default function OwnerSidebar({ className }: OwnerSidebarProps) {
     setIsMobileOpen(false);
   };
 
+  // Create dynamic sidebar items with real data
+  const sidebarItems = getBaseSidebarItems().map(item => {
+    if (item.href === "/owner/bookings" && pendingBookingsCount > 0) {
+      return {
+        ...item,
+        badge: pendingBookingsCount.toString()
+      };
+    }
+    return item;
+  });
+
   // Group items by category
   const groupedItems = {
-    main: sidebarItems.filter(item => item.category === 'main'),
-    insights: sidebarItems.filter(item => item.category === 'insights'),
-    account: sidebarItems.filter(item => item.category === 'account'),
+    main: sidebarItems.filter((item: SidebarItem) => item.category === 'main'),
+    insights: sidebarItems.filter((item: SidebarItem) => item.category === 'insights'),
+    account: sidebarItems.filter((item: SidebarItem) => item.category === 'account'),
   };
 
   return (
