@@ -199,21 +199,38 @@ export function MainNav() {
     <header className="sticky top-0 z-50 w-full border-b border-[#00884d]/10 bg-white/95 backdrop-blur-xl supports-[backdrop-filter]:bg-white/90 shadow-lg">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 sm:h-18 lg:h-20 items-center justify-between">
-          {/* Enhanced Logo with Animation */}
+          {/* Enhanced Responsive Logo */}
           <Link
             href="/"
-            className="flex items-center "
+            className="flex items-center space-x-2 sm:space-x-3 lg:space-x-4 group flex-shrink-0 hover:scale-105 transition-all duration-300"
           >
-            
-              <div className=" ">
-                <Image src="/bg-logo.png" alt="QuickCourt Logo" width={60} height={60} />
+            {/* Responsive Logo Image */}
+            <div className="relative">
+              <div className="relative overflow-hidden rounded-xl sm:rounded-2xl lg:rounded-2xl shadow-lg group-hover:shadow-xl transition-all duration-300">
+                <Image
+                  src="/bg-logo.png"
+                  alt="QuickCourt Logo"
+                  width={40}
+                  height={40}
+                  className="w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 xl:w-16 xl:h-16 object-contain group-hover:scale-110 transition-transform duration-300"
+                  priority
+                />
               </div>
-              
-            <div className="hidden sm:block">
-              <span className="font-bold text-sm sm:text-sm lg:text-xl bg-gradient-to-r from-[#00884d] to-[#00a855] bg-clip-text text-transparent">
+              {/* Glow effect */}
+              <div className="absolute -inset-1 bg-gradient-to-br from-[#00884d] to-[#00a855] rounded-xl sm:rounded-2xl lg:rounded-2xl blur opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+            </div>
+
+            {/* Responsive Text */}
+            <div className="flex flex-col">
+              {/* Main Logo Text - Always visible but responsive */}
+              <span className="font-bold text-base xs:text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl bg-gradient-to-r from-[#00884d] to-[#00a855] bg-clip-text text-transparent leading-tight">
                 QuickCourt
               </span>
-                <div className="text-xs text-gray-500 font-medium">Sports Booking Platform</div>
+
+              {/* Tagline - Hidden on very small screens */}
+              <div className="hidden xs:block text-[10px] xs:text-xs sm:text-sm md:text-sm lg:text-base text-gray-500 font-medium leading-tight -mt-1">
+                Sports Booking Platform
+              </div>
             </div>
           </Link>
 
