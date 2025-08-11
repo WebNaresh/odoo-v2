@@ -64,21 +64,8 @@ const getBaseSidebarItems = (): SidebarItem[] => [
     description: "View performance metrics",
     category: "insights",
   },
-  {
-    title: "Customers",
-    href: "/owner/customers",
-    icon: Users,
-    description: "View customer insights",
-    category: "insights",
-    isNew: true,
-  },
-  {
-    title: "Reports",
-    href: "/owner/reports",
-    icon: TrendingUp,
-    description: "Generate detailed reports",
-    category: "insights",
-  },
+ 
+ 
   {
     title: "Settings",
     href: "/owner/settings",
