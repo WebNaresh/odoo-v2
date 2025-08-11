@@ -27,15 +27,12 @@ import {
   Plus,
   Loader2,
   CheckCircle,
-  X,
-  User,
   FileText,
 } from "lucide-react";
 import { type CreateVenueData, AVAILABLE_AMENITIES } from "@/types/venue";
 
-interface VenueFormData
-  extends Omit<CreateVenueData, "photoUrls" | "sportIds"> {
-  photos?: FileList | null;
+interface VenueFormData extends Omit<CreateVenueData, "sportIds"> {
+  // photoUrls will be handled by the Cloudinary component
 }
 
 // Client-side validation is now handled manually in the onSubmit function
@@ -43,8 +40,6 @@ interface VenueFormData
 export default function NewVenuePage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [photoFiles, setPhotoFiles] = useState<File[]>([]);
-  const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
 
   const form = useForm<VenueFormData>({
     mode: "onChange", // Enable real-time validation
@@ -53,7 +48,7 @@ export default function NewVenuePage() {
       description: "",
       address: "",
       amenities: [],
-      photos: null,
+      photoUrls: [],
       operatingHours: {
         monday: { isOpen: true, openTime: "06:00", closeTime: "22:00" },
         tuesday: { isOpen: true, openTime: "06:00", closeTime: "22:00" },
@@ -66,64 +61,10 @@ export default function NewVenuePage() {
     },
   });
 
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    watch,
-    formState: { errors },
-    setError,
-    clearErrors,
-  } = form;
+  const { register, handleSubmit, setValue, watch, setError, clearErrors } =
+    form;
 
   const watchedAmenities = watch("amenities");
-
-  // Handle photo upload
-  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files) return;
-
-    const newFiles = Array.from(files);
-    const totalFiles = photoFiles.length + newFiles.length;
-
-    if (totalFiles > 10) {
-      toast.error("Maximum 10 photos allowed");
-      return;
-    }
-
-    // Validate file types and sizes
-    const validFiles = newFiles.filter((file) => {
-      if (!file.type.startsWith("image/")) {
-        toast.error(`${file.name} is not an image file`);
-        return false;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        // 5MB limit
-        toast.error(`${file.name} is too large (max 5MB)`);
-        return false;
-      }
-      return true;
-    });
-
-    if (validFiles.length > 0) {
-      setPhotoFiles((prev) => [...prev, ...validFiles]);
-
-      // Create previews
-      validFiles.forEach((file) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          setPhotoPreviews((prev) => [...prev, e.target?.result as string]);
-        };
-        reader.readAsDataURL(file);
-      });
-    }
-  };
-
-  // Remove photo
-  const removePhoto = (index: number) => {
-    setPhotoFiles((prev) => prev.filter((_, i) => i !== index));
-    setPhotoPreviews((prev) => prev.filter((_, i) => i !== index));
-  };
 
   // Handle amenity selection
   const handleAmenityChange = (amenity: string, checked: boolean) => {
@@ -153,14 +94,9 @@ export default function NewVenuePage() {
       "📝 [VENUE FORM] Raw form data:",
       JSON.stringify(data, null, 2)
     );
-    console.log("🖼️ [VENUE FORM] Photo files state:", {
-      photoFilesLength: photoFiles.length,
-      photoFiles: photoFiles.map((file, i) => ({
-        index: i,
-        name: file.name,
-        size: file.size,
-        type: file.type,
-      })),
+    console.log("🖼️ [VENUE FORM] Photo URLs from Cloudinary:", {
+      photoUrlsLength: data.photoUrls?.length || 0,
+      photoUrls: data.photoUrls,
     });
 
     // Manual client-side validation
@@ -236,19 +172,10 @@ export default function NewVenuePage() {
     setIsLoading(true);
 
     try {
-      // Upload photos first (in a real app, you'd upload to a cloud service)
-      const photoUrls: string[] = [];
-
-      console.log("📸 [VENUE FORM] Processing photos...");
-      // For now, we'll create placeholder URLs
-      // In production, you'd upload to AWS S3, Cloudinary, etc.
-      for (let i = 0; i < photoFiles.length; i++) {
-        const photoUrl = `/api/placeholder/800/600?venue=${Date.now()}&photo=${i}`;
-        photoUrls.push(photoUrl);
-        console.log(`📷 [VENUE FORM] Added photo ${i + 1}:`, photoUrl);
-      }
-
-      console.log("✅ [VENUE FORM] Final photo URLs:", photoUrls);
+      // Get photo URLs from Cloudinary upload component
+      const photoUrls = data.photoUrls || [];
+      console.log("📸 [VENUE FORM] Using Cloudinary photo URLs:", photoUrls);
+      console.log("✅ [VENUE FORM] Final photo URLs count:", photoUrls.length);
 
       // Handle address - extract string value and location coordinates from Google Places
       console.log("🏠 [VENUE FORM] Processing address:", {
@@ -579,59 +506,23 @@ export default function NewVenuePage() {
               <CardHeader>
                 <CardTitle>Photos</CardTitle>
                 <CardDescription>
-                  Upload photos of your venue (maximum 10 photos, 5MB each)
+                  Upload photos of your venue using Cloudinary
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() =>
-                        document.getElementById("photo-upload")?.click()
-                      }
-                      className="flex items-center gap-2"
-                    >
-                      <Camera className="h-4 w-4" />
-                      Add Photos
-                    </Button>
-                    <input
-                      id="photo-upload"
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={handlePhotoUpload}
-                      className="hidden"
-                    />
-                    <span className="text-sm text-muted-foreground">
-                      {photoFiles.length}/10 photos uploaded
-                    </span>
-                  </div>
-
-                  {photoPreviews.length > 0 && (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      {photoPreviews.map((preview, index) => (
-                        <div key={index} className="relative group">
-                          <img
-                            src={preview}
-                            alt={`Preview ${index + 1}`}
-                            className="w-full h-32 object-cover rounded-lg border"
-                          />
-                          <Button
-                            type="button"
-                            variant="destructive"
-                            size="sm"
-                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => removePhoto(index)}
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <InputField
+                  type="cloudinary-image"
+                  name="photoUrls"
+                  label="Venue Photos"
+                  placeholder="Upload venue photos"
+                  Icon={Camera}
+                  multiple={true}
+                  maxFiles={10}
+                  uploadPreset="ml_default"
+                  folder="venue-photos"
+                  maxFileSize={15728640} // 15MB
+                  allowedFormats={["jpg", "jpeg", "png", "webp"]}
+                />
               </CardContent>
             </Card>
 
