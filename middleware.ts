@@ -30,6 +30,8 @@ const publicRoutes = [
   "/",
   "/auth/signin",
   "/auth/signup",
+  "/auth/banned",
+  "/auth/error",
   "/venues",
   "/venues/:path*",
   "/search",
@@ -71,8 +73,25 @@ function isUserRoute(path: string): boolean {
 
 export default withAuth(
   function middleware(req: NextRequest & { nextauth: { token: any } }) {
-    const { pathname } = req.nextUrl;
+    const { pathname, searchParams } = req.nextUrl;
     const token = req.nextauth.token;
+
+    // Check for banned user redirect on sign-in page
+    if (pathname === '/auth/signin') {
+      const callbackUrl = searchParams.get('callbackUrl');
+
+      if (callbackUrl) {
+        const decodedCallbackUrl = decodeURIComponent(callbackUrl);
+        console.log('🔍 [MIDDLEWARE] Sign-in page with callback:', decodedCallbackUrl);
+
+        // If the callback URL contains banned page or AccessDenied error, redirect directly
+        if (decodedCallbackUrl.includes('/auth/banned') ||
+          decodedCallbackUrl.includes('error=AccessDenied')) {
+          console.log('🔍 [MIDDLEWARE] Redirecting banned user to banned page');
+          return NextResponse.redirect(new URL('/auth/banned', req.url));
+        }
+      }
+    }
 
     // Allow public routes
     if (isPublicRoute(pathname)) {

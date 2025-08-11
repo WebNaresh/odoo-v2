@@ -86,6 +86,42 @@ export default function SignIn() {
   const [isNewUser, setIsNewUser] = useState(false);
   const router = useRouter();
 
+  // Single check for banned user redirect in URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const callbackUrl = urlParams.get("callbackUrl");
+    const errorParam = urlParams.get("error");
+
+    console.log("🔍 [SIGNIN] Checking for banned user redirect");
+    console.log("🔍 [SIGNIN] Callback URL:", callbackUrl);
+    console.log("🔍 [SIGNIN] Error param:", errorParam);
+
+    // Check for banned user indicators
+    if (errorParam === "AccessDenied") {
+      console.log(
+        "🔍 [SIGNIN] AccessDenied error detected, redirecting to banned page"
+      );
+      router.replace("/auth/banned");
+      return;
+    }
+
+    if (callbackUrl) {
+      const decodedCallbackUrl = decodeURIComponent(callbackUrl);
+      console.log("🔍 [SIGNIN] Decoded callback URL:", decodedCallbackUrl);
+
+      if (
+        decodedCallbackUrl.includes("/auth/banned") ||
+        decodedCallbackUrl.includes("error=AccessDenied")
+      ) {
+        console.log(
+          "🔍 [SIGNIN] Banned user callback detected, redirecting to banned page"
+        );
+        router.replace("/auth/banned");
+        return;
+      }
+    }
+  }, [router]);
+
   const roleOptions: RoleOption[] = [
     {
       value: "USER",
@@ -173,26 +209,6 @@ export default function SignIn() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const stepParam = urlParams.get("step");
-    const errorParam = urlParams.get("error");
-    const callbackUrl = urlParams.get("callbackUrl");
-
-    // Check for banned user error in callback URL
-    if (callbackUrl && callbackUrl.includes("error=AccessDenied")) {
-      console.log(
-        "🔍 [SIGNIN] Detected AccessDenied in callback URL, redirecting to banned page"
-      );
-      router.push("/auth/banned");
-      return;
-    }
-
-    // Check for banned user error
-    if (errorParam === "AccessDenied") {
-      console.log(
-        "🔍 [SIGNIN] Detected AccessDenied error, redirecting to banned page"
-      );
-      router.push("/auth/banned");
-      return;
-    }
 
     if (stepParam === "check") {
       // Clean up URL first

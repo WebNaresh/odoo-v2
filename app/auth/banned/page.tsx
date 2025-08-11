@@ -211,23 +211,24 @@ export default function BannedPage() {
                 contact our support team to appeal this decision.
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
-                <Button
-                  asChild
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                >
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
                   <a href="mailto:support@quickcourt.com?subject=Account Suspension Appeal">
-                    <Mail className="h-4 w-4 mr-2" />
-                    Contact Support
+                    <span className="flex items-center">
+                      <Mail className="h-4 w-4 mr-2" />
+                      Contact Support
+                    </span>
                   </a>
                 </Button>
-                <Button variant="outline" asChild>
+                <Button variant="outline">
                   <a
                     href="https://help.quickcourt.com/appeals"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Appeal Guidelines
+                    <span className="flex items-center">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Appeal Guidelines
+                    </span>
                   </a>
                 </Button>
               </div>
@@ -235,7 +236,7 @@ export default function BannedPage() {
 
             {/* Back to Sign In */}
             <div className="pt-4 border-t">
-              <Button variant="ghost" asChild className="w-full">
+              <Button variant="ghost" className="w-full">
                 <Link href="/auth/signin">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back to Sign In
