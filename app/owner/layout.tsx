@@ -12,10 +12,10 @@ interface OwnerLayoutProps {
 
 export default function OwnerLayout({ children }: OwnerLayoutProps) {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gray-50">
       <OwnerSidebar />
-      <main className="md:pl-64 transition-all duration-300">
-        <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <main className="md:pl-72 transition-all duration-300 ease-in-out">
+        <div className="container mx-auto px-4 py-6 max-w-7xl">
           {children}
         </div>
       </main>

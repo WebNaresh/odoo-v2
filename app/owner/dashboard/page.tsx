@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import Image from "next/image";
 import {
   Card,
   CardContent,
@@ -14,18 +13,30 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Building2,
   Calendar,
   Plus,
   Eye,
   BarChart3,
-  MapPin,
   Star,
   IndianRupee,
   RefreshCw,
   AlertCircle,
   Loader2,
+  TrendingUp,
+  TrendingDown,
+  Target,
+  Award,
+  Activity,
+  ChevronRight,
+  Zap,
+  DollarSign,
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -153,18 +164,7 @@ export default function OwnerDashboardPage() {
     fetchDashboardData(true);
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "APPROVED":
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
-      case "PENDING":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300";
-      case "REJECTED":
-        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
-      default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
-    }
-  };
+
 
   if (loading) {
     return (
@@ -196,31 +196,85 @@ export default function OwnerDashboardPage() {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">
-            Welcome back, {session?.user?.name || "Owner"}!
-          </h1>
-          <p className="text-muted-foreground">
-            Here&apos;s an overview of your sports venue business
-          </p>
+    <div className="space-y-6 pb-8">
+      {/* Enhanced Header with Welcome Banner */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#00884d] via-[#00a855] to-[#00b359] p-6 md:p-8 text-white">
+        <div className="absolute inset-0 bg-black/10" />
+        <div className="relative z-10">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <Avatar className="h-16 w-16 border-2 border-white/20">
+                <AvatarImage src={session?.user?.image || undefined} />
+                <AvatarFallback className="bg-white/20 text-white text-xl font-bold">
+                  {session?.user?.name?.charAt(0) || "O"}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold mb-1">
+                  Welcome back, {session?.user?.name || "Owner"}!
+                </h1>
+                <p className="text-white/90 text-sm md:text-base">
+                  {new Date().toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </p>
+                <p className="text-white/80 text-sm mt-1">
+                  Here's your sports venue business overview
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
+              >
+                {refreshing ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                )}
+                Refresh Data
+              </Button>
+              <Button
+                onClick={() => router.push("/owner/venues/new")}
+                className="bg-white text-[#00884d] hover:bg-white/90 font-medium"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Venue
+              </Button>
+            </div>
+          </div>
+
+          {/* Quick Stats in Header */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 text-center">
+              <div className="text-lg md:text-xl font-bold">₹{stats.totalRevenue.toLocaleString()}</div>
+              <div className="text-xs text-white/80">Total Revenue</div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 text-center">
+              <div className="text-lg md:text-xl font-bold">{stats.totalBookings}</div>
+              <div className="text-xs text-white/80">Total Bookings</div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 text-center">
+              <div className="text-lg md:text-xl font-bold">{stats.totalFacilities}</div>
+              <div className="text-xs text-white/80">Venues</div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 text-center">
+              <div className="text-lg md:text-xl font-bold">{(stats.averageRating || 0).toFixed(1)}</div>
+              <div className="text-xs text-white/80">Avg Rating</div>
+            </div>
+          </div>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleRefresh}
-          disabled={refreshing}
-          className="gap-2"
-        >
-          {refreshing ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <RefreshCw className="h-4 w-4" />
-          )}
-          Refresh
-        </Button>
+
+        {/* Decorative Elements */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-16 translate-x-16" />
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-12 -translate-x-12" />
       </div>
 
       {/* Error Alert */}
@@ -235,297 +289,266 @@ export default function OwnerDashboardPage() {
         </Card>
       )}
 
-      {/* Quick Actions */}
-      <div className="flex flex-wrap gap-4">
-        <Button
-          onClick={() => router.push("/owner/venues/new")}
-          className="gap-2"
-          style={{ backgroundColor: "#00884d" }}
-        >
-          <Plus className="h-4 w-4" />
-          Add New Venue
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => router.push("/owner/venues")}
-          className="gap-2"
-        >
-          <Eye className="h-4 w-4" />
-          View All Venues
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => router.push("/owner/analytics")}
-          className="gap-2"
-        >
-          <BarChart3 className="h-4 w-4" />
-          View Analytics
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => router.push("/owner/bookings")}
-          className="gap-2"
-        >
-          <Calendar className="h-4 w-4" />
-          Manage Bookings
-        </Button>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <IndianRupee className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ₹{stats.totalRevenue.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              <span
-                className={
-                  stats.monthlyGrowth >= 0 ? "text-green-600" : "text-red-600"
-                }
-              >
-                {stats.monthlyGrowth >= 0 ? "+" : ""}
-                {(stats.monthlyGrowth || 0).toFixed(1)}%
-              </span>{" "}
-              from last month
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Bookings
-            </CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalBookings}</div>
-            <p className="text-xs text-muted-foreground">
-              <span
-                className={
-                  stats.bookingGrowth >= 0 ? "text-green-600" : "text-red-600"
-                }
-              >
-                {stats.bookingGrowth >= 0 ? "+" : ""}
-                {(stats.bookingGrowth || 0).toFixed(1)}%
-              </span>{" "}
-              from last month
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Facilities</CardTitle>
-            <Building2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalFacilities}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.totalCourts} courts total
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg. Rating</CardTitle>
-            <Star className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {(stats.averageRating || 0).toFixed(1)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {stats.totalReviews} reviews
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Recent Venues */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Venues</CardTitle>
-          <CardDescription>Your latest venues and their status</CardDescription>
+      {/* Enhanced Quick Actions */}
+      <Card className="border-0 shadow-sm">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Zap className="h-5 w-5 text-[#00884d]" />
+            Quick Actions
+          </CardTitle>
+          <CardDescription>
+            Manage your venues and bookings efficiently
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-muted rounded-lg animate-pulse" />
-                  <div className="space-y-2 flex-1">
-                    <div className="h-4 bg-muted rounded animate-pulse" />
-                    <div className="h-3 bg-muted rounded w-2/3 animate-pulse" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : recentVenues.length > 0 ? (
-            <div className="space-y-4">
-              {recentVenues.map((venue) => (
-                <div
-                  key={venue.id}
-                  className="flex items-center justify-between p-4 border rounded-lg"
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center overflow-hidden">
-                      {venue.photoUrls && venue.photoUrls.length > 0 ? (
-                        <Image
-                          src={venue.photoUrls[0]}
-                          alt={venue.name}
-                          width={48}
-                          height={48}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <Building2 className="h-6 w-6 text-primary" />
-                      )}
-                    </div>
-                    <div>
-                      <h3 className="font-medium">{venue.name}</h3>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <MapPin className="h-3 w-3" />
-                        {venue.address}
-                      </div>
-                      {venue.sports && venue.sports.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {venue.sports.slice(0, 2).map((sport) => (
-                            <Badge
-                              key={sport}
-                              variant="outline"
-                              className="text-xs px-1 py-0"
-                            >
-                              {sport}
-                            </Badge>
-                          ))}
-                          {venue.sports.length > 2 && (
-                            <Badge
-                              variant="outline"
-                              className="text-xs px-1 py-0"
-                            >
-                              +{venue.sports.length - 2}
-                            </Badge>
-                          )}
-                        </div>
-                      )}
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge className={getStatusColor(venue.status)}>
-                          {venue.status}
-                        </Badge>
-                        {venue.rating && (
-                          <div className="flex items-center gap-1">
-                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                            <span className="text-sm">{venue.rating}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium">
-                      {venue.bookingsCount} bookings
-                    </p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => router.push(`/owner/venues/${venue.id}`)}
-                      className="mt-2"
-                    >
-                      View Details
-                    </Button>
-                  </div>
-                </div>
-              ))}
-              <Button
-                variant="outline"
-                onClick={() => router.push("/owner/venues")}
-                className="w-full"
-              >
-                View All Venues
-              </Button>
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">No venues yet</h3>
-              <p className="text-muted-foreground mb-4">
-                Get started by adding your first sports venue
-              </p>
-              <Button onClick={() => router.push("/owner/venues/new")}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Your First Venue
-              </Button>
-            </div>
-          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <Button
+              onClick={() => router.push("/owner/venues")}
+              variant="outline"
+              className="h-auto p-4 flex flex-col items-center gap-3 hover:bg-[#00884d]/5 hover:border-[#00884d] transition-all group"
+            >
+              <div className="w-12 h-12 bg-[#00884d]/10 rounded-full flex items-center justify-center group-hover:bg-[#00884d]/20 transition-colors">
+                <Eye className="h-6 w-6 text-[#00884d]" />
+              </div>
+              <div className="text-center">
+                <div className="font-medium">View Venues</div>
+                <div className="text-xs text-muted-foreground">Manage all venues</div>
+              </div>
+            </Button>
+
+            <Button
+              onClick={() => router.push("/owner/analytics")}
+              variant="outline"
+              className="h-auto p-4 flex flex-col items-center gap-3 hover:bg-blue-50 hover:border-blue-200 transition-all group"
+            >
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                <BarChart3 className="h-6 w-6 text-blue-600" />
+              </div>
+              <div className="text-center">
+                <div className="font-medium">Analytics</div>
+                <div className="text-xs text-muted-foreground">View insights</div>
+              </div>
+            </Button>
+
+            <Button
+              onClick={() => router.push("/owner/bookings")}
+              variant="outline"
+              className="h-auto p-4 flex flex-col items-center gap-3 hover:bg-purple-50 hover:border-purple-200 transition-all group"
+            >
+              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+                <Calendar className="h-6 w-6 text-purple-600" />
+              </div>
+              <div className="text-center">
+                <div className="font-medium">Bookings</div>
+                <div className="text-xs text-muted-foreground">Manage bookings</div>
+              </div>
+            </Button>
+
+            <Button
+              onClick={() => router.push("/owner/venues/new")}
+              className="h-auto p-4 flex flex-col items-center gap-3 bg-[#00884d] hover:bg-[#00a855] transition-all"
+            >
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                <Plus className="h-6 w-6 text-white" />
+              </div>
+              <div className="text-center text-white">
+                <div className="font-medium">Add Venue</div>
+                <div className="text-xs text-white/80">Create new venue</div>
+              </div>
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Recent Activity */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
+      {/* Enhanced Stats Cards */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="relative overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow">
+          <div className="absolute inset-0 bg-gradient-to-br from-green-50 to-emerald-50" />
+          <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-700">Total Revenue</CardTitle>
+            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+              <IndianRupee className="h-5 w-5 text-green-600" />
+            </div>
+          </CardHeader>
+          <CardContent className="relative">
+            <div className="text-2xl font-bold text-gray-900 mb-1">
+              ₹{stats.totalRevenue.toLocaleString()}
+            </div>
+            <div className="flex items-center gap-1">
+              {stats.monthlyGrowth >= 0 ? (
+                <TrendingUp className="h-3 w-3 text-green-600" />
+              ) : (
+                <TrendingDown className="h-3 w-3 text-red-600" />
+              )}
+              <span
+                className={`text-xs font-medium ${
+                  stats.monthlyGrowth >= 0 ? "text-green-600" : "text-red-600"
+                }`}
+              >
+                {stats.monthlyGrowth >= 0 ? "+" : ""}
+                {(stats.monthlyGrowth || 0).toFixed(1)}%
+              </span>
+              <span className="text-xs text-muted-foreground">vs last month</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="relative overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-cyan-50" />
+          <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-700">Total Bookings</CardTitle>
+            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+              <Calendar className="h-5 w-5 text-blue-600" />
+            </div>
+          </CardHeader>
+          <CardContent className="relative">
+            <div className="text-2xl font-bold text-gray-900 mb-1">{stats.totalBookings}</div>
+            <div className="flex items-center gap-1">
+              {stats.bookingGrowth >= 0 ? (
+                <TrendingUp className="h-3 w-3 text-green-600" />
+              ) : (
+                <TrendingDown className="h-3 w-3 text-red-600" />
+              )}
+              <span
+                className={`text-xs font-medium ${
+                  stats.bookingGrowth >= 0 ? "text-green-600" : "text-red-600"
+                }`}
+              >
+                {stats.bookingGrowth >= 0 ? "+" : ""}
+                {(stats.bookingGrowth || 0).toFixed(1)}%
+              </span>
+              <span className="text-xs text-muted-foreground">vs last month</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="relative overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-50 to-violet-50" />
+          <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-700">Active Venues</CardTitle>
+            <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+              <Building2 className="h-5 w-5 text-purple-600" />
+            </div>
+          </CardHeader>
+          <CardContent className="relative">
+            <div className="text-2xl font-bold text-gray-900 mb-1">{stats.totalFacilities}</div>
+            <div className="flex items-center gap-1">
+              <Target className="h-3 w-3 text-purple-600" />
+              <span className="text-xs text-muted-foreground">
+                {stats.totalCourts} courts total
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="relative overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow">
+          <div className="absolute inset-0 bg-gradient-to-br from-yellow-50 to-orange-50" />
+          <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-700">Average Rating</CardTitle>
+            <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+              <Star className="h-5 w-5 text-yellow-600" />
+            </div>
+          </CardHeader>
+          <CardContent className="relative">
+            <div className="text-2xl font-bold text-gray-900 mb-1">
+              {(stats.averageRating || 0).toFixed(1)}
+            </div>
+            <div className="flex items-center gap-1">
+              <Award className="h-3 w-3 text-yellow-600" />
+              <span className="text-xs text-muted-foreground">
+                {stats.totalReviews} reviews
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+
+
+      {/* Enhanced Recent Activity */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Recent Bookings */}
+        <Card className="lg:col-span-2 border-0 shadow-sm">
           <CardHeader>
-            <CardTitle>Recent Bookings</CardTitle>
-            <CardDescription>Latest booking activity</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-5 w-5 text-[#00884d]" />
+                  Recent Bookings
+                </CardTitle>
+                <CardDescription>Latest booking activity across your venues</CardDescription>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push("/owner/bookings")}
+                className="text-[#00884d] hover:text-[#00a855]"
+              >
+                View All
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {recentBookings.length > 0 ? (
                 <>
-                  {recentBookings.slice(0, 3).map((booking) => (
+                  {recentBookings.slice(0, 4).map((booking) => (
                     <div
                       key={booking.id}
-                      className="flex items-center justify-between"
+                      className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 transition-colors"
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                          <Calendar className="h-4 w-4 text-green-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">
-                            {booking.courtName} - {booking.venueName}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {booking.date} • {booking.time}
-                          </p>
-                        </div>
+                      <div className="w-10 h-10 bg-gradient-to-br from-[#00884d]/10 to-[#00884d]/5 rounded-full flex items-center justify-center flex-shrink-0">
+                        <Calendar className="h-5 w-5 text-[#00884d]" />
                       </div>
-                      <div className="text-right">
-                        <Badge
-                          variant={
-                            booking.status === "confirmed"
-                              ? "default"
-                              : "secondary"
-                          }
-                        >
-                          {booking.status}
-                        </Badge>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          ₹{booking.amount}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <p className="font-medium text-gray-900 truncate">
+                            {booking.courtName}
+                          </p>
+                          <Badge
+                            variant={booking.status === "CONFIRMED" ? "default" : "secondary"}
+                            className={`text-xs ${
+                              booking.status === "CONFIRMED"
+                                ? "bg-green-100 text-green-700"
+                                : "bg-yellow-100 text-yellow-700"
+                            }`}
+                          >
+                            {booking.status}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground truncate">
+                          {booking.venueName}
                         </p>
+                        <div className="flex items-center justify-between mt-1">
+                          <span className="text-xs text-muted-foreground">
+                            {booking.date} • {booking.time}
+                          </span>
+                          <span className="text-sm font-medium text-[#00884d]">
+                            ₹{booking.amount.toLocaleString()}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   ))}
+                  <Separator />
                   <Button
                     variant="outline"
-                    size="sm"
-                    className="w-full"
+                    className="w-full border-[#00884d]/20 text-[#00884d] hover:bg-[#00884d]/5"
                     onClick={() => router.push("/owner/bookings")}
                   >
                     View All Bookings
+                    <ChevronRight className="h-4 w-4 ml-2" />
                   </Button>
                 </>
               ) : (
-                <div className="text-center py-4">
-                  <Calendar className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-[#00884d]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Calendar className="h-8 w-8 text-[#00884d]" />
+                  </div>
+                  <h3 className="font-medium mb-1">No recent bookings</h3>
                   <p className="text-sm text-muted-foreground">
-                    No recent bookings
+                    Bookings will appear here once customers start booking your venues
                   </p>
                 </div>
               )}
@@ -533,108 +556,188 @@ export default function OwnerDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        {/* Performance Overview */}
+        <Card className="border-0 shadow-sm">
           <CardHeader>
-            <CardTitle>Performance Overview</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5 text-[#00884d]" />
+              Performance
+            </CardTitle>
             <CardDescription>Current month metrics</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Occupancy Rate</span>
-                <div className="flex items-center gap-2">
-                  <Progress value={stats.occupancyRate} className="w-16" />
-                  <span className="text-sm font-medium">{(stats.occupancyRate || 0).toFixed(1)}%</span>
+            <div className="space-y-6">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium">Occupancy Rate</span>
+                  <span className="text-sm font-bold text-[#00884d]">
+                    {(stats.occupancyRate || 0).toFixed(1)}%
+                  </span>
+                </div>
+                <Progress
+                  value={stats.occupancyRate || 0}
+                  className="h-2"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  {stats.occupancyRate >= 70 ? "Excellent" : stats.occupancyRate >= 50 ? "Good" : "Needs improvement"}
+                </p>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Star className="h-4 w-4 text-yellow-500" />
+                    <span className="text-sm">Average Rating</span>
+                  </div>
+                  <span className="font-semibold">{(stats.averageRating || 0).toFixed(1)}</span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-4 w-4 text-green-500" />
+                    <span className="text-sm">Monthly Revenue</span>
+                  </div>
+                  <span className="font-semibold">₹{stats.currentMonthRevenue.toLocaleString()}</span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-blue-500" />
+                    <span className="text-sm">Monthly Bookings</span>
+                  </div>
+                  <span className="font-semibold">{stats.currentMonthBookings}</span>
                 </div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Average Rating</span>
-                <div className="flex items-center gap-1">
-                  <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                  <span className="text-sm font-medium">{(stats.averageRating || 0).toFixed(1)}</span>
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Monthly Revenue</span>
-                <span className="text-sm font-medium">
-                  ₹{stats.currentMonthRevenue.toLocaleString()}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Monthly Bookings</span>
-                <span className="text-sm font-medium">
-                  {stats.currentMonthBookings}
-                </span>
-              </div>
+
               <Button
                 variant="outline"
-                size="sm"
-                className="w-full"
+                className="w-full border-[#00884d]/20 text-[#00884d] hover:bg-[#00884d]/5"
                 onClick={() => router.push("/owner/analytics")}
               >
-                View Detailed Analytics
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Detailed Analytics
               </Button>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Venue Overview */}
+      {/* Enhanced Venue Performance Overview */}
       {venueOverviews.length > 0 && (
-        <Card>
+        <Card className="border-0 shadow-sm">
           <CardHeader>
-            <CardTitle>Venue Performance</CardTitle>
-            <CardDescription>Overview of all your venues</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-[#00884d]" />
+                  Venue Performance
+                </CardTitle>
+                <CardDescription>Detailed overview of all your venues</CardDescription>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push("/owner/analytics")}
+                className="text-[#00884d] hover:text-[#00a855]"
+              >
+                Analytics
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
               {venueOverviews.map((venue) => (
-                <div key={venue.id} className="p-4 border rounded-lg">
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <h3 className="font-semibold">{venue.name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {venue.courtsCount} courts
-                      </p>
+                <Card
+                  key={venue.id}
+                  className="group hover:shadow-md transition-all duration-200 cursor-pointer border-0 shadow-sm"
+                  onClick={() => router.push(`/owner/venues/${venue.id}`)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900 group-hover:text-[#00884d] transition-colors">
+                          {venue.name}
+                        </h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Building2 className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">
+                            {venue.courtsCount} courts
+                          </span>
+                        </div>
+                      </div>
+                      <Badge
+                        className={`${
+                          venue.status.toUpperCase() === 'APPROVED'
+                            ? 'bg-green-100 text-green-700 hover:bg-green-100'
+                            : venue.status.toUpperCase() === 'PENDING'
+                            ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-100'
+                            : 'bg-red-100 text-red-700 hover:bg-red-100'
+                        }`}
+                      >
+                        {venue.status.toUpperCase() === 'APPROVED' && <CheckCircle className="h-3 w-3 mr-1" />}
+                        {venue.status.toUpperCase() === 'PENDING' && <AlertTriangle className="h-3 w-3 mr-1" />}
+                        {venue.status.toUpperCase() === 'REJECTED' && <XCircle className="h-3 w-3 mr-1" />}
+                        {venue.status}
+                      </Badge>
                     </div>
-                    <Badge
-                      className={getStatusColor(venue.status.toUpperCase())}
-                    >
-                      {venue.status}
-                    </Badge>
-                  </div>
 
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Rating</p>
-                      <div className="flex items-center gap-1">
-                        <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                        <span className="font-medium">{(venue.rating || 0).toFixed(1)}</span>
-                        <span className="text-xs text-muted-foreground">({venue.reviewCount})</span>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-1 mb-1">
+                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                          <span className="font-semibold">{(venue.rating || 0).toFixed(1)}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {venue.reviewCount} reviews
+                        </p>
+                      </div>
+
+                      <div className="text-center">
+                        <div className="font-semibold text-lg text-[#00884d] mb-1">
+                          {venue.bookingsToday}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Today's bookings
+                        </p>
+                      </div>
+
+                      <div className="text-center">
+                        <div className="font-semibold text-lg text-blue-600 mb-1">
+                          {((venue.bookingsToday / venue.courtsCount) * 100).toFixed(0)}%
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Utilization
+                        </p>
                       </div>
                     </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        Today's Bookings
-                      </p>
-                      <p className="font-medium">{venue.bookingsToday}</p>
+
+                    <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+                      <span className="text-xs text-muted-foreground">
+                        Click to view details
+                      </span>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-[#00884d] transition-colors" />
                     </div>
-                    <div className="flex justify-end">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => router.push(`/owner/venues/${venue.id}`)}
-                      >
-                        View Details
-                      </Button>
-                    </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           </CardContent>
         </Card>
       )}
+
+      {/* Mobile Floating Action Button */}
+      <div className="fixed bottom-6 right-6 lg:hidden z-50">
+        <Button
+          onClick={() => router.push("/owner/venues/new")}
+          size="lg"
+          className="w-14 h-14 rounded-full bg-[#00884d] hover:bg-[#00a855] shadow-2xl"
+        >
+          <Plus className="h-6 w-6" />
+        </Button>
+      </div>
     </div>
   );
 }
