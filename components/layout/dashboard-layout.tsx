@@ -4,7 +4,7 @@ import { useState } from "react";
 import { MainNav } from "./main-nav";
 import { SidebarNav } from "./sidebar-nav";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 
 interface DashboardLayoutProps {
@@ -47,6 +47,9 @@ export function DashboardLayout({
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-64 p-0">
+            <SheetHeader className="sr-only">
+              <SheetTitle>Dashboard Navigation</SheetTitle>
+            </SheetHeader>
             <div className="flex flex-col h-full pt-5">
               <div className="flex-1 px-3 space-y-1 overflow-y-auto">
                 <SidebarNav />
