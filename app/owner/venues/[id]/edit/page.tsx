@@ -303,6 +303,11 @@ export default function EditVenuePage() {
     try {
       setIsLoading(true);
       console.log("🚀 [EDIT VENUE] Submitting venue update:", data);
+      console.log("🔍 [EDIT VENUE] Address data structure:", {
+        address: data.address,
+        addressType: typeof data.address,
+        addressKeys: data.address ? Object.keys(data.address) : "N/A",
+      });
 
       // Client-side validation
       if (!data.name?.trim()) {
@@ -318,7 +323,8 @@ export default function EditVenuePage() {
       const addressValue =
         typeof data.address === "string"
           ? data.address.trim()
-          : (data.address as any)?.formatted_address ||
+          : (data.address as any)?.address || // Google Places stores in .address property
+            (data.address as any)?.formatted_address ||
             (data.address as any)?.description ||
             "";
 

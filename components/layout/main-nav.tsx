@@ -92,7 +92,21 @@ const navigationItems: NavItem[] = [
     description: "Manage your account settings",
   },
 
-  // Facility Owner navigation moved to dedicated sidebar
+  // Facility Owner specific navigation
+  {
+    title: "Dashboard",
+    href: "/owner/dashboard",
+    icon: BarChart3,
+    roles: ["FACILITY_OWNER"],
+    description: "View analytics and insights",
+  },
+  {
+    title: "My Venues",
+    href: "/owner/venues",
+    icon: Building2,
+    roles: ["FACILITY_OWNER"],
+    description: "Manage your venues",
+  },
 
   // Admin specific navigation
   {
@@ -251,8 +265,12 @@ export function MainNav() {
                   )}
                 >
                   {Icon && <Icon className="h-4 w-4 flex-shrink-0" />}
-                  <span className="hidden xl:inline font-medium">{item.title}</span>
-                  <span className="xl:hidden font-medium">{item.title.split(" ")[0]}</span>
+                  <span className="hidden xl:inline font-medium">
+                    {item.title}
+                  </span>
+                  <span className="xl:hidden font-medium">
+                    {item.title.split(" ")[0]}
+                  </span>
 
                   {/* Active indicator */}
                   {isActive && (
@@ -288,7 +306,9 @@ export function MainNav() {
                   : "Search venues & sports..."}
               </span>
               <div className="hidden lg:block absolute right-3 top-1/2 transform -translate-y-1/2">
-                <kbd className="px-2 py-1 text-xs bg-gray-100 rounded border">⌘K</kbd>
+                <kbd className="px-2 py-1 text-xs bg-gray-100 rounded border">
+                  ⌘K
+                </kbd>
               </div>
             </Button>
 
@@ -331,7 +351,11 @@ export function MainNav() {
                     <div className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 border-2 border-white rounded-full"></div>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-80 p-2" align="end" forceMount>
+                <DropdownMenuContent
+                  className="w-80 p-2"
+                  align="end"
+                  forceMount
+                >
                   <DropdownMenuLabel className="font-normal p-4">
                     <div className="flex items-start space-x-3">
                       <Avatar className="h-12 w-12 border-2 border-[#00884d]/20">
@@ -373,8 +397,6 @@ export function MainNav() {
 
                   {/* Enhanced Menu Items */}
                   <div className="px-2 py-1">
-                   
-
                     <DropdownMenuItem
                       onClick={() => router.push("/profile")}
                       className="flex items-center space-x-3 px-3 py-3 rounded-xl hover:bg-[#00884d]/5 transition-colors duration-200 cursor-pointer"
@@ -383,12 +405,14 @@ export function MainNav() {
                         <User className="h-4 w-4 text-blue-600" />
                       </div>
                       <div className="flex-1">
-                        <span className="font-medium text-gray-900">Profile</span>
-                        <p className="text-xs text-gray-500">Manage your account details</p>
+                        <span className="font-medium text-gray-900">
+                          Profile
+                        </span>
+                        <p className="text-xs text-gray-500">
+                          Manage your account details
+                        </p>
                       </div>
                     </DropdownMenuItem>
-
-
                   </div>
 
                   {/* Role-specific quick actions */}
@@ -404,8 +428,12 @@ export function MainNav() {
                             <Calendar className="h-4 w-4 text-green-600" />
                           </div>
                           <div className="flex-1">
-                            <span className="font-medium text-gray-900">My Bookings</span>
-                            <p className="text-xs text-gray-500">View your reservations</p>
+                            <span className="font-medium text-gray-900">
+                              My Bookings
+                            </span>
+                            <p className="text-xs text-gray-500">
+                              View your reservations
+                            </p>
                           </div>
                         </DropdownMenuItem>
 
@@ -417,8 +445,53 @@ export function MainNav() {
                             <MapPin className="h-4 w-4 text-purple-600" />
                           </div>
                           <div className="flex-1">
-                            <span className="font-medium text-gray-900">Browse Venues</span>
-                            <p className="text-xs text-gray-500">Find sports facilities</p>
+                            <span className="font-medium text-gray-900">
+                              Browse Venues
+                            </span>
+                            <p className="text-xs text-gray-500">
+                              Find sports facilities
+                            </p>
+                          </div>
+                        </DropdownMenuItem>
+                      </div>
+                    </>
+                  )}
+
+                  {userRole === "FACILITY_OWNER" && (
+                    <>
+                      <DropdownMenuSeparator className="my-2" />
+                      <div className="px-2 py-1">
+                        <DropdownMenuItem
+                          onClick={() => router.push("/owner/dashboard")}
+                          className="flex items-center space-x-3 px-3 py-3 rounded-xl hover:bg-[#00884d]/5 transition-colors duration-200 cursor-pointer"
+                        >
+                          <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <BarChart3 className="h-4 w-4 text-blue-600" />
+                          </div>
+                          <div className="flex-1">
+                            <span className="font-medium text-gray-900">
+                              Dashboard
+                            </span>
+                            <p className="text-xs text-gray-500">
+                              View analytics and insights
+                            </p>
+                          </div>
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem
+                          onClick={() => router.push("/owner/venues")}
+                          className="flex items-center space-x-3 px-3 py-3 rounded-xl hover:bg-[#00884d]/5 transition-colors duration-200 cursor-pointer"
+                        >
+                          <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                            <Building2 className="h-4 w-4 text-green-600" />
+                          </div>
+                          <div className="flex-1">
+                            <span className="font-medium text-gray-900">
+                              My Venues
+                            </span>
+                            <p className="text-xs text-gray-500">
+                              Manage your venues
+                            </p>
                           </div>
                         </DropdownMenuItem>
                       </div>
@@ -437,8 +510,12 @@ export function MainNav() {
                             <Users className="h-4 w-4 text-orange-600" />
                           </div>
                           <div className="flex-1">
-                            <span className="font-medium text-gray-900">User Management</span>
-                            <p className="text-xs text-gray-500">Manage platform users</p>
+                            <span className="font-medium text-gray-900">
+                              User Management
+                            </span>
+                            <p className="text-xs text-gray-500">
+                              Manage platform users
+                            </p>
                           </div>
                         </DropdownMenuItem>
 
@@ -450,8 +527,12 @@ export function MainNav() {
                             <Building2 className="h-4 w-4 text-red-600" />
                           </div>
                           <div className="flex-1">
-                            <span className="font-medium text-gray-900">Venue Approval</span>
-                            <p className="text-xs text-gray-500">Review venue submissions</p>
+                            <span className="font-medium text-gray-900">
+                              Venue Approval
+                            </span>
+                            <p className="text-xs text-gray-500">
+                              Review venue submissions
+                            </p>
                           </div>
                         </DropdownMenuItem>
                       </div>
@@ -522,7 +603,9 @@ export function MainNav() {
                     <div className="flex items-center space-x-4">
                       <div className="relative">
                         <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-[#00884d] to-[#00a855] flex items-center justify-center shadow-xl">
-                          <span className="text-white font-bold text-xl">Q</span>
+                          <span className="text-white font-bold text-xl">
+                            Q
+                          </span>
                         </div>
                         <div className="absolute -inset-1 bg-gradient-to-br from-[#00884d] to-[#00a855] rounded-2xl blur opacity-20"></div>
                       </div>
@@ -530,7 +613,9 @@ export function MainNav() {
                         <span className="font-bold text-2xl bg-gradient-to-r from-[#00884d] to-[#00a855] bg-clip-text text-transparent">
                           QuickCourt
                         </span>
-                        <div className="text-sm text-gray-500 font-medium">Sports Booking Platform</div>
+                        <div className="text-sm text-gray-500 font-medium">
+                          Sports Booking Platform
+                        </div>
                       </div>
                     </div>
                     <Button
@@ -561,17 +646,23 @@ export function MainNav() {
                           onClick={() => setIsOpen(false)}
                           style={{ animationDelay: `${index * 50}ms` }}
                         >
-                          <div className={cn(
-                            "w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-300",
-                            isActive
-                              ? "bg-white/20"
-                              : "bg-gray-100 group-hover:bg-[#00884d]/10"
-                          )}>
+                          <div
+                            className={cn(
+                              "w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-300",
+                              isActive
+                                ? "bg-white/20"
+                                : "bg-gray-100 group-hover:bg-[#00884d]/10"
+                            )}
+                          >
                             {Icon && (
-                              <Icon className={cn(
-                                "h-5 w-5 transition-colors duration-300",
-                                isActive ? "text-white" : "text-gray-600 group-hover:text-[#00884d]"
-                              )} />
+                              <Icon
+                                className={cn(
+                                  "h-5 w-5 transition-colors duration-300",
+                                  isActive
+                                    ? "text-white"
+                                    : "text-gray-600 group-hover:text-[#00884d]"
+                                )}
+                              />
                             )}
                           </div>
                           <span className="flex-1">{item.title}</span>
