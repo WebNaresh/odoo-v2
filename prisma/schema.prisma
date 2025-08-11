@@ -37,6 +37,14 @@ enum PaymentStatus {
   PAID
   FAILED
   REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum TimeSlotStatus {
+  AVAILABLE
+  BOOKED
+  BLOCKED
+  MAINTENANCE
 }
 
 model User {
@@ -113,37 +121,51 @@ model Court {
 }
 
 model TimeSlot {
-  id                      String   @id @default(auto()) @map("_id") @db.ObjectId
-  courtId                 String   @db.ObjectId
+  id                      String         @id @default(auto()) @map("_id") @db.ObjectId
+  courtId                 String         @db.ObjectId
   date                    DateTime
   startTime               DateTime
   endTime                 DateTime
-  isAvailable             Boolean  @default(true)
-  isBlockedForMaintenance Boolean  @default(false)
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
+  price                   Float // Price for this specific time slot
+  status                  TimeSlotStatus @default(AVAILABLE)
+  isAvailable             Boolean        @default(true) // Computed field for backward compatibility
+  isBlockedForMaintenance Boolean        @default(false)
+  maxCapacity             Int? // Override court capacity for specific slots
+  currentBookings         Int            @default(0) // Track current bookings for this slot
+  isPopular               Boolean        @default(false) // Mark popular time slots
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
 
   // Relations
   court    Court     @relation(fields: [courtId], references: [id])
   bookings Booking[]
 
+  @@unique([courtId, date, startTime, endTime]) // Prevent duplicate slots
   @@map("timeslots")
 }
 
 model Booking {
-  id            String        @id @default(auto()) @map("_id") @db.ObjectId
-  userId        String        @db.ObjectId
-  courtId       String        @db.ObjectId
-  timeSlotId    String?       @db.ObjectId
-  bookingDate   DateTime
-  startTime     DateTime
-  endTime       DateTime
-  duration      Int // in minutes
-  totalPrice    Float
-  status        BookingStatus @default(PENDING)
-  paymentStatus PaymentStatus @default(PENDING)
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id                 String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId             String        @db.ObjectId
+  courtId            String        @db.ObjectId
+  timeSlotId         String?       @db.ObjectId
+  bookingDate        DateTime
+  startTime          DateTime
+  endTime            DateTime
+  duration           Int // in minutes
+  totalPrice         Float
+  playerCount        Int           @default(1) // Number of players for this booking
+  status             BookingStatus @default(PENDING)
+  paymentStatus      PaymentStatus @default(PENDING)
+  paymentId          String? // For payment gateway integration
+  paymentMethod      String? // Payment method used
+  cancellationReason String? // Reason for cancellation if applicable
+  isRefundable       Boolean       @default(true) // Whether booking can be refunded
+  refundAmount       Float? // Amount refunded if cancelled
+  bookingReference   String        @unique // Unique booking reference for users
+  notes              String? // Additional notes from user
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
 
   // Relations
   user     User      @relation(fields: [userId], references: [id])
