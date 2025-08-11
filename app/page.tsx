@@ -73,83 +73,130 @@ export default function Home() {
 
       <main>
         {/* Hero Section */}
-        <section className="relative py-20 lg:py-32 overflow-hidden">
-          <div className="container mx-auto px-4">
-            <div className="text-center max-w-4xl mx-auto">
-              <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
+        <section className="relative py-20 lg:py-32 overflow-hidden bg-gradient-to-br from-background via-background to-primary/5">
+          {/* Background decorations */}
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl"></div>
+            <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl"></div>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/5 rounded-full blur-3xl"></div>
+          </div>
+
+          <div className="container mx-auto px-4 relative z-10">
+            <div className="text-center max-w-5xl mx-auto">
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6 animate-pulse">
+                🏆 India's #1 Sports Venue Booking Platform
+              </div>
+
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 leading-tight">
                 Find & Book Your Perfect
-                <span className="text-primary"> Sports Venue</span>
+                <span className="text-gradient-primary block mt-2"> Sports Venue</span>
               </h1>
-              <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+
+              <p className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-3xl mx-auto leading-relaxed">
                 Discover amazing sports facilities near you. Book courts, fields, and venues
-                with just a few clicks. Play more, worry less.
+                with just a few clicks. <span className="text-primary font-semibold">Play more, worry less.</span>
               </p>
 
-              {/* Search Bar */}
-              <form onSubmit={handleSearch} className="max-w-2xl mx-auto mb-8">
-                <div className="flex gap-2">
-                  <div className="flex-1 relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                    <Input
-                      type="text"
-                      placeholder="Search for venues, sports, or locations..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10 h-12 text-base"
-                    />
+              {/* Enhanced Search Bar */}
+              <form onSubmit={handleSearch} className="max-w-3xl mx-auto mb-12">
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-gradient-primary rounded-2xl blur opacity-20 group-hover:opacity-30 transition-opacity"></div>
+                  <div className="relative flex gap-3 p-2 bg-white rounded-2xl shadow-primary-lg border border-primary/10">
+                    <div className="flex-1 relative">
+                      <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
+                      <Input
+                        type="text"
+                        placeholder="Search for venues, sports, or locations..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-12 h-14 text-base border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/70"
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      size="lg"
+                      className="h-14 px-8 bg-gradient-primary hover:shadow-primary text-white font-semibold rounded-xl transition-all duration-200 hover:scale-105"
+                    >
+                      <Search className="h-5 w-5 mr-2" />
+                      Search
+                    </Button>
                   </div>
-                  <Button type="submit" size="lg" className="h-12 px-8">
-                    Search
-                  </Button>
                 </div>
               </form>
 
-              {/* Quick Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">500+</div>
-                  <div className="text-sm text-muted-foreground">Venues</div>
+              {/* Enhanced Quick Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
+                <div className="text-center group">
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-primary/10 hover-lift">
+                    <div className="text-3xl font-bold text-gradient-primary mb-1">500+</div>
+                    <div className="text-sm font-medium text-muted-foreground">Premium Venues</div>
+                  </div>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">50k+</div>
-                  <div className="text-sm text-muted-foreground">Bookings</div>
+                <div className="text-center group">
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-primary/10 hover-lift">
+                    <div className="text-3xl font-bold text-gradient-primary mb-1">50k+</div>
+                    <div className="text-sm font-medium text-muted-foreground">Happy Bookings</div>
+                  </div>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">25+</div>
-                  <div className="text-sm text-muted-foreground">Sports</div>
+                <div className="text-center group">
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-primary/10 hover-lift">
+                    <div className="text-3xl font-bold text-gradient-primary mb-1">25+</div>
+                    <div className="text-sm font-medium text-muted-foreground">Sports Available</div>
+                  </div>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">4.8★</div>
-                  <div className="text-sm text-muted-foreground">Rating</div>
+                <div className="text-center group">
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-primary/10 hover-lift">
+                    <div className="text-3xl font-bold text-gradient-primary mb-1">4.8★</div>
+                    <div className="text-sm font-medium text-muted-foreground">User Rating</div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Popular Sports Section */}
-        <section className="py-16 bg-muted/30">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-4">Popular Sports</h2>
-              <p className="text-muted-foreground">
-                Choose from a wide variety of sports and activities
+        {/* Enhanced Popular Sports Section */}
+        <section className="py-20 bg-gradient-to-br from-primary/5 via-background to-primary/10 relative overflow-hidden">
+          {/* Background decoration */}
+          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-96 h-96 bg-primary/5 rounded-full blur-3xl"></div>
+
+          <div className="container mx-auto px-4 relative z-10">
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
+                🏃‍♂️ Choose Your Sport
+              </div>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6">
+                Popular <span className="text-gradient-primary">Sports</span>
+              </h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                Choose from a wide variety of sports and activities available at premium venues
               </p>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              {popularSports.map((sport) => (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+              {popularSports.map((sport, index) => (
                 <Card
                   key={sport.name}
-                  className="cursor-pointer hover:shadow-lg transition-shadow"
+                  className="cursor-pointer hover-lift group border-primary/10 bg-white/80 backdrop-blur-sm"
                   onClick={() => handleSportClick(sport.name)}
+                  style={{ animationDelay: `${index * 100}ms` }}
                 >
                   <CardContent className="p-6 text-center">
-                    <div className="text-4xl mb-3">{sport.icon}</div>
-                    <h3 className="font-semibold mb-1">{sport.name}</h3>
+                    <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-200">
+                      {sport.icon}
+                    </div>
+                    <h3 className="font-bold mb-2 text-foreground group-hover:text-primary transition-colors">
+                      {sport.name}
+                    </h3>
                     <p className="text-sm text-muted-foreground">
                       {sport.venues} venues
                     </p>
+                    <div className="mt-3 w-full h-1 bg-primary/10 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-primary rounded-full transition-all duration-500 group-hover:w-full"
+                        style={{ width: `${Math.min(sport.venues / 70 * 100, 100)}%` }}
+                      ></div>
+                    </div>
                   </CardContent>
                 </Card>
               ))}
