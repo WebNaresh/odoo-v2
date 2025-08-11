@@ -60,106 +60,174 @@ export default function Home() {
       <MainNav />
 
       <main>
-        {/* Hero Section */}
-        <section className="relative py-20 lg:py-32 overflow-hidden bg-gradient-to-br from-background via-background to-primary/5">
-          {/* Background decorations */}
+        {/* Enhanced Hero Section */}
+        <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-gray-50 via-white to-[#00884d]/5">
+          {/* Enhanced Background decorations */}
           <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl"></div>
-            <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl"></div>
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/5 rounded-full blur-3xl"></div>
+            <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#00884d]/10 rounded-full blur-3xl animate-pulse"></div>
+            <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#00884d]/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#00884d]/5 rounded-full blur-3xl animate-pulse delay-500"></div>
+
+            {/* Floating elements */}
+            <div className="absolute top-20 left-10 w-4 h-4 bg-[#00884d]/20 rounded-full animate-bounce delay-300"></div>
+            <div className="absolute top-40 right-20 w-6 h-6 bg-[#00884d]/15 rounded-full animate-bounce delay-700"></div>
+            <div className="absolute bottom-32 left-20 w-3 h-3 bg-[#00884d]/25 rounded-full animate-bounce delay-1000"></div>
+            <div className="absolute bottom-20 right-32 w-5 h-5 bg-[#00884d]/10 rounded-full animate-bounce delay-200"></div>
           </div>
 
-          <div className="container mx-auto px-4 relative z-10">
-            <div className="text-center max-w-5xl mx-auto">
-              <div className="inline-flex items-center px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6 animate-pulse">
-                🏆 India's #1 Sports Venue Booking Platform
+          <div className="container mx-auto px-4 py-20 relative z-10">
+            <div className="text-center max-w-6xl mx-auto">
+              {/* Enhanced Badge */}
+              <div className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-[#00884d]/10 to-[#00a855]/10 border border-[#00884d]/20 text-[#00884d] text-sm font-semibold mb-8 hover:scale-105 transition-transform duration-300 cursor-pointer">
+                <span className="animate-pulse mr-2">🏆</span>
+                India's #1 Sports Venue Booking Platform
+                <span className="ml-2 bg-[#00884d] text-white px-2 py-1 rounded-full text-xs">NEW</span>
               </div>
 
-              <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 leading-tight">
-                Find & Book Your Perfect
-                <span className="text-gradient-primary block mt-2">
-                  {" "}
-                  Sports Venue
+              {/* Enhanced Heading */}
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight mb-8 leading-tight">
+                <span className="block">Find & Book Your</span>
+                <span className="block bg-gradient-to-r from-[#00884d] to-[#00a855] bg-clip-text text-transparent mt-2">
+                  Perfect Sports Venue
                 </span>
               </h1>
 
-              <p className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-3xl mx-auto leading-relaxed">
-                Discover amazing sports facilities near you. Book courts,
-                fields, and venues with just a few clicks.{" "}
-                <span className="text-primary font-semibold">
-                  Play more, worry less.
+              {/* Enhanced Description */}
+              <p className="text-lg sm:text-xl md:text-2xl text-gray-600 mb-12 max-w-4xl mx-auto leading-relaxed">
+                Discover amazing sports facilities near you. Book courts, fields, and venues with just a few clicks.
+                <span className="block mt-2 text-[#00884d] font-semibold text-xl md:text-2xl">
+                  🎯 Play more, worry less.
                 </span>
               </p>
 
               {/* Enhanced Search Bar */}
-              <form onSubmit={handleSearch} className="max-w-3xl mx-auto mb-12">
-                <div className="relative group">
-                  <div className="absolute inset-0 bg-gradient-primary rounded-2xl blur opacity-20 group-hover:opacity-30 transition-opacity"></div>
-                  <div className="relative flex gap-3 p-2 bg-white rounded-2xl shadow-primary-lg border border-primary/10">
-                    <div className="flex-1 relative">
-                      <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
-                      <Input
-                        type="text"
-                        placeholder="Search for venues, sports, or locations..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-12 h-14 text-base border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/70"
-                      />
+              <div className="max-w-4xl mx-auto mb-16">
+                <form onSubmit={handleSearch} className="relative group">
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#00884d] to-[#00a855] rounded-3xl blur opacity-20 group-hover:opacity-30 transition-opacity duration-300"></div>
+                  <div className="relative bg-white rounded-3xl shadow-2xl border border-[#00884d]/10 p-3 hover:shadow-3xl transition-all duration-300">
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <div className="flex-1 relative">
+                        <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                        <Input
+                          type="text"
+                          placeholder="Search for venues, sports, or locations..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="pl-14 pr-6 h-16 text-lg border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-gray-400 font-medium"
+                        />
+                      </div>
+                      <Button
+                        type="submit"
+                        size="lg"
+                        className="h-16 px-8 bg-gradient-to-r from-[#00884d] to-[#00a855] hover:from-[#00a855] hover:to-[#00884d] text-white font-bold rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-xl shadow-lg"
+                      >
+                        <Search className="h-5 w-5 mr-2" />
+                        <span className="hidden sm:inline">Search Venues</span>
+                        <span className="sm:hidden">Search</span>
+                      </Button>
                     </div>
-                    <Button
-                      type="submit"
-                      size="lg"
-                      className="h-14 px-8 bg-gradient-primary hover:shadow-primary text-white font-semibold rounded-xl transition-all duration-200 hover:scale-105"
-                    >
-                      <Search className="h-5 w-5 mr-2" />
-                      Search
-                    </Button>
                   </div>
-                </div>
-              </form>
+                </form>
 
-              {/* Enhanced Quick Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
-                <div className="text-center group">
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-primary/10 hover-lift">
-                    <div className="text-3xl font-bold text-gradient-primary mb-1">
+                {/* Quick Search Suggestions */}
+                <div className="mt-6 flex flex-wrap justify-center gap-3">
+                  <span className="text-sm text-gray-500 font-medium">Popular searches:</span>
+                  {["Basketball", "Tennis", "Football", "Swimming"].map((sport) => (
+                    <button
+                      key={sport}
+                      onClick={() => handleSportClick(sport)}
+                      className="px-4 py-2 bg-white/80 hover:bg-[#00884d]/10 border border-[#00884d]/20 rounded-full text-sm font-medium text-[#00884d] hover:text-[#00a855] transition-all duration-200 hover:scale-105"
+                    >
+                      {sport}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Enhanced Stats Section */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 max-w-5xl mx-auto">
+                <div className="group">
+                  <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-6 md:p-8 shadow-xl border border-[#00884d]/10 hover:shadow-2xl hover:scale-105 transition-all duration-300 hover:border-[#00884d]/20">
+                    <div className="flex items-center justify-center mb-4">
+                      <div className="w-12 h-12 bg-gradient-to-r from-[#00884d] to-[#00a855] rounded-2xl flex items-center justify-center">
+                        <span className="text-white text-xl font-bold">🏟️</span>
+                      </div>
+                    </div>
+                    <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#00884d] to-[#00a855] bg-clip-text text-transparent mb-2">
                       500+
                     </div>
-                    <div className="text-sm font-medium text-muted-foreground">
+                    <div className="text-sm md:text-base font-semibold text-gray-600">
                       Premium Venues
                     </div>
                   </div>
                 </div>
-                <div className="text-center group">
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-primary/10 hover-lift">
-                    <div className="text-3xl font-bold text-gradient-primary mb-1">
+
+                <div className="group">
+                  <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-6 md:p-8 shadow-xl border border-[#00884d]/10 hover:shadow-2xl hover:scale-105 transition-all duration-300 hover:border-[#00884d]/20">
+                    <div className="flex items-center justify-center mb-4">
+                      <div className="w-12 h-12 bg-gradient-to-r from-[#00884d] to-[#00a855] rounded-2xl flex items-center justify-center">
+                        <span className="text-white text-xl font-bold">📅</span>
+                      </div>
+                    </div>
+                    <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#00884d] to-[#00a855] bg-clip-text text-transparent mb-2">
                       50k+
                     </div>
-                    <div className="text-sm font-medium text-muted-foreground">
+                    <div className="text-sm md:text-base font-semibold text-gray-600">
                       Happy Bookings
                     </div>
                   </div>
                 </div>
-                <div className="text-center group">
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-primary/10 hover-lift">
-                    <div className="text-3xl font-bold text-gradient-primary mb-1">
+
+                <div className="group">
+                  <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-6 md:p-8 shadow-xl border border-[#00884d]/10 hover:shadow-2xl hover:scale-105 transition-all duration-300 hover:border-[#00884d]/20">
+                    <div className="flex items-center justify-center mb-4">
+                      <div className="w-12 h-12 bg-gradient-to-r from-[#00884d] to-[#00a855] rounded-2xl flex items-center justify-center">
+                        <span className="text-white text-xl font-bold">🏆</span>
+                      </div>
+                    </div>
+                    <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#00884d] to-[#00a855] bg-clip-text text-transparent mb-2">
                       25+
                     </div>
-                    <div className="text-sm font-medium text-muted-foreground">
+                    <div className="text-sm md:text-base font-semibold text-gray-600">
                       Sports Available
                     </div>
                   </div>
                 </div>
-                <div className="text-center group">
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-primary/10 hover-lift">
-                    <div className="text-3xl font-bold text-gradient-primary mb-1">
+
+                <div className="group col-span-2 lg:col-span-1">
+                  <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-6 md:p-8 shadow-xl border border-[#00884d]/10 hover:shadow-2xl hover:scale-105 transition-all duration-300 hover:border-[#00884d]/20">
+                    <div className="flex items-center justify-center mb-4">
+                      <div className="w-12 h-12 bg-gradient-to-r from-[#00884d] to-[#00a855] rounded-2xl flex items-center justify-center">
+                        <span className="text-white text-xl font-bold">⭐</span>
+                      </div>
+                    </div>
+                    <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#00884d] to-[#00a855] bg-clip-text text-transparent mb-2">
                       4.8★
                     </div>
-                    <div className="text-sm font-medium text-muted-foreground">
+                    <div className="text-sm md:text-base font-semibold text-gray-600">
                       User Rating
                     </div>
                   </div>
                 </div>
+              </div>
+
+              {/* Call to Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center mt-12">
+                <Button
+                  size="lg"
+                  onClick={() => router.push("/venues")}
+                  className="h-14 px-8 bg-gradient-to-r from-[#00884d] to-[#00a855] hover:from-[#00a855] hover:to-[#00884d] text-white font-bold rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-xl shadow-lg text-lg"
+                >
+                  🎯 Find Venues Now
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  onClick={() => router.push("/auth/signin")}
+                  className="h-14 px-8 border-2 border-[#00884d] text-[#00884d] hover:bg-[#00884d] hover:text-white font-bold rounded-2xl transition-all duration-300 hover:scale-105 text-lg"
+                >
+                  🚀 Join QuickCourt
+                </Button>
               </div>
             </div>
           </div>
@@ -217,135 +285,216 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Featured Venues Section */}
-        <section className="py-16">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-4">Featured Venues</h2>
-              <p className="text-muted-foreground">
-                Top-rated sports facilities in your area
+        {/* Enhanced Featured Venues Section */}
+        <section className="py-20 bg-gradient-to-br from-gray-50 via-white to-[#00884d]/5 relative overflow-hidden">
+          {/* Background decorations */}
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute top-20 right-10 w-32 h-32 bg-[#00884d]/5 rounded-full blur-2xl"></div>
+            <div className="absolute bottom-20 left-10 w-40 h-40 bg-[#00884d]/10 rounded-full blur-3xl"></div>
+          </div>
+
+          <div className="container mx-auto px-4 relative z-10">
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-[#00884d]/10 text-[#00884d] text-sm font-semibold mb-6">
+                🏆 Premium Selection
+              </div>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6">
+                Featured <span className="bg-gradient-to-r from-[#00884d] to-[#00a855] bg-clip-text text-transparent">Venues</span>
+              </h2>
+              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                Discover top-rated sports facilities handpicked for their quality, amenities, and customer satisfaction
               </p>
             </div>
 
             {loading ? (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[...Array(6)].map((_, index) => (
-                  <Card key={index} className="overflow-hidden">
-                    <div className="aspect-video bg-muted animate-pulse" />
-                    <CardHeader>
-                      <div className="space-y-2">
-                        <div className="h-4 bg-muted animate-pulse rounded" />
-                        <div className="h-3 bg-muted animate-pulse rounded w-2/3" />
+                  <Card key={index} className="overflow-hidden border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                    <div className="aspect-video bg-gradient-to-br from-gray-200 to-gray-100 animate-pulse relative">
+                      <div className="absolute inset-0 bg-gradient-to-t from-gray-300/50 to-transparent" />
+                    </div>
+                    <CardHeader className="pb-3">
+                      <div className="space-y-3">
+                        <div className="h-5 bg-gradient-to-r from-gray-200 to-gray-100 animate-pulse rounded-lg" />
+                        <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-100 animate-pulse rounded-lg w-3/4" />
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-3">
+                      <div className="space-y-4">
                         <div className="flex gap-2">
-                          <div className="h-6 bg-muted animate-pulse rounded w-16" />
-                          <div className="h-6 bg-muted animate-pulse rounded w-20" />
+                          <div className="h-6 bg-gradient-to-r from-gray-200 to-gray-100 animate-pulse rounded-full w-16" />
+                          <div className="h-6 bg-gradient-to-r from-gray-200 to-gray-100 animate-pulse rounded-full w-20" />
+                          <div className="h-6 bg-gradient-to-r from-gray-200 to-gray-100 animate-pulse rounded-full w-14" />
                         </div>
-                        <div className="h-10 bg-muted animate-pulse rounded" />
+                        <div className="h-12 bg-gradient-to-r from-gray-200 to-gray-100 animate-pulse rounded-xl" />
                       </div>
                     </CardContent>
                   </Card>
                 ))}
               </div>
             ) : isError ? (
-              <div className="text-center py-12">
-                <div className="text-6xl mb-4">⚠️</div>
-                <h3 className="text-xl font-semibold mb-2">Unable to load venues</h3>
-                <p className="text-muted-foreground mb-4">
-                  There was an error loading featured venues. Please try again later.
+              <div className="text-center py-16">
+                <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <span className="text-4xl">⚠️</span>
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">Unable to load venues</h3>
+                <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                  There was an error loading featured venues. Please check your connection and try again.
                 </p>
-                <Button
-                  variant="outline"
-                  onClick={() => window.location.reload()}
-                >
-                  Retry
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <Button
+                    onClick={() => window.location.reload()}
+                    className="bg-[#00884d] hover:bg-[#00a855]"
+                  >
+                    🔄 Try Again
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => router.push("/venues")}
+                    className="border-[#00884d] text-[#00884d] hover:bg-[#00884d]/5"
+                  >
+                    Browse All Venues
+                  </Button>
+                </div>
               </div>
             ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {featuredVenues.map((venue) => (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {featuredVenues.map((venue, index) => (
                   <Card
                     key={venue.id}
-                    className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                    className="group overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer bg-white/90 backdrop-blur-sm hover:scale-[1.02]"
+                    style={{ animationDelay: `${index * 100}ms` }}
                   >
-                    <div className="aspect-video bg-muted relative">
+                    <div className="aspect-video bg-gray-100 relative overflow-hidden">
                       {venue.photoUrls && venue.photoUrls.length > 0 ? (
                         <img
                           src={venue.photoUrls[0]}
                           alt={venue.name}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                          <span className="text-4xl">🏟️</span>
+                        <div className="w-full h-full bg-gradient-to-br from-[#00884d]/20 to-[#00a855]/10 flex items-center justify-center">
+                          <span className="text-5xl group-hover:scale-110 transition-transform duration-300">🏟️</span>
                         </div>
                       )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                      <div className="absolute bottom-4 left-4 text-white">
-                        <Badge className="mb-2">{venue.priceRange}</Badge>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+
+                      {/* Enhanced overlay content */}
+                      <div className="absolute bottom-4 left-4 right-4">
+                        <div className="flex items-end justify-between">
+                          <div>
+                            {venue.priceRange && (
+                              <Badge className="mb-2 bg-[#00884d]/90 hover:bg-[#00884d] text-white border-0">
+                                {venue.priceRange}
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1 bg-black/50 px-2 py-1 rounded-full">
+                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                            <span className="text-white text-sm font-medium">
+                              {venue.rating ? venue.rating.toFixed(1) : "New"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Hover overlay */}
+                      <div className="absolute inset-0 bg-[#00884d]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <div className="bg-white/90 px-4 py-2 rounded-full text-[#00884d] font-semibold text-sm">
+                          View Details →
+                        </div>
                       </div>
                     </div>
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
+                    <CardHeader className="pb-3">
+                      <div className="space-y-3">
                         <div>
-                          <CardTitle className="text-lg">{venue.name}</CardTitle>
-                          <CardDescription className="flex items-center gap-1 mt-1">
-                            <MapPin className="h-4 w-4" />
-                            {venue.address}
+                          <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-[#00884d] transition-colors duration-200 line-clamp-1">
+                            {venue.name}
+                          </CardTitle>
+                          <CardDescription className="flex items-center gap-1 mt-2 text-gray-600">
+                            <MapPin className="h-4 w-4 text-[#00884d]" />
+                            <span className="line-clamp-1">{venue.address}</span>
                           </CardDescription>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                          <span className="text-sm font-medium">
-                            {venue.rating ? venue.rating.toFixed(1) : "New"}
-                          </span>
-                          <span className="text-sm text-muted-foreground">
-                            ({venue.reviewCount})
-                          </span>
+
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1">
+                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                            <span className="text-sm font-semibold text-gray-900">
+                              {venue.rating ? venue.rating.toFixed(1) : "New"}
+                            </span>
+                            <span className="text-sm text-gray-500">
+                              ({venue.reviewCount} reviews)
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-xs text-gray-500">Starting from</div>
+                            <div className="text-sm font-bold text-[#00884d]">₹500/hr</div>
+                          </div>
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent>
-                      <div className="flex flex-wrap gap-1 mb-4">
-                        {venue.sports.slice(0, 3).map((sport) => (
-                          <Badge
-                            key={sport}
-                            variant="secondary"
-                            className="text-xs"
+
+                    <CardContent className="pt-0">
+                      <div className="space-y-4">
+                        <div className="flex flex-wrap gap-2">
+                          {venue.sports.slice(0, 3).map((sport) => (
+                            <Badge
+                              key={sport}
+                              className="text-xs bg-[#00884d]/10 text-[#00884d] hover:bg-[#00884d]/20 border-0"
+                            >
+                              {sport}
+                            </Badge>
+                          ))}
+                          {venue.sports.length > 3 && (
+                            <Badge className="text-xs bg-gray-100 text-gray-600 hover:bg-gray-200 border-0">
+                              +{venue.sports.length - 3} more
+                            </Badge>
+                          )}
+                        </div>
+
+                        <Link href={`/venues/${venue.id}`} className="block">
+                          <Button
+                            className="w-full bg-gradient-to-r from-[#00884d] to-[#00a855] hover:from-[#00a855] hover:to-[#00884d] text-white font-semibold py-3 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
                           >
-                            {sport}
-                          </Badge>
-                        ))}
-                        {venue.sports.length > 3 && (
-                          <Badge variant="secondary" className="text-xs">
-                            +{venue.sports.length - 3} more
-                          </Badge>
-                        )}
+                            <span className="mr-2">View Details</span>
+                            <span className="group-hover:translate-x-1 transition-transform duration-200">→</span>
+                          </Button>
+                        </Link>
                       </div>
-                      <Link href={`/venues/${venue.id}`}>
-                      <Button
-                        className="w-full"
-                
-                      >
-                        View Details
-                      </Button></Link>
                     </CardContent>
                   </Card>
                 ))}
               </div>
             )}
 
-            <div className="text-center mt-8">
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={() => router.push("/venues")}
-              >
-                View All Venues
-              </Button>
+            {/* Enhanced CTA Section */}
+            <div className="text-center mt-16">
+              <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-[#00884d]/10 max-w-2xl mx-auto">
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                  Discover More Amazing Venues
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  Explore our complete collection of premium sports facilities across the city
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Button
+                    size="lg"
+                    onClick={() => router.push("/venues")}
+                    className="bg-gradient-to-r from-[#00884d] to-[#00a855] hover:from-[#00a855] hover:to-[#00884d] text-white font-bold py-4 px-8 rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-xl"
+                  >
+                    🏟️ View All Venues
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => router.push("/venues?filter=nearby")}
+                    className="border-2 border-[#00884d] text-[#00884d] hover:bg-[#00884d] hover:text-white font-bold py-4 px-8 rounded-2xl transition-all duration-300 hover:scale-105"
+                  >
+                    📍 Find Nearby
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </section>
