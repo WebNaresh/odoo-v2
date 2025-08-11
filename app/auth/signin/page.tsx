@@ -56,23 +56,26 @@ const carouselSlides: CarouselSlide[] = [
     id: 1,
     image: "/sports-center.jpg",
     title: "Premium Sports Facilities",
-    description: "Book world-class sports venues with state-of-the-art equipment and professional-grade facilities.",
-    features: ["Professional Equipment", "Modern Facilities", "Expert Staff"]
+    description:
+      "Book world-class sports venues with state-of-the-art equipment and professional-grade facilities.",
+    features: ["Professional Equipment", "Modern Facilities", "Expert Staff"],
   },
   {
     id: 2,
     image: "/indoors-tennis-court.jpg",
     title: "Indoor Tennis Courts",
-    description: "Experience premium indoor tennis courts with perfect lighting and climate control for year-round play.",
-    features: ["Climate Controlled", "Professional Courts", "Equipment Rental"]
+    description:
+      "Experience premium indoor tennis courts with perfect lighting and climate control for year-round play.",
+    features: ["Climate Controlled", "Professional Courts", "Equipment Rental"],
   },
   {
     id: 3,
     image: "/empty-stadium-day.jpg",
     title: "Stadium Experiences",
-    description: "Access to premium stadium facilities for tournaments, events, and professional training sessions.",
-    features: ["Tournament Ready", "Large Capacity", "Event Hosting"]
-  }
+    description:
+      "Access to premium stadium facilities for tournaments, events, and professional training sessions.",
+    features: ["Tournament Ready", "Large Capacity", "Event Hosting"],
+  },
 ];
 
 export default function SignIn() {
@@ -170,6 +173,17 @@ export default function SignIn() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const stepParam = urlParams.get("step");
+    const errorParam = urlParams.get("error");
+
+    // Check for banned user error
+    if (errorParam === "AccessDenied") {
+      setError(
+        "Your account has been suspended. Please contact support for assistance."
+      );
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return;
+    }
 
     if (stepParam === "check") {
       // Clean up URL first
@@ -418,7 +432,10 @@ export default function SignIn() {
             {loading ? (
               <Loader2 className="h-5 w-5 animate-spin mr-3" />
             ) : (
-              <svg className="h-6 w-6 mr-3 group-hover:scale-110 transition-transform duration-200" viewBox="0 0 24 24">
+              <svg
+                className="h-6 w-6 mr-3 group-hover:scale-110 transition-transform duration-200"
+                viewBox="0 0 24 24"
+              >
                 <path
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                   fill="#4285F4"
@@ -479,19 +496,25 @@ export default function SignIn() {
           <div className="h-12 w-12 rounded-full bg-[#00884d]/10 flex items-center justify-center mx-auto">
             <Play className="h-6 w-6 text-[#00884d]" />
           </div>
-          <p className="text-xs font-medium text-muted-foreground">Easy Booking</p>
+          <p className="text-xs font-medium text-muted-foreground">
+            Easy Booking
+          </p>
         </div>
         <div className="space-y-2">
           <div className="h-12 w-12 rounded-full bg-[#00884d]/10 flex items-center justify-center mx-auto">
             <MapPin className="h-6 w-6 text-[#00884d]" />
           </div>
-          <p className="text-xs font-medium text-muted-foreground">Find Venues</p>
+          <p className="text-xs font-medium text-muted-foreground">
+            Find Venues
+          </p>
         </div>
         <div className="space-y-2">
           <div className="h-12 w-12 rounded-full bg-[#00884d]/10 flex items-center justify-center mx-auto">
             <Star className="h-6 w-6 text-[#00884d]" />
           </div>
-          <p className="text-xs font-medium text-muted-foreground">Top Quality</p>
+          <p className="text-xs font-medium text-muted-foreground">
+            Top Quality
+          </p>
         </div>
       </div>
     </div>
@@ -562,7 +585,9 @@ export default function SignIn() {
                 <div className="h-10 w-10 rounded-xl bg-[#00884d] flex items-center justify-center shadow-lg">
                   <span className="text-white font-bold text-lg">QC</span>
                 </div>
-                <span className="font-bold text-2xl text-white drop-shadow-lg">QuickCourt</span>
+                <span className="font-bold text-2xl text-white drop-shadow-lg">
+                  QuickCourt
+                </span>
               </div>
             </div>
           </div>

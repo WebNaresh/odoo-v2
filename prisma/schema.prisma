@@ -50,6 +50,8 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   isBanned      Boolean   @default(false)
+  bannedAt      DateTime?
+  banReason     String?
   // Relations
   ownedVenues   Venue[]   @relation("VenueOwner")
   bookings      Booking[]

@@ -11,21 +11,16 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { useRouter } from "next/navigation";
 import {
   Users,
   Building2,
   Calendar,
-  IndianRupee,
-  TrendingUp,
   AlertCircle,
   CheckCircle,
-  Clock,
   Star,
   Activity,
   Shield,
-  BarChart3,
   UserCheck,
   FileText,
   Loader2,
@@ -39,8 +34,6 @@ interface PlatformStats {
   facilityGrowth: number;
   totalBookings: number;
   bookingGrowth: number;
-  totalRevenue: number;
-  revenueGrowth: number;
   pendingApprovals: number;
   approvedVenues: number;
   rejectedVenues: number;
@@ -74,8 +67,6 @@ interface TopFacility {
   location: string;
   rating: number;
   bookings: number;
-  revenue: number;
-  growth: number;
   courtCount: number;
   reviewCount: number;
 }
@@ -94,7 +85,7 @@ const getActivityIcon = (type: string) => {
     case "user_report":
       return <AlertCircle className="h-4 w-4" />;
     case "payment_issue":
-      return <IndianRupee className="h-4 w-4" />;
+      return <AlertCircle className="h-4 w-4" />;
     case "new_user":
       return <Users className="h-4 w-4" />;
     default:
@@ -272,19 +263,16 @@ export default function AdminDashboardPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Platform Revenue
+                Pending Approvals
               </CardTitle>
-              <IndianRupee className="h-4 w-4 text-muted-foreground" />
+              <AlertCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                ₹{(platformStats.totalRevenue / 100000).toFixed(1)}L
+                {platformStats.pendingApprovals}
               </div>
               <p className="text-xs text-muted-foreground">
-                <span className="text-green-600">
-                  +{platformStats.revenueGrowth}%
-                </span>{" "}
-                from last month
+                Venues awaiting review
               </p>
             </CardContent>
           </Card>
@@ -452,11 +440,9 @@ export default function AdminDashboardPage() {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium">
-                      ₹{(facility.revenue / 1000).toFixed(0)}K
-                    </p>
-                    <p className="text-xs text-green-600">
-                      +{facility.growth}%
+                    <p className="font-medium">{facility.courtCount} courts</p>
+                    <p className="text-xs text-muted-foreground">
+                      {facility.reviewCount} reviews
                     </p>
                   </div>
                   <Button
@@ -473,96 +459,6 @@ export default function AdminDashboardPage() {
             </div>
           </CardContent>
         </Card>
-
-        {/* System Health */}
-        <div className="grid gap-6 md:grid-cols-3">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">System Health</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span>Server Performance</span>
-                  <span>98%</span>
-                </div>
-                <Progress value={98} />
-              </div>
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span>Database Health</span>
-                  <span>95%</span>
-                </div>
-                <Progress value={95} />
-              </div>
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span>API Response Time</span>
-                  <span>92%</span>
-                </div>
-                <Progress value={92} />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">User Engagement</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span>Daily Active Users</span>
-                  <span>2,450</span>
-                </div>
-                <Progress value={85} />
-              </div>
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span>Booking Conversion</span>
-                  <span>68%</span>
-                </div>
-                <Progress value={68} />
-              </div>
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span>User Retention</span>
-                  <span>74%</span>
-                </div>
-                <Progress value={74} />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Platform Growth</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span>New Users</span>
-                  <span>+15.2%</span>
-                </div>
-                <Progress value={76} />
-              </div>
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span>New Facilities</span>
-                  <span>+8.7%</span>
-                </div>
-                <Progress value={44} />
-              </div>
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span>Revenue Growth</span>
-                  <span>+18.5%</span>
-                </div>
-                <Progress value={93} />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
       </div>
     </DashboardLayout>
   );

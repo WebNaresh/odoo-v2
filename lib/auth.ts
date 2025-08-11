@@ -19,6 +19,17 @@ export const authOptions: NextAuthOptions = {
                     // Check if user exists in database
                     const existingUser = await prisma.user.findUnique({
                         where: { googleId: profile.sub },
+                        select: {
+                            id: true,
+                            googleId: true,
+                            email: true,
+                            name: true,
+                            image: true,
+                            role: true,
+                            isBanned: true,
+                            banReason: true,
+                            bannedAt: true,
+                        },
                     });
 
                     if (!existingUser) {
@@ -39,6 +50,23 @@ export const authOptions: NextAuthOptions = {
                             (account as any).isNewUser = true;
                         }
                     } else {
+                        // Check if existing user is banned
+                        if (existingUser.isBanned) {
+                            console.log("❌ [AUTH] Banned user attempted to sign in:", {
+                                email: existingUser.email,
+                                banReason: existingUser.banReason,
+                                bannedAt: existingUser.bannedAt,
+                            });
+
+                            // Store ban information for error display
+                            if (account) {
+                                (account as any).banReason = existingUser.banReason;
+                                (account as any).bannedAt = existingUser.bannedAt;
+                            }
+
+                            return false; // Prevent sign in
+                        }
+
                         // Update existing user with latest info
                         await prisma.user.update({
                             where: { googleId: profile.sub },
@@ -62,13 +90,20 @@ export const authOptions: NextAuthOptions = {
             return true;
         },
         async jwt({ token, account, profile }) {
-            // Always fetch fresh user data from database to ensure we have the latest role
+            // Always fetch fresh user data from database to ensure we have the latest role and ban status
             if (token.email) {
                 const dbUser = await prisma.user.findUnique({
                     where: { email: token.email },
                 });
 
                 if (dbUser) {
+                    // Check if user was banned since last token refresh
+                    if (dbUser.isBanned) {
+                        console.log("❌ [AUTH] User was banned, invalidating token:", dbUser.email);
+                        // Return null to invalidate the token and force sign out
+                        return null;
+                    }
+
                     // Include all user fields from database in the token
                     token.id = dbUser.id;
                     token.googleId = dbUser.googleId;
@@ -77,6 +112,7 @@ export const authOptions: NextAuthOptions = {
                     token.image = dbUser.image;
                     token.emailVerified = dbUser.emailVerified;
                     token.role = dbUser.role;
+                    token.isBanned = dbUser.isBanned;
                     token.createdAt = dbUser.createdAt;
                     token.updatedAt = dbUser.updatedAt;
                 }
@@ -103,6 +139,7 @@ export const authOptions: NextAuthOptions = {
                 sessionUser.image = token.image as string | null;
                 sessionUser.emailVerified = token.emailVerified as Date | null;
                 sessionUser.role = token.role as string;
+                sessionUser.isBanned = token.isBanned as boolean;
                 sessionUser.createdAt = token.createdAt as Date;
                 sessionUser.updatedAt = token.updatedAt as Date;
                 sessionUser.isNewUser = token.isNewUser as boolean;

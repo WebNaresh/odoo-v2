@@ -274,6 +274,155 @@ class EmailService {
       html,
     });
   }
+
+  /**
+   * Send user ban notification email
+   */
+  async sendUserBanEmail(
+    userEmail: string,
+    userName: string,
+    banReason: string
+  ): Promise<boolean> {
+    const subject = "Account Suspended - QuickCourt";
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Account Suspended</title>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .button { display: inline-block; background: #007bff; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+            .highlight-box { background: #fef2f2; padding: 15px; border-left: 4px solid #dc2626; margin: 20px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>Account Suspended</h1>
+            </div>
+            <div class="content">
+              <p>Dear ${userName},</p>
+
+              <p>We regret to inform you that your QuickCourt account has been suspended due to a violation of our terms of service.</p>
+
+              <div class="highlight-box">
+                <h3>Suspension Reason:</h3>
+                <p><strong>${banReason}</strong></p>
+              </div>
+
+              <p>During this suspension period, you will not be able to:</p>
+              <ul>
+                <li>Access your account</li>
+                <li>Make new bookings</li>
+                <li>Manage your venues (if applicable)</li>
+                <li>Use any QuickCourt services</li>
+              </ul>
+
+              <p>If you believe this suspension was made in error or would like to appeal this decision, please contact our support team with your account details and explanation.</p>
+
+              <p>We appreciate your understanding and cooperation in maintaining a safe and respectful community for all users.</p>
+
+              <p><strong>The QuickCourt Team</strong></p>
+            </div>
+            <div class="footer">
+              <p>This is an automated message. Please do not reply to this email.</p>
+              <p>Need help? Contact our support team for assistance.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    return this.sendEmail({
+      to: userEmail,
+      subject,
+      html,
+    });
+  }
+
+  /**
+   * Send user unban notification email
+   */
+  async sendUserUnbanEmail(
+    userEmail: string,
+    userName: string
+  ): Promise<boolean> {
+    const subject = "Account Reinstated - QuickCourt";
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Account Reinstated</title>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .button { display: inline-block; background: #059669; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+            .highlight-box { background: #f0f9ff; padding: 15px; border-left: 4px solid #0ea5e9; margin: 20px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>Account Reinstated</h1>
+            </div>
+            <div class="content">
+              <p>Dear ${userName},</p>
+
+              <p>We're pleased to inform you that your QuickCourt account has been reinstated and is now active again.</p>
+
+              <div class="highlight-box" style="background-color: #f0f9ff; border-left: 4px solid #0ea5e9;">
+                <h3>Welcome Back!</h3>
+                <p>Your account is now fully restored with all previous privileges.</p>
+              </div>
+
+              <p>You can now:</p>
+              <ul>
+                <li>Access your account normally</li>
+                <li>Make new bookings</li>
+                <li>Manage your venues (if applicable)</li>
+                <li>Use all QuickCourt services</li>
+              </ul>
+
+              <div style="text-align: center;">
+                <a href="${process.env.NEXTAUTH_URL}/auth/signin" class="button">
+                  Sign In to Your Account
+                </a>
+              </div>
+
+              <p>We appreciate your patience during the suspension period and look forward to providing you with excellent service.</p>
+
+              <p>Please remember to follow our community guidelines to ensure a positive experience for all users.</p>
+
+              <p><strong>The QuickCourt Team</strong></p>
+            </div>
+            <div class="footer">
+              <p>This is an automated message. Please do not reply to this email.</p>
+              <p>Need help? Contact our support team for assistance.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    return this.sendEmail({
+      to: userEmail,
+      subject,
+      html,
+    });
+  }
 }
 
 // Create and export a singleton instance
