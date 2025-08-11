@@ -9,24 +9,26 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
-  Star, 
-  MapPin, 
-  Clock, 
-  Phone, 
-  Mail, 
-  Wifi, 
-  Car, 
-  Coffee, 
-  Users, 
+import {
+  Star,
+  MapPin,
+  Clock,
+  Phone,
+  Mail,
+  Wifi,
+  Car,
+  Coffee,
+  Users,
   Heart,
   Share2,
   Calendar,
   IndianRupee,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Loader2
 } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { useVenueDetails } from "@/hooks/use-venues";
 
 // Mock venue data
 const mockVenue = {
@@ -129,11 +131,67 @@ export default function VenueDetailPage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorited, setIsFavorited] = useState(false);
 
-  const venue = mockVenue; // In real app, fetch based on params.id
+  // Fetch venue details using the ID from params
+  const {
+    data: venueResponse,
+    isLoading,
+    isError,
+    error,
+  } = useVenueDetails(params.id as string);
+
+  const venue = venueResponse?.success ? venueResponse.venue : null;
 
   const handleBookNow = () => {
-    router.push(`/venues/${venue.id}/book`);
+    if (venue) {
+      router.push(`/venues/${venue.id}/book`);
+    }
   };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <MainNav />
+        <main className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+              <p className="text-muted-foreground">Loading venue details...</p>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Error state
+  if (isError || !venue) {
+    return (
+      <div className="min-h-screen bg-background">
+        <MainNav />
+        <main className="container mx-auto px-4 py-8">
+          <Button
+            variant="ghost"
+            className="mb-6"
+            onClick={() => router.back()}
+          >
+            <ChevronLeft className="h-4 w-4 mr-2" />
+            Back to venues
+          </Button>
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">🏟️</div>
+            <h3 className="text-xl font-semibold mb-2">Venue not found</h3>
+            <p className="text-muted-foreground mb-4">
+              {error instanceof Error ? error.message : "The venue you're looking for doesn't exist or has been removed."}
+            </p>
+            <Button onClick={() => router.push('/venues')}>
+              Browse All Venues
+            </Button>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   const handleFavoriteToggle = () => {
     setIsFavorited(!isFavorited);
@@ -161,12 +219,16 @@ export default function VenueDetailPage() {
     }
   };
 
+  const images = venue?.photoUrls && venue.photoUrls.length > 0
+    ? venue.photoUrls
+    : ["/api/placeholder/800/600"]; // Fallback image
+
   const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % venue.images.length);
+    setCurrentImageIndex((prev) => (prev + 1) % images.length);
   };
 
   const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + venue.images.length) % venue.images.length);
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
   return (
@@ -190,7 +252,17 @@ export default function VenueDetailPage() {
             {/* Image Gallery */}
             <Card className="overflow-hidden">
               <div className="relative aspect-video">
-                <div className="absolute inset-0 bg-muted" />
+                {images[currentImageIndex] ? (
+                  <img
+                    src={images[currentImageIndex]}
+                    alt={`${venue.name} - Image ${currentImageIndex + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-muted flex items-center justify-center">
+                    <span className="text-4xl">🏟️</span>
+                  </div>
+                )}
                 <div className="absolute top-4 right-4 flex gap-2">
                   <Button
                     variant="secondary"
@@ -213,7 +285,7 @@ export default function VenueDetailPage() {
                 </div>
                 
                 {/* Image Navigation */}
-                {venue.images.length > 1 && (
+                {images.length > 1 && (
                   <>
                     <Button
                       variant="secondary"
@@ -236,7 +308,7 @@ export default function VenueDetailPage() {
 
                 {/* Image Indicators */}
                 <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
-                  {venue.images.map((_, index) => (
+                  {images.map((_, index) => (
                     <button
                       key={index}
                       className={`w-2 h-2 rounded-full ${
@@ -256,7 +328,7 @@ export default function VenueDetailPage() {
                 <div className="flex items-center gap-4 text-muted-foreground mb-4">
                   <div className="flex items-center gap-1">
                     <MapPin className="h-4 w-4" />
-                    {venue.location}
+                    {venue.address}
                   </div>
                   <div className="flex items-center gap-1">
                     <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
@@ -305,74 +377,101 @@ export default function VenueDetailPage() {
               </TabsList>
 
               <TabsContent value="courts" className="space-y-4">
-                {venue.courts.map((court) => (
-                  <Card key={court.id}>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <CardTitle className="text-lg">{court.name}</CardTitle>
-                          <CardDescription>{court.sport}</CardDescription>
-                        </div>
-                        <div className="text-right">
-                          <div className="flex items-center gap-1 text-lg font-bold">
-                            <IndianRupee className="h-4 w-4" />
-                            {court.pricePerHour}
+                {venue.courts && venue.courts.length > 0 ? (
+                  venue.courts.map((court) => (
+                    <Card key={court.id}>
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <CardTitle className="text-lg">{court.name}</CardTitle>
+                            <CardDescription>{court.courtType}</CardDescription>
                           </div>
-                          <div className="text-sm text-muted-foreground">per hour</div>
+                          <div className="text-right">
+                            <div className="flex items-center gap-1 text-lg font-bold">
+                              <IndianRupee className="h-4 w-4" />
+                              {court.pricePerHour}
+                            </div>
+                            <div className="text-sm text-muted-foreground">per hour</div>
+                          </div>
                         </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        <h4 className="font-medium text-sm">Features:</h4>
-                        <ul className="text-sm text-muted-foreground space-y-1">
-                          {court.features.map((feature, index) => (
-                            <li key={index}>• {feature}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className={`inline-block w-2 h-2 rounded-full ${court.isActive ? 'bg-green-500' : 'bg-red-500'}`} />
+                            <span>{court.isActive ? 'Available' : 'Unavailable'}</span>
+                          </div>
+                          {court.features && court.features.length > 0 && (
+                            <div>
+                              <h4 className="font-medium text-sm">Features:</h4>
+                              <ul className="text-sm text-muted-foreground space-y-1">
+                                {court.features.map((feature, index) => (
+                                  <li key={index}>• {feature}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="text-4xl mb-4">🏟️</div>
+                    <h3 className="text-lg font-semibold mb-2">No courts available</h3>
+                    <p className="text-muted-foreground">
+                      This venue doesn't have any active courts at the moment.
+                    </p>
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="reviews" className="space-y-4">
-                {venue.reviews.map((review) => (
-                  <Card key={review.id}>
-                    <CardContent className="p-6">
-                      <div className="flex items-start gap-4">
-                        <Avatar>
-                          <AvatarImage src={review.user.avatar} />
-                          <AvatarFallback>{review.user.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between mb-2">
-                            <div>
-                              <h4 className="font-medium">{review.user.name}</h4>
-                              <div className="flex items-center gap-1">
-                                {Array.from({ length: 5 }).map((_, i) => (
-                                  <Star
-                                    key={i}
-                                    className={`h-4 w-4 ${
-                                      i < review.rating
-                                        ? "fill-yellow-400 text-yellow-400"
-                                        : "text-gray-300"
-                                    }`}
-                                  />
-                                ))}
+                {venue.reviews && venue.reviews.length > 0 ? (
+                  venue.reviews.map((review) => (
+                    <Card key={review.id}>
+                      <CardContent className="p-6">
+                        <div className="flex items-start gap-4">
+                          <Avatar>
+                            <AvatarImage src={review.user.image || undefined} />
+                            <AvatarFallback>{review.user.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-2">
+                              <div>
+                                <h4 className="font-medium">{review.user.name}</h4>
+                                <div className="flex items-center gap-1">
+                                  {Array.from({ length: 5 }).map((_, i) => (
+                                    <Star
+                                      key={i}
+                                      className={`h-4 w-4 ${
+                                        i < review.rating
+                                          ? "fill-yellow-400 text-yellow-400"
+                                          : "text-gray-300"
+                                      }`}
+                                    />
+                                  ))}
+                                </div>
                               </div>
+                              <span className="text-sm text-muted-foreground">
+                                {new Date(review.createdAt).toLocaleDateString()}
+                              </span>
                             </div>
-                            <span className="text-sm text-muted-foreground">{review.date}</span>
-                          </div>
-                          <p className="text-sm mb-2">{review.comment}</p>
-                          <div className="text-xs text-muted-foreground">
-                            {review.helpful} people found this helpful
+                            <p className="text-sm mb-2">{review.comment}</p>
                           </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="text-4xl mb-4">💬</div>
+                    <h3 className="text-lg font-semibold mb-2">No reviews yet</h3>
+                    <p className="text-muted-foreground">
+                      Be the first to review this venue!
+                    </p>
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="info" className="space-y-4">
@@ -386,13 +485,15 @@ export default function VenueDetailPage() {
                         <h4 className="font-medium mb-1">Address</h4>
                         <p className="text-sm text-muted-foreground">{venue.address}</p>
                       </div>
+                      {venue.owner.email && (
+                        <div>
+                          <h4 className="font-medium mb-1">Email</h4>
+                          <p className="text-sm text-muted-foreground">{venue.owner.email}</p>
+                        </div>
+                      )}
                       <div>
-                        <h4 className="font-medium mb-1">Phone</h4>
-                        <p className="text-sm text-muted-foreground">{venue.contact.phone}</p>
-                      </div>
-                      <div>
-                        <h4 className="font-medium mb-1">Email</h4>
-                        <p className="text-sm text-muted-foreground">{venue.contact.email}</p>
+                        <h4 className="font-medium mb-1">Owner</h4>
+                        <p className="text-sm text-muted-foreground">{venue.owner.name}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -404,14 +505,23 @@ export default function VenueDetailPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span>Monday - Friday</span>
-                        <span>{venue.operatingHours.weekdays}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Saturday - Sunday</span>
-                        <span>{venue.operatingHours.weekends}</span>
-                      </div>
+                      {venue.operatingHours && typeof venue.operatingHours === 'object' ? (
+                        Object.entries(venue.operatingHours as Record<string, any>).map(([day, hours]) => (
+                          <div key={day} className="flex justify-between">
+                            <span className="capitalize">{day}</span>
+                            <span>
+                              {hours?.isOpen
+                                ? `${hours.openTime || 'N/A'} - ${hours.closeTime || 'N/A'}`
+                                : 'Closed'
+                              }
+                            </span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-sm text-muted-foreground">
+                          Operating hours not available
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -434,9 +544,14 @@ export default function VenueDetailPage() {
                   <div className="text-2xl font-bold">Starting from</div>
                   <div className="flex items-center justify-center gap-1 text-3xl font-bold text-primary">
                     <IndianRupee className="h-6 w-6" />
-                    500
+                    {venue.minPrice || 'N/A'}
                   </div>
                   <div className="text-sm text-muted-foreground">per hour</div>
+                  {venue.priceRange && (
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Range: {venue.priceRange}
+                    </div>
+                  )}
                 </div>
                 
                 <Button className="w-full" size="lg" onClick={handleBookNow}>

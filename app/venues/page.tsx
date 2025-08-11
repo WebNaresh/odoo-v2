@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { MainNav } from "@/components/layout/main-nav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,62 +12,39 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { Search, MapPin, Star, Filter, SlidersHorizontal } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-
-// Mock venues data
-const mockVenues = [
-  {
-    id: 1,
-    name: "Elite Sports Complex",
-    location: "Downtown, Mumbai",
-    rating: 4.8,
-    reviewCount: 124,
-    image: "/api/placeholder/400/300",
-    sports: ["Basketball", "Tennis", "Badminton"],
-    priceRange: "₹500-1200/hr",
-    amenities: ["Parking", "Changing Rooms", "Cafeteria", "AC"],
-    distance: "2.5 km",
-  },
-  {
-    id: 2,
-    name: "Champions Arena",
-    location: "Bandra, Mumbai",
-    rating: 4.6,
-    reviewCount: 89,
-    image: "/api/placeholder/400/300",
-    sports: ["Football", "Cricket", "Volleyball"],
-    priceRange: "₹800-1500/hr",
-    amenities: ["Parking", "Changing Rooms", "Equipment Rental"],
-    distance: "3.2 km",
-  },
-  {
-    id: 3,
-    name: "Victory Courts",
-    location: "Andheri, Mumbai",
-    rating: 4.7,
-    reviewCount: 156,
-    image: "/api/placeholder/400/300",
-    sports: ["Tennis", "Squash", "Table Tennis"],
-    priceRange: "₹400-900/hr",
-    amenities: ["Parking", "Changing Rooms", "Cafeteria"],
-    distance: "1.8 km",
-  },
-  // Add more mock venues...
-];
+import { useVenuesWithFilters } from "@/hooks/use-venues";
 
 const sportsOptions = ["Basketball", "Tennis", "Football", "Badminton", "Cricket", "Swimming", "Volleyball", "Squash"];
 const amenitiesOptions = ["Parking", "Changing Rooms", "Cafeteria", "AC", "Equipment Rental", "Shower", "Locker"];
 
 export default function VenuesPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const initialSearch = searchParams.get("search") || "";
   const initialSport = searchParams.get("sport") || "";
 
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [selectedSports, setSelectedSports] = useState<string[]>(initialSport ? [initialSport] : []);
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
-  const [priceRange, setPriceRange] = useState([0, 2000]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 2000]);
   const [sortBy, setSortBy] = useState("rating");
-  const [filteredVenues, setFilteredVenues] = useState(mockVenues);
+
+  // Use React Query hook for venues with filters
+  const {
+    data: venuesResponse,
+    isLoading: loading,
+    isError,
+  } = useVenuesWithFilters(
+    searchQuery,
+    selectedSports,
+    selectedAmenities,
+    priceRange,
+    sortBy,
+    50
+  );
+
+  const venues = venuesResponse?.success ? venuesResponse.venues : [];
+  const totalCount = venuesResponse?.success ? venuesResponse.pagination.total : 0;
 
   const handleSportChange = (sport: string, checked: boolean) => {
     if (checked) {
@@ -108,7 +85,7 @@ export default function VenuesPage() {
         <div className="px-2">
           <Slider
             value={priceRange}
-            onValueChange={setPriceRange}
+            onValueChange={(value) => setPriceRange(value as [number, number])}
             max={2000}
             min={0}
             step={100}
@@ -207,69 +184,157 @@ export default function VenuesPage() {
           {/* Venues Grid */}
           <div className="flex-1">
             <div className="mb-4 text-sm text-muted-foreground">
-              Showing {filteredVenues.length} venues
+              Showing {venues.length} of {totalCount} venues
             </div>
-            
-            <div className="grid gap-6">
-              {filteredVenues.map((venue) => (
-                <Card key={venue.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="md:flex">
-                    <div className="md:w-64 aspect-video md:aspect-square bg-muted" />
-                    
-                    <div className="flex-1">
-                      <CardHeader>
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <CardTitle className="text-xl">{venue.name}</CardTitle>
-                            <CardDescription className="flex items-center gap-1 mt-1">
-                              <MapPin className="h-4 w-4" />
-                              {venue.location} • {venue.distance}
-                            </CardDescription>
+
+            {loading ? (
+              <div className="grid gap-6">
+                {[...Array(6)].map((_, index) => (
+                  <Card key={index} className="overflow-hidden">
+                    <div className="md:flex">
+                      <div className="md:w-64 aspect-video md:aspect-square bg-muted animate-pulse" />
+                      <div className="flex-1">
+                        <CardHeader>
+                          <div className="space-y-2">
+                            <div className="h-6 bg-muted animate-pulse rounded" />
+                            <div className="h-4 bg-muted animate-pulse rounded w-2/3" />
                           </div>
-                          <div className="flex items-center gap-1">
-                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                            <span className="font-medium">{venue.rating}</span>
-                            <span className="text-muted-foreground">({venue.reviewCount})</span>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      
-                      <CardContent>
-                        <div className="space-y-3">
-                          <div className="flex flex-wrap gap-1">
-                            {venue.sports.map((sport) => (
-                              <Badge key={sport} variant="secondary" className="text-xs">
-                                {sport}
-                              </Badge>
-                            ))}
-                          </div>
-                          
-                          <div className="flex flex-wrap gap-1">
-                            {venue.amenities.slice(0, 3).map((amenity) => (
-                              <Badge key={amenity} variant="outline" className="text-xs">
-                                {amenity}
-                              </Badge>
-                            ))}
-                            {venue.amenities.length > 3 && (
-                              <Badge variant="outline" className="text-xs">
-                                +{venue.amenities.length - 3} more
-                              </Badge>
-                            )}
-                          </div>
-                          
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <span className="text-lg font-semibold">{venue.priceRange}</span>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-3">
+                            <div className="flex gap-2">
+                              <div className="h-6 bg-muted animate-pulse rounded w-16" />
+                              <div className="h-6 bg-muted animate-pulse rounded w-20" />
                             </div>
-                            <Button>View Details</Button>
+                            <div className="h-10 bg-muted animate-pulse rounded" />
                           </div>
-                        </div>
-                      </CardContent>
+                        </CardContent>
+                      </div>
                     </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
+                  </Card>
+                ))}
+              </div>
+            ) : isError ? (
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">⚠️</div>
+                <h3 className="text-xl font-semibold mb-2">Unable to load venues</h3>
+                <p className="text-muted-foreground mb-4">
+                  There was an error loading venues. Please try again later.
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={() => window.location.reload()}
+                >
+                  Retry
+                </Button>
+              </div>
+            ) : venues.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">🏟️</div>
+                <h3 className="text-xl font-semibold mb-2">No venues found</h3>
+                <p className="text-muted-foreground mb-4">
+                  Try adjusting your search criteria or filters
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSelectedSports([]);
+                    setSelectedAmenities([]);
+                    setPriceRange([0, 2000]);
+                  }}
+                >
+                  Clear Filters
+                </Button>
+              </div>
+            ) : (
+              <div className="grid gap-6">
+                {venues.map((venue) => (
+                  <Card key={venue.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                    <div className="md:flex">
+                      <div className="md:w-64 aspect-video md:aspect-square bg-muted relative overflow-hidden">
+                        {venue.photoUrls && venue.photoUrls.length > 0 ? (
+                          <img
+                            src={venue.photoUrls[0]}
+                            alt={venue.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                            <span className="text-4xl">🏟️</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex-1">
+                        <CardHeader>
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <CardTitle className="text-xl">{venue.name}</CardTitle>
+                              <CardDescription className="flex items-center gap-1 mt-1">
+                                <MapPin className="h-4 w-4" />
+                                {venue.address}
+                              </CardDescription>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                              <span className="font-medium">
+                                {venue.rating ? venue.rating.toFixed(1) : "New"}
+                              </span>
+                              <span className="text-muted-foreground">({venue.reviewCount})</span>
+                            </div>
+                          </div>
+                        </CardHeader>
+
+                        <CardContent>
+                          <div className="space-y-3">
+                            <div className="flex flex-wrap gap-1">
+                              {venue.sports.slice(0, 4).map((sport) => (
+                                <Badge key={sport} variant="secondary" className="text-xs">
+                                  {sport}
+                                </Badge>
+                              ))}
+                              {venue.sports.length > 4 && (
+                                <Badge variant="secondary" className="text-xs">
+                                  +{venue.sports.length - 4} more
+                                </Badge>
+                              )}
+                            </div>
+
+                            <div className="flex flex-wrap gap-1">
+                              {venue.amenities.slice(0, 3).map((amenity) => (
+                                <Badge key={amenity} variant="outline" className="text-xs">
+                                  {amenity}
+                                </Badge>
+                              ))}
+                              {venue.amenities.length > 3 && (
+                                <Badge variant="outline" className="text-xs">
+                                  +{venue.amenities.length - 3} more
+                                </Badge>
+                              )}
+                            </div>
+
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <span className="text-lg font-semibold">{venue.priceRange}</span>
+                                {venue.courtCount > 0 && (
+                                  <span className="text-sm text-muted-foreground ml-2">
+                                    • {venue.courtCount} courts
+                                  </span>
+                                )}
+                              </div>
+                              <Button onClick={() => router.push(`/venues/${venue.id}`)}>
+                                View Details
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </main>

@@ -34,6 +34,7 @@ import { type CreateVenueData, AVAILABLE_AMENITIES } from "@/types/venue";
 
 interface VenueFormData extends CreateVenueData {
   // photoUrls will be handled by the Cloudinary component
+  photoUrls: string[];
 }
 
 // Client-side validation is now handled manually in the onSubmit function

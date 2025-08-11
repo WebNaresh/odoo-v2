@@ -11,7 +11,7 @@ import { toast } from "react-hot-toast";
 
 interface VenueCardProps {
   venue: {
-    id: number;
+    id: string; // Changed from number to string to match API
     name: string;
     location: string;
     rating: number;
