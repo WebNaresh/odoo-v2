@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SessionProvider } from "next-auth/react";
 import { NuqsAdapter } from "nuqs/adapters/next";
+import { Suspense } from "react";
 import { Toaster } from "react-hot-toast";
 
 type Props = {
@@ -17,7 +18,7 @@ export const ClientProvider = ({ children }: Props) => {
       <QueryClientProvider client={queryClient}>
         <NuqsAdapter>
           <Toaster toastOptions={{ duration: 7000 }} />
-          {children}
+          <Suspense>{children}</Suspense>
         </NuqsAdapter>
       </QueryClientProvider>
     </SessionProvider>
