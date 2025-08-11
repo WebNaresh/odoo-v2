@@ -4,10 +4,10 @@ import { filterCompleteVenues } from "@/lib/venue-validation";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '8');
 
@@ -85,19 +85,19 @@ export async function GET(
     // Calculate additional fields for each venue
     const venuesWithDetails = completeVenues.map(venue => {
       // Calculate min price from courts
-      const minPrice = venue.courts && venue.courts.length > 0 
+      const minPrice = venue.courts && venue.courts.length > 0
         ? Math.min(...venue.courts.map(court => court.pricePerHour))
         : null;
 
       // Calculate price range
       const prices = venue.courts?.map(court => court.pricePerHour) || [];
-      const priceRange = prices.length > 0 
+      const priceRange = prices.length > 0
         ? `₹${Math.min(...prices)} - ₹${Math.max(...prices)}`
         : 'Price on request';
 
       // Calculate average rating
       const ratings = venue.reviews?.map(review => review.rating) || [];
-      const averageRating = ratings.length > 0 
+      const averageRating = ratings.length > 0
         ? ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length
         : 0;
 
@@ -122,10 +122,10 @@ export async function GET(
     // Sort venues by relevance (similar sports first, then by rating)
     const sortedVenues = venuesWithDetails.sort((a, b) => {
       // Calculate sport similarity score
-      const aSimilarity = a.sports.filter(sport => 
+      const aSimilarity = a.sports.filter(sport =>
         currentVenue.sports.includes(sport)
       ).length;
-      const bSimilarity = b.sports.filter(sport => 
+      const bSimilarity = b.sports.filter(sport =>
         currentVenue.sports.includes(sport)
       ).length;
 

@@ -20,6 +20,14 @@ export interface VenueForValidation {
     pricePerHour: number;
     isActive: boolean;
   }>;
+  reviews?: Array<{
+    id: string;
+    rating: number;
+  }>;
+  owner?: {
+    id: string;
+    name: string | null;
+  };
 }
 
 /**
@@ -75,10 +83,10 @@ export function isVenueComplete(venue: VenueForValidation): boolean {
     return false;
   }
 
-  const hasActiveCourt = venue.courts.some(court => 
-    court.isActive && 
-    court.name && 
-    court.courtType && 
+  const hasActiveCourt = venue.courts.some(court =>
+    court.isActive &&
+    court.name &&
+    court.courtType &&
     court.pricePerHour > 0
   );
 
@@ -121,10 +129,10 @@ export function getVenueValidationDetails(venue: VenueForValidation) {
       (day: any) => day?.isOpen === true && day?.openTime && day?.closeTime
     ) : false,
     hasCourts: !!(venue.courts && venue.courts.length > 0),
-    hasActiveCourt: venue.courts ? venue.courts.some(court => 
-      court.isActive && 
-      court.name && 
-      court.courtType && 
+    hasActiveCourt: venue.courts ? venue.courts.some(court =>
+      court.isActive &&
+      court.name &&
+      court.courtType &&
       court.pricePerHour > 0
     ) : false,
     isActive: venue.isActive,
