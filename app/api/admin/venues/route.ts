@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     console.log("🔍 [ADMIN VENUES API] Fetching venues with status:", status);
 
     // Fetch venues with the specified approval status
-    const venues = await prisma.venues.findMany({
+    const venues = await prisma.venue.findMany({
       where: {
         approvalStatus: status as any,
       },
