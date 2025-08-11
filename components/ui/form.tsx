@@ -6,19 +6,14 @@ import {
   ControllerProps,
   FieldPath,
   FieldValues,
+  FormProvider,
   useFormContext,
 } from "react-hook-form";
 
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
-const Form = React.forwardRef<
-  HTMLFormElement,
-  React.HTMLAttributes<HTMLFormElement>
->(({ className, ...props }, ref) => (
-  <form ref={ref} className={cn("space-y-8 font-sans", className)} {...props} />
-));
-Form.displayName = "Form";
+const Form = FormProvider;
 
 type FormFieldContextValue<
   TFieldValues extends FieldValues = FieldValues,

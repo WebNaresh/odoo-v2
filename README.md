@@ -470,6 +470,8 @@ To learn more about the technologies used in this project:
 
 ## 🚀 Deployment
 
+**Live Demo:** [https://oddoohackathon.vercel.app/](https://oddoohackathon.vercel.app/)
+
 The application can be deployed on various platforms:
 
 ### Vercel (Recommended)
