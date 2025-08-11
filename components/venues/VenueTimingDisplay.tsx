@@ -82,6 +82,19 @@ export function VenueTimingDisplay({
     }
   };
 
+  // Convert 24-hour format to 12-hour format
+  const formatTime = (time: string) => {
+    if (!time) return "";
+
+    const [hourStr, minute] = time.split(":");
+    const hour = parseInt(hourStr);
+
+    if (hour === 0) return `12:${minute} AM`;
+    if (hour < 12) return `${hour}:${minute} AM`;
+    if (hour === 12) return `12:${minute} PM`;
+    return `${hour - 12}:${minute} PM`;
+  };
+
   if (isLoading) {
     return (
       <Card className={className}>
@@ -246,7 +259,8 @@ export function VenueTimingDisplay({
                       onClick={() => handleTimeSlotSelect(slot)}
                     >
                       <span className="font-medium">
-                        {slot.startTime} - {slot.endTime}
+                        {formatTime(slot.startTime)} -{" "}
+                        {formatTime(slot.endTime)}
                       </span>
                       <div className="flex items-center gap-1 text-xs">
                         <IndianRupee className="h-3 w-3" />
@@ -288,7 +302,8 @@ export function VenueTimingDisplay({
                 <div className="flex items-center gap-1">
                   <Clock className="h-4 w-4" />
                   <span>
-                    {selectedTimeSlot.startTime} - {selectedTimeSlot.endTime}
+                    {formatTime(selectedTimeSlot.startTime)} -{" "}
+                    {formatTime(selectedTimeSlot.endTime)}
                   </span>
                 </div>
                 <div className="flex items-center gap-1">

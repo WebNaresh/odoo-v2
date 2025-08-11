@@ -65,8 +65,13 @@ const mockVenue = {
   ],
   sports: ["Basketball", "Tennis", "Badminton", "Squash"],
   operatingHours: {
-    weekdays: "6:00 AM - 11:00 PM",
-    weekends: "6:00 AM - 12:00 AM",
+    monday: { isOpen: true, openTime: "06:00", closeTime: "23:00" },
+    tuesday: { isOpen: true, openTime: "06:00", closeTime: "23:00" },
+    wednesday: { isOpen: true, openTime: "06:00", closeTime: "23:00" },
+    thursday: { isOpen: true, openTime: "06:00", closeTime: "23:00" },
+    friday: { isOpen: true, openTime: "06:00", closeTime: "23:00" },
+    saturday: { isOpen: true, openTime: "06:00", closeTime: "00:00" },
+    sunday: { isOpen: true, openTime: "06:00", closeTime: "00:00" },
   },
   contact: {
     phone: "+91 98765 43210",
@@ -626,18 +631,33 @@ export default function VenueDetailPage() {
                       typeof venue.operatingHours === "object" ? (
                         Object.entries(
                           venue.operatingHours as Record<string, any>
-                        ).map(([day, hours]) => (
-                          <div key={day} className="flex justify-between">
-                            <span className="capitalize">{day}</span>
-                            <span>
-                              {hours?.isOpen
-                                ? `${hours.openTime || "N/A"} - ${
-                                    hours.closeTime || "N/A"
-                                  }`
-                                : "Closed"}
-                            </span>
-                          </div>
-                        ))
+                        ).map(([day, hours]) => {
+                          // Convert 24-hour format to 12-hour format
+                          const formatTime = (time: string) => {
+                            if (!time || time === "N/A") return "N/A";
+
+                            const [hourStr, minute] = time.split(":");
+                            const hour = parseInt(hourStr);
+
+                            if (hour === 0) return `12:${minute} AM`;
+                            if (hour < 12) return `${hour}:${minute} AM`;
+                            if (hour === 12) return `12:${minute} PM`;
+                            return `${hour - 12}:${minute} PM`;
+                          };
+
+                          return (
+                            <div key={day} className="flex justify-between">
+                              <span className="capitalize">{day}</span>
+                              <span>
+                                {hours?.isOpen
+                                  ? `${formatTime(
+                                      hours.openTime
+                                    )} - ${formatTime(hours.closeTime)}`
+                                  : "Closed"}
+                              </span>
+                            </div>
+                          );
+                        })
                       ) : (
                         <div className="text-sm text-muted-foreground">
                           Operating hours not available
