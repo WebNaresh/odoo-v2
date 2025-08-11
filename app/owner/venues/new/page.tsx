@@ -3,7 +3,9 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, FormProvider, type SubmitHandler } from "react-hook-form";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
+import { ownerVenueKeys } from "@/hooks/use-owner-venues";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -39,6 +41,7 @@ type VenueFormData = CreateVenueData;
 
 export default function NewVenuePage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<VenueFormData>({
@@ -294,6 +297,10 @@ export default function NewVenuePage() {
 
       if (result.success) {
         console.log("✅ [VENUE FORM] Venue created successfully!");
+
+        // Invalidate owner venues query to refresh the list
+        queryClient.invalidateQueries({ queryKey: ownerVenueKeys.lists() });
+
         toast.success("Venue created successfully!");
         router.push("/owner/venues");
       } else {

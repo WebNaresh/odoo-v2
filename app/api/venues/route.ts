@@ -5,7 +5,10 @@ export async function GET() {
   try {
     // Fetch all active and approved venues with related data
     const venues = await prisma.venue.findMany({
-
+      where: {
+        isActive: true,
+        approvalStatus: "APPROVED", // Only show approved venues to public
+      },
       include: {
         courts: {
           select: {
