@@ -54,14 +54,12 @@ export const operatingHoursSchema = z.object({
 // Court creation schema
 export const createCourtSchema = z.object({
   name: z.string().min(1, "Court name is required").max(100, "Court name must be less than 100 characters"),
-  courtType: z.enum(COURT_TYPES, {
-    errorMap: () => ({ message: "Please select a valid court type" }),
-  }),
+  courtType: z.enum(COURT_TYPES),
   venueId: z.string().min(1, "Venue ID is required"),
   sportId: z.string().min(1, "Sport ID is required"),
   pricePerHour: z.number().min(0, "Price must be a positive number").max(10000, "Price must be reasonable"),
   operatingHours: operatingHoursSchema,
-  isActive: z.boolean().default(true),
+  isActive: z.boolean(),
 });
 
 // Court update schema (all fields optional except ID)
@@ -72,7 +70,7 @@ export const updateCourtSchema = z.object({
   sportId: z.string().min(1, "Sport ID is required").optional(),
   pricePerHour: z.number().min(0, "Price must be a positive number").max(10000, "Price must be reasonable").optional(),
   operatingHours: operatingHoursSchema.optional(),
-  isActive: z.boolean().default(true),
+  isActive: z.boolean().optional(),
 });
 
 // TypeScript types derived from schemas
