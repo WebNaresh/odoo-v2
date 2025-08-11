@@ -7,6 +7,7 @@ export async function GET() {
     const venues = await prisma.venue.findMany({
       where: {
         isActive: true,
+
       },
       include: {
         courts: {
@@ -15,11 +16,8 @@ export async function GET() {
             name: true,
             courtType: true,
             pricePerHour: true,
-            isActive: true,
           },
-          where: {
-            isActive: true,
-          }
+
         },
         owner: {
           select: {
@@ -39,11 +37,10 @@ export async function GET() {
       },
     });
 
-    // Filter out venues without courts
-    const filteredVenues = venues.filter(venue => venue.courts.length > 0);
+
 
     // Transform venues for frontend
-    const transformedVenues = filteredVenues.map(venue => {
+    const transformedVenues = venues.map(venue => {
       // Calculate pricing information
       const prices = venue.courts.map(court => court.pricePerHour);
       const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
