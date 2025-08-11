@@ -157,8 +157,10 @@ model Booking {
   playerCount        Int           @default(1) // Number of players for this booking
   status             BookingStatus @default(PENDING)
   paymentStatus      PaymentStatus @default(PENDING)
-  paymentId          String? // For payment gateway integration
+  paymentId          String? // For payment gateway integration (Razorpay order/payment ID)
   paymentMethod      String? // Payment method used
+  paidAt             DateTime? // When payment was completed
+  paymentDetails     Json? // Store Razorpay payment response details
   cancellationReason String? // Reason for cancellation if applicable
   isRefundable       Boolean       @default(true) // Whether booking can be refunded
   refundAmount       Float? // Amount refunded if cancelled

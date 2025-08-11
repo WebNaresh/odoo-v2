@@ -29,6 +29,8 @@ import {
   useCreateBooking,
   useBookingConflictCheck,
 } from "@/hooks/use-bookings";
+import { useRazorpay } from "@/hooks/useRazorpay";
+import { useSession } from "next-auth/react";
 import { format } from "date-fns";
 
 interface BookingConfirmationDialogProps {
@@ -63,6 +65,7 @@ export function BookingConfirmationDialog({
   initialPlayerCount = 1,
   queueInfo,
 }: BookingConfirmationDialogProps) {
+  const { data: session } = useSession();
   const [playerCount, setPlayerCount] = useState(initialPlayerCount);
   const [notes, setNotes] = useState("");
   const [step, setStep] = useState<
@@ -71,6 +74,11 @@ export function BookingConfirmationDialog({
 
   const createBookingMutation = useCreateBooking();
   const conflictCheckMutation = useBookingConflictCheck();
+  const {
+    processPayment,
+    isLoading: isPaymentLoading,
+    isProcessing: isPaymentProcessing,
+  } = useRazorpay();
 
   const handleClose = () => {
     setStep("confirm");
@@ -80,7 +88,7 @@ export function BookingConfirmationDialog({
   };
 
   const handleConfirmBooking = async () => {
-    if (!timeSlot) return;
+    if (!timeSlot || !session?.user) return;
 
     setStep("processing");
 
@@ -104,25 +112,55 @@ export function BookingConfirmationDialog({
         notes: notes.trim() || undefined,
       });
 
-      if (result.success) {
-        setStep("success");
-        // Call onSuccess callback if provided
-        if (onSuccess) {
-          // For queue bookings, call onSuccess immediately
-          setTimeout(() => {
-            onSuccess();
-          }, 1500);
-        } else {
-          // Auto-close after 3 seconds for single bookings
-          setTimeout(() => {
-            handleClose();
-          }, 3000);
-        }
+      if (result.success && result.booking) {
+        console.log("✅ [BOOKING] Booking created, initiating payment:", {
+          bookingId: result.booking.id,
+          amount: result.booking.totalPrice,
+        });
+
+        // Initiate Razorpay payment
+        await processPayment(
+          {
+            id: result.booking.id,
+            amount: result.booking.totalPrice,
+            venueName: timeSlot.venueName,
+            courtName: timeSlot.courtName,
+            bookingReference: result.booking.bookingReference,
+          },
+          {
+            name: session.user.name || "User",
+            email: session.user.email || "",
+            contact: session.user.phone || undefined,
+          },
+          // Payment success callback
+          (paymentResult) => {
+            console.log("✅ [BOOKING] Payment successful:", paymentResult);
+            setStep("success");
+
+            // Call onSuccess callback if provided
+            if (onSuccess) {
+              // For queue bookings, call onSuccess immediately
+              setTimeout(() => {
+                onSuccess();
+              }, 1500);
+            } else {
+              // Auto-close after 3 seconds for single bookings
+              setTimeout(() => {
+                handleClose();
+              }, 3000);
+            }
+          },
+          // Payment failure callback
+          (error) => {
+            console.error("❌ [BOOKING] Payment failed:", error);
+            setStep("error");
+          }
+        );
       } else {
         setStep("error");
       }
     } catch (error) {
-      console.error("Booking error:", error);
+      console.error("❌ [BOOKING] Booking error:", error);
       setStep("error");
     }
   };
@@ -158,18 +196,18 @@ export function BookingConfirmationDialog({
                 )}
               </div>
             )}
-            {step === "processing" && "Processing Booking..."}
-            {step === "success" && "Booking Confirmed!"}
-            {step === "error" && "Booking Failed"}
+            {step === "processing" && "Processing Payment..."}
+            {step === "success" && "Payment Successful!"}
+            {step === "error" && "Payment Failed"}
           </DialogTitle>
           <DialogDescription>
             {step === "confirm" &&
               "Review your booking details before confirming."}
             {step === "processing" &&
-              "Please wait while we process your booking."}
+              "Please wait while we process your payment."}
             {step === "success" &&
-              "Your booking has been successfully created."}
-            {step === "error" && "There was an issue creating your booking."}
+              "Your payment was successful and booking is confirmed."}
+            {step === "error" && "There was an issue processing your payment."}
           </DialogDescription>
 
           {/* Queue Info - Outside DialogDescription to avoid nesting issues */}
@@ -307,7 +345,9 @@ export function BookingConfirmationDialog({
           <div className="flex items-center justify-center py-8">
             <div className="text-center">
               <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-              <p className="text-muted-foreground">Creating your booking...</p>
+              <p className="text-muted-foreground">
+                Processing your payment...
+              </p>
             </div>
           </div>
         )}
@@ -315,9 +355,10 @@ export function BookingConfirmationDialog({
         {step === "success" && (
           <div className="text-center py-8">
             <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" />
-            <p className="text-lg font-medium mb-2">Booking Confirmed!</p>
+            <p className="text-lg font-medium mb-2">Payment Successful!</p>
             <p className="text-muted-foreground">
-              You will receive a confirmation email shortly.
+              Your booking is confirmed. You will receive a confirmation email
+              shortly.
             </p>
           </div>
         )}
@@ -325,11 +366,11 @@ export function BookingConfirmationDialog({
         {step === "error" && (
           <div className="text-center py-8">
             <AlertCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
-            <p className="text-lg font-medium mb-2">Booking Failed</p>
+            <p className="text-lg font-medium mb-2">Payment Failed</p>
             <p className="text-muted-foreground">
               {createBookingMutation.error?.message ||
                 conflictCheckMutation.error?.message ||
-                "Please try again or contact support."}
+                "Payment was unsuccessful. Please try again or contact support."}
             </p>
           </div>
         )}
@@ -342,9 +383,26 @@ export function BookingConfirmationDialog({
               </Button>
               <Button
                 onClick={handleConfirmBooking}
-                disabled={playerCount > availableSpots || playerCount < 1}
+                disabled={
+                  playerCount > availableSpots ||
+                  playerCount < 1 ||
+                  isPaymentLoading ||
+                  isPaymentProcessing ||
+                  createBookingMutation.isPending ||
+                  conflictCheckMutation.isPending
+                }
               >
-                Confirm Booking
+                {isPaymentLoading ||
+                isPaymentProcessing ||
+                createBookingMutation.isPending ||
+                conflictCheckMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  "Pay & Confirm Booking"
+                )}
               </Button>
             </>
           )}
