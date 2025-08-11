@@ -14,7 +14,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import {
   Menu,
   Search,
@@ -95,7 +101,7 @@ const navigationItems: NavItem[] = [
   },
   {
     title: "Venue Approval",
-    href: "/admin/venues",
+    href: "/admin/approvals",
     icon: Building2,
     roles: ["ADMIN"],
     description: "Review and approve venues",
