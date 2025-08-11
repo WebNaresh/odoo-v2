@@ -11,6 +11,7 @@ export const authOptions: NextAuthOptions = {
     ],
     pages: {
         signIn: "/auth/signin",
+        error: "/auth/banned",
     },
     callbacks: {
         async signIn({ user, account, profile }) {
@@ -58,13 +59,7 @@ export const authOptions: NextAuthOptions = {
                                 bannedAt: existingUser.bannedAt,
                             });
 
-                            // Store ban information for error display
-                            if (account) {
-                                (account as any).banReason = existingUser.banReason;
-                                (account as any).bannedAt = existingUser.bannedAt;
-                            }
-
-                            return false; // Prevent sign in
+                            return false; // Prevent sign in - will trigger AccessDenied error
                         }
 
                         // Update existing user with latest info

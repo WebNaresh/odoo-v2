@@ -174,14 +174,23 @@ export default function SignIn() {
     const urlParams = new URLSearchParams(window.location.search);
     const stepParam = urlParams.get("step");
     const errorParam = urlParams.get("error");
+    const callbackUrl = urlParams.get("callbackUrl");
+
+    // Check for banned user error in callback URL
+    if (callbackUrl && callbackUrl.includes("error=AccessDenied")) {
+      console.log(
+        "🔍 [SIGNIN] Detected AccessDenied in callback URL, redirecting to banned page"
+      );
+      router.push("/auth/banned");
+      return;
+    }
 
     // Check for banned user error
     if (errorParam === "AccessDenied") {
-      setError(
-        "Your account has been suspended. Please contact support for assistance."
+      console.log(
+        "🔍 [SIGNIN] Detected AccessDenied error, redirecting to banned page"
       );
-      // Clean up URL
-      window.history.replaceState({}, document.title, window.location.pathname);
+      router.push("/auth/banned");
       return;
     }
 
@@ -193,7 +202,7 @@ export default function SignIn() {
         checkUserStatus();
       }, 3000);
     }
-  }, [checkUserStatus]);
+  }, [checkUserStatus, router]);
 
   const handleGoogleSignIn = async () => {
     try {
@@ -206,8 +215,20 @@ export default function SignIn() {
       });
 
       if (result?.error) {
+        // Handle specific error types
+        if (result.error === "AccessDenied") {
+          // Redirect directly to banned page
+          router.push("/auth/banned");
+          return;
+        }
         setError("Failed to sign in. Please try again.");
       } else if (result?.url) {
+        // Check if this is a redirect to error page for banned users
+        if (result.url.includes("/auth/error?error=AccessDenied")) {
+          router.push("/auth/banned");
+          return;
+        }
+
         // Always check user status after successful sign-in
         setTimeout(async () => {
           await checkUserStatus();
