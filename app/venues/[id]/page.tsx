@@ -473,22 +473,28 @@ export default function VenueDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gray-50">
       <MainNav />
 
-      <main className="container mx-auto px-4 py-8">
-        {/* Back Button */}
-        <Button variant="ghost" className="mb-6" onClick={() => router.back()}>
-          <ChevronLeft className="h-4 w-4 mr-2" />
-          Back to venues
-        </Button>
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-7xl">
+        {/* Enhanced Back Button */}
+        <div className="mb-6 sm:mb-8">
+          <Button
+            variant="outline"
+            className="border-[#00884d]/20 text-[#00884d] bg-white shadow-sm"
+            onClick={() => router.back()}
+          >
+            <ChevronLeft className="h-4 w-4 mr-2" />
+            Back to venues
+          </Button>
+        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Image Gallery */}
-            <Card className="overflow-hidden">
-              <div className="relative aspect-video">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
+          {/* Enhanced Main Content */}
+          <div className="xl:col-span-2 space-y-6 lg:space-y-8">
+            {/* Enhanced Image Gallery */}
+            <Card className="overflow-hidden border-0 shadow-lg bg-white">
+              <div className="relative aspect-video sm:aspect-[16/10] lg:aspect-video">
                 {images[currentImageIndex] ? (
                   <Image
                     width={1800}
@@ -496,17 +502,23 @@ export default function VenueDetailPage() {
                     src={images[currentImageIndex]}
                     alt={`${venue.name} - Image ${currentImageIndex + 1}`}
                     className="w-full h-full object-cover"
+                    priority
                   />
                 ) : (
-                  <div className="absolute inset-0 bg-muted flex items-center justify-center">
-                    <span className="text-4xl">🏟️</span>
+                  <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                    <div className="text-center">
+                      <span className="text-6xl mb-4 block">🏟️</span>
+                      <p className="text-gray-500 font-medium">No image available</p>
+                    </div>
                   </div>
                 )}
-                <div className="absolute top-4 right-4 flex gap-2">
+
+                {/* Enhanced Action Buttons */}
+                <div className="absolute top-4 right-4 flex gap-3">
                   <Button
                     variant="secondary"
                     size="sm"
-                    className="bg-white/90 hover:bg-white"
+                    className="bg-white/95 border-0 shadow-lg backdrop-blur-sm"
                     onClick={handleFavoriteToggle}
                   >
                     <Heart
@@ -520,20 +532,20 @@ export default function VenueDetailPage() {
                   <Button
                     variant="secondary"
                     size="sm"
-                    className="bg-white/90 hover:bg-white"
+                    className="bg-white/95 border-0 shadow-lg backdrop-blur-sm"
                     onClick={handleShare}
                   >
                     <Share2 className="h-4 w-4 text-gray-600" />
                   </Button>
                 </div>
 
-                {/* Image Navigation */}
+                {/* Enhanced Image Navigation */}
                 {images.length > 1 && (
                   <>
                     <Button
                       variant="secondary"
                       size="sm"
-                      className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white"
+                      className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/95 border-0 shadow-lg backdrop-blur-sm"
                       onClick={prevImage}
                     >
                       <ChevronLeft className="h-4 w-4" />
@@ -541,7 +553,7 @@ export default function VenueDetailPage() {
                     <Button
                       variant="secondary"
                       size="sm"
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white"
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/95 border-0 shadow-lg backdrop-blur-sm"
                       onClick={nextImage}
                     >
                       <ChevronRight className="h-4 w-4" />
@@ -549,302 +561,399 @@ export default function VenueDetailPage() {
                   </>
                 )}
 
-                {/* Image Indicators */}
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
-                  {images.map((_, index) => (
-                    <button
-                      key={index}
-                      className={`w-2 h-2 rounded-full ${
-                        index === currentImageIndex ? "bg-white" : "bg-white/50"
-                      }`}
-                      onClick={() => setCurrentImageIndex(index)}
-                    />
-                  ))}
+                {/* Enhanced Image Indicators */}
+                {images.length > 1 && (
+                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 bg-black/20 px-3 py-2 rounded-full backdrop-blur-sm">
+                    {images.map((_, index) => (
+                      <button
+                        key={index}
+                        className={`w-2 h-2 rounded-full transition-colors duration-200 ${
+                          index === currentImageIndex ? "bg-white" : "bg-white/50"
+                        }`}
+                        onClick={() => setCurrentImageIndex(index)}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {/* Image Counter */}
+                {images.length > 1 && (
+                  <div className="absolute top-4 left-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm font-medium backdrop-blur-sm">
+                    {currentImageIndex + 1} / {images.length}
+                  </div>
+                )}
+              </div>
+            </Card>
+
+            {/* Enhanced Venue Info */}
+            <Card className="border-0 shadow-lg bg-white p-6 lg:p-8">
+              <div className="space-y-6">
+                {/* Header Section */}
+                <div>
+                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-4 leading-tight">
+                    {venue.name}
+                  </h1>
+
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 mb-6">
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <div className="w-5 h-5 bg-[#00884d]/10 rounded-full flex items-center justify-center">
+                        <MapPin className="h-3 w-3 text-[#00884d]" />
+                      </div>
+                      <span className="text-sm sm:text-base font-medium">{venue.address}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 bg-yellow-50 px-3 py-1 rounded-full">
+                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                        <span className="font-bold text-gray-900">{venue.rating}</span>
+                        <span className="text-sm text-gray-600">({venue.reviewCount} reviews)</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-gray-600 text-base sm:text-lg leading-relaxed">
+                    {venue.description}
+                  </p>
+                </div>
+
+                {/* Sports Section */}
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <div className="w-6 h-6 bg-[#00884d]/10 rounded-lg flex items-center justify-center">
+                      <span className="text-[#00884d] text-sm">🏃</span>
+                    </div>
+                    Available Sports
+                  </h3>
+                  <div className="flex flex-wrap gap-3">
+                    {venue.sports.map((sport) => (
+                      <Badge
+                        key={sport}
+                        className="bg-[#00884d]/10 text-[#00884d] border-[#00884d]/20 px-4 py-2 text-sm font-semibold"
+                      >
+                        {sport}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Amenities Section */}
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <div className="w-6 h-6 bg-[#00884d]/10 rounded-lg flex items-center justify-center">
+                      <span className="text-[#00884d] text-sm">✨</span>
+                    </div>
+                    Amenities & Facilities
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {venue.amenities.map((amenity) => {
+                      const Icon = amenityIcons[amenity];
+                      return (
+                        <div
+                          key={amenity}
+                          className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl"
+                        >
+                          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                            {Icon ? (
+                              <Icon className="h-4 w-4 text-[#00884d]" />
+                            ) : (
+                              <span className="text-[#00884d] text-sm">•</span>
+                            )}
+                          </div>
+                          <span className="text-sm font-medium text-gray-700">{amenity}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </Card>
 
-            {/* Venue Info */}
-            <div className="space-y-4">
-              <div>
-                <h1 className="text-3xl font-bold mb-2">{venue.name}</h1>
-                <div className="flex items-center gap-4 text-muted-foreground mb-4">
-                  <div className="flex items-center gap-1">
-                    <MapPin className="h-4 w-4" />
-                    {venue.address}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-medium">{venue.rating}</span>
-                    <span>({venue.reviewCount} reviews)</span>
-                  </div>
-                </div>
-                <p className="text-muted-foreground">{venue.description}</p>
-              </div>
-
-              {/* Sports */}
-              <div>
-                <h3 className="font-semibold mb-2">Available Sports</h3>
-                <div className="flex flex-wrap gap-2">
-                  {venue.sports.map((sport) => (
-                    <Badge key={sport} variant="secondary">
-                      {sport}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-
-              {/* Amenities */}
-              <div>
-                <h3 className="font-semibold mb-2">Amenities</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {venue.amenities.map((amenity) => {
-                    const Icon = amenityIcons[amenity];
-                    return (
-                      <div
-                        key={amenity}
-                        className="flex items-center gap-2 text-sm"
-                      >
-                        {Icon && (
-                          <Icon className="h-4 w-4 text-muted-foreground" />
-                        )}
-                        {amenity}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-
-            {/* Tabs */}
-            <Tabs defaultValue="courts" className="space-y-4">
-              <TabsList>
-                <TabsTrigger value="courts">Courts & Pricing</TabsTrigger>
-                <TabsTrigger value="reviews">
-                  Reviews ({venue.reviewCount})
-                </TabsTrigger>
-                <TabsTrigger value="info">Information</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="courts" className="space-y-4">
-                {venue.courts && venue.courts.length > 0 ? (
-                  venue.courts.map((court) => (
-                    <Card
-                      key={court.id}
-                      className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
-                        selectedCourtIdsArray.includes(court.id)
-                          ? "ring-2 ring-primary ring-offset-2 shadow-lg"
-                          : ""
-                      }`}
-                      onClick={() => handleCourtSelect(court.id)}
+            {/* Enhanced Tabs */}
+            <Card className="border-0 shadow-lg bg-white">
+              <Tabs defaultValue="courts" className="w-full">
+                <div className="border-b border-gray-100 px-6 pt-6">
+                  <TabsList className="grid w-full grid-cols-3 bg-gray-50 p-1 rounded-xl">
+                    <TabsTrigger
+                      value="courts"
+                      className="data-[state=active]:bg-white data-[state=active]:text-[#00884d] data-[state=active]:shadow-sm font-semibold"
                     >
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="checkbox"
-                                checked={selectedCourtIdsArray.includes(
-                                  court.id
-                                )}
-                                onChange={() => handleCourtSelect(court.id)}
-                                className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                              <CardTitle className="text-lg truncate">
-                                {court.name}
-                              </CardTitle>
-                              {selectedCourtIdsArray.includes(court.id) && (
-                                <Badge variant="default" className="text-xs">
-                                  Selected
-                                </Badge>
-                              )}
-                            </div>
-                            <CardDescription className="ml-6">
-                              {court.courtType}
-                            </CardDescription>
-                          </div>
-                          <div className="text-right">
-                            <div className="flex items-center gap-1 text-lg font-bold">
-                              <IndianRupee className="h-4 w-4" />
-                              {court.pricePerHour}
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              per hour
-                            </div>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2 text-sm">
-                              <span
-                                className={`inline-block w-2 h-2 rounded-full ${
-                                  court.isActive ? "bg-green-500" : "bg-red-500"
-                                }`}
-                              />
-                              <span>
-                                {court.isActive ? "Available" : "Unavailable"}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                              <Users className="h-3 w-3" />
-                              <span>
-                                Max {(court as any).capacity || 10} players
-                              </span>
-                            </div>
-                          </div>
+                      Courts & Pricing
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="reviews"
+                      className="data-[state=active]:bg-white data-[state=active]:text-[#00884d] data-[state=active]:shadow-sm font-semibold"
+                    >
+                      Reviews ({venue.reviewCount})
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="info"
+                      className="data-[state=active]:bg-white data-[state=active]:text-[#00884d] data-[state=active]:shadow-sm font-semibold"
+                    >
+                      Information
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
 
-                          {court.features && court.features.length > 0 && (
-                            <div>
-                              <h4 className="font-medium text-sm">Features:</h4>
-                              <div className="flex flex-wrap gap-1 mt-1">
-                                {court.features.map((feature, index) => (
-                                  <Badge
-                                    key={index}
-                                    variant="outline"
-                                    className="text-xs"
-                                  >
-                                    {feature}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </div>
-                          )}
+                <TabsContent value="courts" className="p-6 space-y-6">
+                  {venue.courts && venue.courts.length > 0 ? (
+                    <div className="space-y-4">
+                      <div className="mb-6">
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">Select Courts</h3>
+                        <p className="text-gray-600 text-sm">Choose one or more courts to view available time slots</p>
+                      </div>
 
-                          {/* Capacity Warning */}
-                          {memberCount > ((court as any).capacity || 10) && (
-                            <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 p-2 rounded">
-                              <AlertCircle className="h-4 w-4" />
-                              <span>
-                                Exceeds capacity (
-                                {(court as any).capacity || 10} max)
-                              </span>
-                            </div>
-                          )}
-
-                          <Button
-                            variant={
-                              selectedCourtIdsArray.includes(court.id)
-                                ? "default"
-                                : "outline"
-                            }
-                            size="sm"
-                            className="w-full"
-                            disabled={!court.isActive}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleCourtSelect(court.id);
-                            }}
-                          >
-                            {selectedCourtIdsArray.includes(court.id)
-                              ? "Selected"
-                              : "Select Court"}
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="text-4xl mb-4">🏟️</div>
-                    <h3 className="text-lg font-semibold mb-2">
-                      No courts available
-                    </h3>
-                    <p className="text-muted-foreground">
-                      This venue doesn't have any active courts at the moment.
-                    </p>
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="reviews" className="space-y-4">
-                {venue.reviews && venue.reviews.length > 0 ? (
-                  venue.reviews.map((review) => (
-                    <Card key={review.id}>
-                      <CardContent className="p-6">
-                        <div className="flex items-start gap-4">
-                          <Avatar>
-                            <AvatarImage src={review.user.image || undefined} />
-                            <AvatarFallback>
-                              {review.user.name.charAt(0)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between mb-2">
-                              <div>
-                                <h4 className="font-medium">
-                                  {review.user.name}
-                                </h4>
-                                <div className="flex items-center gap-1">
-                                  {Array.from({ length: 5 }).map((_, i) => (
-                                    <Star
-                                      key={i}
-                                      className={`h-4 w-4 ${
-                                        i < review.rating
-                                          ? "fill-yellow-400 text-yellow-400"
-                                          : "text-gray-300"
-                                      }`}
+                      {venue.courts.map((court) => (
+                        <Card
+                          key={court.id}
+                          className={`cursor-pointer border-2 ${
+                            selectedCourtIdsArray.includes(court.id)
+                              ? "border-[#00884d] bg-[#00884d]/5 shadow-lg"
+                              : "border-gray-200 bg-white"
+                          }`}
+                          onClick={() => handleCourtSelect(court.id)}
+                        >
+                          <CardHeader className="pb-4">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-2">
+                                  <div className="relative">
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedCourtIdsArray.includes(court.id)}
+                                      onChange={() => handleCourtSelect(court.id)}
+                                      className="h-5 w-5 text-[#00884d] focus:ring-[#00884d] border-gray-300 rounded"
+                                      onClick={(e) => e.stopPropagation()}
                                     />
-                                  ))}
+                                  </div>
+                                  <div>
+                                    <CardTitle className="text-xl font-bold text-gray-900">
+                                      {court.name}
+                                    </CardTitle>
+                                    <CardDescription className="text-gray-600 font-medium mt-1">
+                                      {court.courtType}
+                                    </CardDescription>
+                                  </div>
+                                  {selectedCourtIdsArray.includes(court.id) && (
+                                    <Badge className="bg-[#00884d] text-white border-0 ml-auto">
+                                      ✓ Selected
+                                    </Badge>
+                                  )}
                                 </div>
                               </div>
-                              <span className="text-sm text-muted-foreground">
-                                {new Date(
-                                  review.createdAt
-                                ).toLocaleDateString()}
-                              </span>
+
+                              <div className="text-right ml-4">
+                                <div className="flex items-center gap-1 text-2xl font-bold text-[#00884d]">
+                                  <IndianRupee className="h-5 w-5" />
+                                  {court.pricePerHour}
+                                </div>
+                                <div className="text-sm text-gray-500 font-medium">
+                                  per hour
+                                </div>
+                              </div>
                             </div>
-                            <p className="text-sm mb-2">{review.comment}</p>
+                          </CardHeader>
+                          <CardContent className="pt-0">
+                            <div className="space-y-4">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
+                                    court.isActive
+                                      ? "bg-green-100 text-green-700"
+                                      : "bg-red-100 text-red-700"
+                                  }`}>
+                                    <span className={`w-2 h-2 rounded-full ${
+                                      court.isActive ? "bg-green-500" : "bg-red-500"
+                                    }`} />
+                                    {court.isActive ? "Available" : "Unavailable"}
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">
+                                  <Users className="h-4 w-4 text-gray-600" />
+                                  <span className="text-sm font-medium text-gray-700">
+                                    Max {(court as any).capacity || 10} players
+                                  </span>
+                                </div>
+                              </div>
+
+                              {court.features && court.features.length > 0 && (
+                                <div>
+                                  <h4 className="font-semibold text-gray-900 mb-2">Court Features:</h4>
+                                  <div className="flex flex-wrap gap-2">
+                                    {court.features.map((feature, index) => (
+                                      <Badge
+                                        key={index}
+                                        variant="outline"
+                                        className="border-[#00884d]/20 text-[#00884d] bg-[#00884d]/5 text-xs"
+                                      >
+                                        {feature}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Enhanced Capacity Warning */}
+                              {memberCount > ((court as any).capacity || 10) && (
+                                <div className="flex items-center gap-3 text-sm text-red-700 bg-red-50 p-4 rounded-xl border border-red-200">
+                                  <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                                    <AlertCircle className="h-4 w-4 text-red-600" />
+                                  </div>
+                                  <div>
+                                    <p className="font-semibold">Capacity Exceeded</p>
+                                    <p className="text-xs text-red-600">
+                                      This court has a maximum capacity of {(court as any).capacity || 10} players
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+
+                              <Button
+                                variant={selectedCourtIdsArray.includes(court.id) ? "default" : "outline"}
+                                size="lg"
+                                className={`w-full font-semibold ${
+                                  selectedCourtIdsArray.includes(court.id)
+                                    ? "bg-[#00884d] text-white"
+                                    : "border-[#00884d] text-[#00884d]"
+                                }`}
+                                disabled={!court.isActive}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCourtSelect(court.id);
+                                }}
+                              >
+                                {selectedCourtIdsArray.includes(court.id)
+                                  ? "✓ Court Selected"
+                                  : "Select This Court"}
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                      <div className="text-center py-12">
+                        <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                          <span className="text-4xl">🏟️</span>
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">
+                          No courts available
+                        </h3>
+                        <p className="text-gray-600 max-w-md mx-auto">
+                          This venue doesn't have any active courts at the moment. Please check back later or contact the venue directly.
+                        </p>
+                      </div>
+                    )}
+                </TabsContent>
+
+                <TabsContent value="reviews" className="p-6 space-y-6">
+                  {venue.reviews && venue.reviews.length > 0 ? (
+                    <div className="space-y-4">
+                      {venue.reviews.map((review) => (
+                        <Card key={review.id} className="border-0 shadow-sm bg-gray-50">
+                          <CardContent className="p-6">
+                            <div className="flex items-start gap-4">
+                              <Avatar className="w-12 h-12 border-2 border-white shadow-sm">
+                                <AvatarImage src={review.user.image || undefined} />
+                                <AvatarFallback className="bg-[#00884d] text-white font-bold">
+                                  {review.user.name.charAt(0)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1">
+                                <div className="flex items-center justify-between mb-3">
+                                  <div>
+                                    <h4 className="font-bold text-gray-900">
+                                      {review.user.name}
+                                    </h4>
+                                    <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-full mt-1">
+                                      {Array.from({ length: 5 }).map((_, i) => (
+                                        <Star
+                                          key={i}
+                                          className={`h-3 w-3 ${
+                                            i < review.rating
+                                              ? "fill-yellow-400 text-yellow-400"
+                                              : "text-gray-300"
+                                          }`}
+                                        />
+                                      ))}
+                                    </div>
+                                  </div>
+                                  <span className="text-sm text-gray-500 font-medium">
+                                    {new Date(review.createdAt).toLocaleDateString()}
+                                  </span>
+                                </div>
+                                <p className="text-gray-700 leading-relaxed">{review.comment}</p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <span className="text-4xl">💬</span>
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">No reviews yet</h3>
+                      <p className="text-gray-600 max-w-md mx-auto">
+                        Be the first to review this venue and help other players make informed decisions!
+                      </p>
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="info" className="p-6 space-y-6">
+                  <Card className="border-0 shadow-sm bg-white">
+                    <CardHeader className="pb-4">
+                      <CardTitle className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                        <div className="w-6 h-6 bg-[#00884d]/10 rounded-lg flex items-center justify-center">
+                          <Phone className="h-4 w-4 text-[#00884d]" />
+                        </div>
+                        Contact Information
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="grid gap-6">
+                        <div className="flex items-start gap-4">
+                          <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
+                            <MapPin className="h-5 w-5 text-gray-600" />
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-gray-900 mb-1">Address</h4>
+                            <p className="text-gray-600 leading-relaxed">
+                              {venue.address}
+                            </p>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="text-4xl mb-4">💬</div>
-                    <h3 className="text-lg font-semibold mb-2">
-                      No reviews yet
-                    </h3>
-                    <p className="text-muted-foreground">
-                      Be the first to review this venue!
-                    </p>
-                  </div>
-                )}
-              </TabsContent>
 
-              <TabsContent value="info" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Contact Information</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid gap-4">
-                      <div>
-                        <h4 className="font-medium mb-1">Address</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {venue.address}
-                        </p>
-                      </div>
-                      {venue.owner.email && (
-                        <div>
-                          <h4 className="font-medium mb-1">Email</h4>
-                          <p className="text-sm text-muted-foreground">
-                            {venue.owner.email}
-                          </p>
+                        {venue.owner.email && (
+                          <div className="flex items-start gap-4">
+                            <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
+                              <Mail className="h-5 w-5 text-gray-600" />
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-gray-900 mb-1">Email</h4>
+                              <p className="text-gray-600">
+                                {venue.owner.email}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="flex items-start gap-4">
+                          <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
+                            <Users className="h-5 w-5 text-gray-600" />
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-gray-900 mb-1">Venue Owner</h4>
+                            <p className="text-gray-600">
+                              {venue.owner.name}
+                            </p>
+                          </div>
                         </div>
-                      )}
-                      <div>
-                        <h4 className="font-medium mb-1">Owner</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {venue.owner.name}
-                        </p>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
 
                 <Card>
                   <CardHeader>
@@ -893,7 +1002,8 @@ export default function VenueDetailPage() {
                 </Card>
               </TabsContent>
             </Tabs>
-          </div>
+          </Card>
+        </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
