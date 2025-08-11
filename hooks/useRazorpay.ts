@@ -56,6 +56,25 @@ export function useRazorpay() {
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Helper function to ensure body pointer events are restored
+  const restoreBodyPointerEvents = () => {
+    if (typeof window !== "undefined") {
+      // Remove pointer-events: none from body
+      document.body.style.pointerEvents = "";
+      document.body.style.overflow = "";
+
+      // Also check for any Razorpay overlay elements and remove them
+      const overlays = document.querySelectorAll('[id*="razorpay"], [class*="razorpay"]');
+      overlays.forEach(overlay => {
+        if (overlay.parentNode) {
+          overlay.parentNode.removeChild(overlay);
+        }
+      });
+
+      console.log("🔧 [RAZORPAY HOOK] Body pointer events restored");
+    }
+  };
+
   // Load Razorpay script
   const loadRazorpayScript = (): Promise<boolean> => {
     return new Promise((resolve) => {
@@ -189,6 +208,8 @@ export function useRazorpay() {
         order_id: orderResult.order.id,
         handler: async (response: RazorpayResponse) => {
           try {
+            console.log("💳 [RAZORPAY HOOK] Payment completed, verifying...");
+
             // Verify payment
             const verificationResult = await verifyPayment({
               razorpay_order_id: response.razorpay_order_id,
@@ -196,10 +217,22 @@ export function useRazorpay() {
               razorpay_signature: response.razorpay_signature,
             });
 
+            // Restore body pointer events after successful payment
+            setTimeout(() => {
+              restoreBodyPointerEvents();
+            }, 100);
+
             if (onSuccess) {
               onSuccess(verificationResult);
             }
           } catch (error) {
+            console.error("❌ [RAZORPAY HOOK] Payment verification failed:", error);
+
+            // Restore body pointer events after failed payment
+            setTimeout(() => {
+              restoreBodyPointerEvents();
+            }, 100);
+
             if (onFailure) {
               onFailure(error);
             }
@@ -224,6 +257,12 @@ export function useRazorpay() {
         modal: {
           ondismiss: () => {
             console.log("💳 [RAZORPAY HOOK] Payment modal dismissed");
+
+            // Restore body pointer events when modal is dismissed
+            setTimeout(() => {
+              restoreBodyPointerEvents();
+            }, 100);
+
             toast.error("Payment cancelled");
             if (onFailure) {
               onFailure(new Error("Payment cancelled by user"));
@@ -238,6 +277,12 @@ export function useRazorpay() {
 
     } catch (error) {
       console.error("❌ [RAZORPAY HOOK] Payment process failed:", error);
+
+      // Restore body pointer events on any error
+      setTimeout(() => {
+        restoreBodyPointerEvents();
+      }, 100);
+
       toast.error(error instanceof Error ? error.message : "Payment failed");
       if (onFailure) {
         onFailure(error);
@@ -249,6 +294,7 @@ export function useRazorpay() {
     processPayment,
     createOrder,
     verifyPayment,
+    restoreBodyPointerEvents,
     isLoading,
     isProcessing,
   };

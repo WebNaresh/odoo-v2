@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -76,6 +76,7 @@ export function BookingConfirmationDialog({
   const conflictCheckMutation = useBookingConflictCheck();
   const {
     processPayment,
+    restoreBodyPointerEvents,
     isLoading: isPaymentLoading,
     isProcessing: isPaymentProcessing,
   } = useRazorpay();
@@ -84,8 +85,33 @@ export function BookingConfirmationDialog({
     setStep("confirm");
     setNotes("");
     setPlayerCount(initialPlayerCount);
+
+    // Ensure body pointer events are restored when dialog closes
+    setTimeout(() => {
+      restoreBodyPointerEvents();
+    }, 100);
+
     onClose();
   };
+
+  // Cleanup effect when component unmounts or dialog state changes
+  useEffect(() => {
+    return () => {
+      // Cleanup when component unmounts
+      setTimeout(() => {
+        restoreBodyPointerEvents();
+      }, 100);
+    };
+  }, [restoreBodyPointerEvents]);
+
+  // Also restore pointer events when dialog closes
+  useEffect(() => {
+    if (!isOpen) {
+      setTimeout(() => {
+        restoreBodyPointerEvents();
+      }, 200);
+    }
+  }, [isOpen, restoreBodyPointerEvents]);
 
   const handleConfirmBooking = async () => {
     if (!timeSlot || !session?.user) return;
