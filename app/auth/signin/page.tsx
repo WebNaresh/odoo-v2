@@ -14,12 +14,24 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import {
   Loader2,
   Users,
   Building2,
   ArrowLeft,
   CheckCircle,
+  Play,
+  Star,
+  MapPin,
 } from "lucide-react";
+import Image from "next/image";
+import Autoplay from "embla-carousel-autoplay";
 
 type AuthStep = "signin" | "role-selection" | "completing";
 type UserRole = "USER" | "FACILITY_OWNER";
@@ -30,6 +42,38 @@ interface RoleOption {
   description: string;
   icon: React.ComponentType<{ className?: string }>;
 }
+
+interface CarouselSlide {
+  id: number;
+  image: string;
+  title: string;
+  description: string;
+  features: string[];
+}
+
+const carouselSlides: CarouselSlide[] = [
+  {
+    id: 1,
+    image: "/sports-center.jpg",
+    title: "Premium Sports Facilities",
+    description: "Book world-class sports venues with state-of-the-art equipment and professional-grade facilities.",
+    features: ["Professional Equipment", "Modern Facilities", "Expert Staff"]
+  },
+  {
+    id: 2,
+    image: "/indoors-tennis-court.jpg",
+    title: "Indoor Tennis Courts",
+    description: "Experience premium indoor tennis courts with perfect lighting and climate control for year-round play.",
+    features: ["Climate Controlled", "Professional Courts", "Equipment Rental"]
+  },
+  {
+    id: 3,
+    image: "/empty-stadium-day.jpg",
+    title: "Stadium Experiences",
+    description: "Access to premium stadium facilities for tournaments, events, and professional training sessions.",
+    features: ["Tournament Ready", "Large Capacity", "Event Hosting"]
+  }
+];
 
 export default function SignIn() {
   const [loading, setLoading] = useState(false);
@@ -336,20 +380,31 @@ export default function SignIn() {
 
   // Render sign-in step
   const renderSignIn = () => (
-    <div className="w-full max-w-md">
+    <div className="w-full max-w-md mx-auto">
+      {/* Mobile Logo - only visible on small screens */}
+      <div className="lg:hidden text-center mb-8">
+        <div className="flex items-center justify-center space-x-3 mb-6">
+          <div className="h-12 w-12 rounded-xl bg-[#00884d] flex items-center justify-center shadow-lg">
+            <span className="text-white font-bold text-xl">QC</span>
+          </div>
+          <span className="font-bold text-3xl text-foreground">QuickCourt</span>
+        </div>
+      </div>
+
       <div className="text-center mb-8">
-        <h1 className="text-2xl sm:text-3xl font-semibold mb-2">
-          Welcome to QuickCourt
+        <h1 className="text-3xl lg:text-4xl font-bold mb-3 bg-gradient-to-r from-[#00884d] to-[#00a855] bg-clip-text text-transparent">
+          Welcome Back
         </h1>
-        <p className="text-foreground/70">
-          Sign in to book sports venues or manage your venue
+        <p className="text-lg text-muted-foreground">
+          Sign in to access your sports booking platform
         </p>
       </div>
 
-      <Card>
-        <CardContent className="p-6 sm:p-8">
+      <Card className="border-0 shadow-2xl bg-card/50 backdrop-blur-sm">
+        <CardContent className="p-8">
           {error && (
-            <div className="mb-6 rounded-md bg-red-500/10 text-red-600 dark:text-red-400 ring-1 ring-red-500/20 px-3 py-2 text-sm">
+            <div className="mb-6 rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 ring-1 ring-red-500/20 px-4 py-3 text-sm flex items-center gap-2">
+              <div className="h-4 w-4 rounded-full bg-red-500 flex-shrink-0" />
               {error}
             </div>
           )}
@@ -357,19 +412,13 @@ export default function SignIn() {
           <Button
             onClick={handleGoogleSignIn}
             disabled={loading}
-            className="w-full"
-            size="lg"
+            className="w-full h-14 text-base font-semibold bg-white hover:bg-gray-50 text-gray-900 border-2 border-gray-200 hover:border-gray-300 shadow-lg hover:shadow-xl transition-all duration-200 group"
+            variant="outline"
           >
             {loading ? (
-              <Loader2 className="h-5 w-5 mr-3 animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin mr-3" />
             ) : (
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                className="mr-3"
-              >
+              <svg className="h-6 w-6 mr-3 group-hover:scale-110 transition-transform duration-200" viewBox="0 0 24 24">
                 <path
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                   fill="#4285F4"
@@ -391,18 +440,18 @@ export default function SignIn() {
             {loading ? "Signing in..." : "Continue with Google"}
           </Button>
 
-          <div className="my-6 flex items-center">
-            <div className="flex-1 border-t border-border"></div>
-            <span className="px-3 text-xs text-muted-foreground uppercase tracking-wide">
+          <div className="my-8 flex items-center">
+            <div className="flex-1 border-t border-border/50"></div>
+            <span className="px-4 text-sm text-muted-foreground font-medium bg-background">
               Or
             </span>
-            <div className="flex-1 border-t border-border"></div>
+            <div className="flex-1 border-t border-border/50"></div>
           </div>
 
           <Button
             variant="outline"
             onClick={() => router.push("/")}
-            className="w-full"
+            className="w-full h-12 border-2 hover:bg-muted/50 transition-all duration-200"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Home
@@ -411,18 +460,124 @@ export default function SignIn() {
       </Card>
 
       <div className="mt-8 text-center">
-        <p className="text-xs text-muted-foreground">
-          By signing in, you agree to our terms of service and privacy policy.
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          By signing in, you agree to our{" "}
+          <span className="text-[#00884d] hover:underline cursor-pointer font-medium">
+            terms of service
+          </span>{" "}
+          and{" "}
+          <span className="text-[#00884d] hover:underline cursor-pointer font-medium">
+            privacy policy
+          </span>
+          .
         </p>
+      </div>
+
+      {/* Features highlight for mobile */}
+      <div className="lg:hidden mt-12 grid grid-cols-3 gap-4 text-center">
+        <div className="space-y-2">
+          <div className="h-12 w-12 rounded-full bg-[#00884d]/10 flex items-center justify-center mx-auto">
+            <Play className="h-6 w-6 text-[#00884d]" />
+          </div>
+          <p className="text-xs font-medium text-muted-foreground">Easy Booking</p>
+        </div>
+        <div className="space-y-2">
+          <div className="h-12 w-12 rounded-full bg-[#00884d]/10 flex items-center justify-center mx-auto">
+            <MapPin className="h-6 w-6 text-[#00884d]" />
+          </div>
+          <p className="text-xs font-medium text-muted-foreground">Find Venues</p>
+        </div>
+        <div className="space-y-2">
+          <div className="h-12 w-12 rounded-full bg-[#00884d]/10 flex items-center justify-center mx-auto">
+            <Star className="h-6 w-6 text-[#00884d]" />
+          </div>
+          <p className="text-xs font-medium text-muted-foreground">Top Quality</p>
+        </div>
       </div>
     </div>
   );
 
+  // Image Carousel Component
+  const ImageCarousel = () => (
+    <div className="relative h-full w-full">
+      <Carousel
+        opts={{
+          align: "start",
+          loop: true,
+        }}
+        plugins={[
+          Autoplay({
+            delay: 4000,
+          }),
+        ]}
+        className="h-full w-full"
+      >
+        <CarouselContent className="h-full">
+          {carouselSlides.map((slide) => (
+            <CarouselItem key={slide.id} className="h-full">
+              <div className="relative h-full w-full">
+                <Image
+                  src={slide.image}
+                  alt={slide.title}
+                  fill
+                  className="object-cover"
+                  priority={slide.id === 1}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
+                  <h3 className="text-2xl font-bold mb-3">{slide.title}</h3>
+                  <p className="text-lg mb-4 opacity-90">{slide.description}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {slide.features.map((feature, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 text-sm"
+                      >
+                        <Star className="h-3 w-3" />
+                        {feature}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+        <CarouselPrevious className="left-4 bg-white/20 backdrop-blur-sm border-white/30 text-white hover:bg-white/30" />
+        <CarouselNext className="right-4 bg-white/20 backdrop-blur-sm border-white/30 text-white hover:bg-white/30" />
+      </Carousel>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-6">
-      {authStep === "role-selection" && renderRoleSelection()}
-      {authStep === "completing" && renderCompleting()}
-      {authStep === "signin" && renderSignIn()}
+    <div className="min-h-screen bg-background text-foreground">
+      {authStep === "signin" ? (
+        <div className="grid lg:grid-cols-2 min-h-screen">
+          {/* Left side - Image Carousel */}
+          <div className="hidden lg:block relative">
+            <ImageCarousel />
+            {/* QuickCourt Logo Overlay */}
+            <div className="absolute top-8 left-8 z-10">
+              <div className="flex items-center space-x-3">
+                <div className="h-10 w-10 rounded-xl bg-[#00884d] flex items-center justify-center shadow-lg">
+                  <span className="text-white font-bold text-lg">QC</span>
+                </div>
+                <span className="font-bold text-2xl text-white drop-shadow-lg">QuickCourt</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right side - Sign in form */}
+          <div className="flex items-center justify-center p-6 lg:p-12">
+            {renderSignIn()}
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center justify-center min-h-screen p-6">
+          {authStep === "role-selection" && renderRoleSelection()}
+          {authStep === "completing" && renderCompleting()}
+        </div>
+      )}
     </div>
   );
 }
