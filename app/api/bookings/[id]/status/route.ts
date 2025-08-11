@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth";
 
 export async function GET(
   request: NextRequest,
@@ -92,11 +92,11 @@ export async function GET(
     const now = new Date();
     const bookingTime = new Date(booking.startTime);
     const endTime = new Date(booking.endTime);
-    
+
     const isUpcoming = bookingTime > now;
     const isOngoing = now >= bookingTime && now <= endTime;
     const isPast = endTime < now;
-    
+
     const timeDiff = bookingTime.getTime() - now.getTime();
     const hoursDiff = timeDiff / (1000 * 60 * 60);
     const canCancel = isUpcoming && hoursDiff > 2 && booking.status !== 'CANCELLED';
@@ -115,20 +115,20 @@ export async function GET(
       refundAmount: booking.refundAmount,
       createdAt: booking.createdAt,
       updatedAt: booking.updatedAt,
-      
+
       // Booking timing
       bookingDate: booking.bookingDate,
       startTime: booking.startTime,
       endTime: booking.endTime,
       duration: booking.duration,
-      
+
       // Status flags
       isUpcoming,
       isOngoing,
       isPast,
       canCancel,
       hoursUntilBooking: Math.max(0, hoursDiff),
-      
+
       // Venue and court info
       venue: {
         id: booking.court.venue.id,
@@ -140,14 +140,14 @@ export async function GET(
         name: booking.court.name,
         courtType: booking.court.courtType,
       },
-      
+
       // Time slot info
       timeSlot: booking.timeSlot ? {
         id: booking.timeSlot.id,
         status: booking.timeSlot.status,
         isAvailable: booking.timeSlot.isAvailable,
       } : null,
-      
+
       // User info (for admin)
       user: session.user.role === 'ADMIN' ? {
         id: booking.user.id,
