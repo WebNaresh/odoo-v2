@@ -61,11 +61,11 @@ export const authOptions: NextAuthOptions = {
             }
             return true;
         },
-        async jwt({ token, account, profile }) {
-            if (account?.provider === "google" && profile?.sub) {
-                // Get complete user object from database
+        async jwt({ token, account, profile, trigger }) {
+            // Always fetch fresh user data from database to ensure we have the latest role
+            if (token.email) {
                 const dbUser = await prisma.user.findUnique({
-                    where: { googleId: profile.sub },
+                    where: { email: token.email },
                 });
 
                 if (dbUser) {
@@ -79,13 +79,17 @@ export const authOptions: NextAuthOptions = {
                     token.role = dbUser.role;
                     token.createdAt = dbUser.createdAt;
                     token.updatedAt = dbUser.updatedAt;
-
-                    // Include new user flag from account
-                    if (account && (account as any).isNewUser !== undefined) {
-                        token.isNewUser = (account as any).isNewUser;
-                    }
                 }
             }
+
+            // Handle initial sign-in
+            if (account?.provider === "google" && profile?.sub) {
+                // Include new user flag from account
+                if (account && (account as any).isNewUser !== undefined) {
+                    token.isNewUser = (account as any).isNewUser;
+                }
+            }
+
             return token;
         },
         async session({ session, token }) {

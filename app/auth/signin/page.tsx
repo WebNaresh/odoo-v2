@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { signIn, getSession } from "next-auth/react";
+import { signIn, getSession, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -185,7 +185,33 @@ export default function SignIn() {
         throw new Error("Failed to update role");
       }
 
-      router.push("/");
+      // Force session refresh to get updated user data with new role
+      // Clear the session cache and fetch fresh data
+      await getSession({ event: "storage" });
+
+      // Wait a moment for the session to be fully updated
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      // Get the session again to ensure we have the latest data with updated role
+      const finalSession = await getSession();
+
+      console.log("Updated session after role selection:", finalSession);
+
+      // Verify the role was updated correctly
+      if (finalSession?.user?.role !== selectedRole) {
+        console.warn("Session role doesn't match selected role, retrying...");
+        // Try one more time with a longer delay
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        const retrySession = await getSession();
+        console.log("Retry session:", retrySession);
+      }
+
+      // Redirect based on user role and if they're new
+      if (selectedRole === "FACILITY_OWNER" && isNewUser) {
+        router.push("/owner/facilities/new");
+      } else {
+        router.push("/");
+      }
     } catch (err) {
       console.error("Role selection error:", err);
       setError("Failed to update your role. Please try again.");

@@ -10,17 +10,10 @@ const adminRoutes = [
 
 const facilityOwnerRoutes = [
   "/dashboard/owner",
-  // "/dashboard/owner/:path*",
-  // "/dashboard/facilities",
-  // "/dashboard/facilities/:path*",
-  // "/dashboard/courts",
-  // "/dashboard/courts/:path*",
-  // "/dashboard/schedule",
-  // "/dashboard/schedule/:path*",
-  // "/dashboard/reviews",
-  // "/dashboard/reviews/:path*",
-  // "/dashboard/payments",
-  // "/dashboard/payments/:path*",
+  "/dashboard/owner/:path*",
+  "/owner",
+  "/owner/:path*",
+  "/api/owner/:path*",
 ];
 
 const userRoutes = [
