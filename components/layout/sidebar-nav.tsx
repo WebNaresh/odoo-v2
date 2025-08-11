@@ -40,7 +40,7 @@ const facilityOwnerNavItems: SidebarNavItem[] = [
     title: "Owner Portal",
     href: "/owner",
     icon: Settings,
-    roles: ["FACILITY_OWNER", "ADMIN"],
+    roles: ["FACILITY_OWNER"],
   },
 ];
 
