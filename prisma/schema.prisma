@@ -92,7 +92,11 @@ model Court {
   courtType      String
   venueId        String   @db.ObjectId
   pricePerHour   Float
+  capacity       Int      @default(10)
   operatingHours Json
+  slotConfig     Json? // Available booking time slots configuration
+  excludedTimes  Json? // Break periods (lunch, maintenance, etc.)
+  slotDuration   Int      @default(60) // Duration in minutes
   isActive       Boolean  @default(true)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
