@@ -43,13 +43,13 @@ export default function SignIn() {
     {
       value: "USER",
       label: "User",
-      description: "Book sports facilities and manage your reservations",
+      description: "Book sports venues and manage your reservations",
       icon: Users,
     },
     {
       value: "FACILITY_OWNER",
       label: "Facility Owner",
-      description: "List your sports facilities and manage bookings",
+      description: "List your sports venues and manage bookings",
       icon: Building2,
     },
   ];
@@ -209,7 +209,7 @@ export default function SignIn() {
 
       // Redirect based on user role and if they're new
       if (selectedRole === "FACILITY_OWNER" && isNewUser) {
-        router.push("/owner/facilities/new");
+        router.push("/owner/venues/new");
       } else {
         router.push("/");
       }
@@ -342,7 +342,7 @@ export default function SignIn() {
           Welcome to QuickCourt
         </h1>
         <p className="text-foreground/70">
-          Sign in to book sports facilities or manage your venue
+          Sign in to book sports venues or manage your venue
         </p>
       </div>
 

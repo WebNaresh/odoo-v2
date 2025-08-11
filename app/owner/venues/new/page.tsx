@@ -17,7 +17,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import InputField from "@/components/AppInputFields/InputField";
 import {
@@ -32,37 +31,32 @@ import {
   X,
   User,
   FileText,
-  Globe,
 } from "lucide-react";
 import {
   createVenueSchema,
   type CreateVenueData,
-  type Sport,
   AVAILABLE_AMENITIES,
 } from "@/types/venue";
 
 interface VenueFormData extends Omit<CreateVenueData, "photoUrls"> {
   photos: FileList | null;
-  latitude?: number;
-  longitude?: number;
 }
 
 export default function NewVenuePage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [sports, setSports] = useState<Sport[]>([]);
-  const [loadingSports, setLoadingSports] = useState(true);
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
 
   const form = useForm<VenueFormData>({
-    resolver: zodResolver(createVenueSchema.omit({ photoUrls: true })),
+    resolver: zodResolver(
+      createVenueSchema.omit({ photoUrls: true, sportIds: true })
+    ),
     defaultValues: {
       name: "",
       description: "",
       address: "",
       amenities: [],
-      sportIds: [],
       operatingHours: {
         monday: { isOpen: true, openTime: "06:00", closeTime: "22:00" },
         tuesday: { isOpen: true, openTime: "06:00", closeTime: "22:00" },
@@ -85,30 +79,6 @@ export default function NewVenuePage() {
   } = form;
 
   const watchedAmenities = watch("amenities");
-  const watchedSportIds = watch("sportIds");
-
-  // Fetch available sports
-  useEffect(() => {
-    const fetchSports = async () => {
-      try {
-        const response = await fetch("/api/sports");
-        const data = await response.json();
-
-        if (data.success) {
-          setSports(data.sports);
-        } else {
-          toast.error("Failed to load sports");
-        }
-      } catch (error) {
-        console.error("Error fetching sports:", error);
-        toast.error("Failed to load sports");
-      } finally {
-        setLoadingSports(false);
-      }
-    };
-
-    fetchSports();
-  }, []);
 
   // Handle photo upload
   const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -170,19 +140,6 @@ export default function NewVenuePage() {
     }
   };
 
-  // Handle sport selection
-  const handleSportChange = (sportId: string, checked: boolean) => {
-    const currentSports = watchedSportIds || [];
-    if (checked) {
-      setValue("sportIds", [...currentSports, sportId]);
-    } else {
-      setValue(
-        "sportIds",
-        currentSports.filter((id) => id !== sportId)
-      );
-    }
-  };
-
   // Handle operating hours change
   const handleOperatingHoursChange = (
     day: keyof CreateVenueData["operatingHours"],
@@ -212,15 +169,8 @@ export default function NewVenuePage() {
         name: data.name,
         description: data.description || undefined,
         address: data.address,
-        location:
-          data.latitude && data.longitude
-            ? {
-                type: "Point",
-                coordinates: [data.longitude, data.latitude],
-              }
-            : undefined,
         amenities: data.amenities,
-        sportIds: data.sportIds,
+        sportIds: [], // Will be set up later when configuring courts
         operatingHours: data.operatingHours,
         photoUrls,
       };
@@ -237,7 +187,7 @@ export default function NewVenuePage() {
 
       if (result.success) {
         toast.success("Venue created successfully!");
-        router.push("/owner/facilities");
+        router.push("/owner/venues");
       } else {
         toast.error(result.error || "Failed to create venue");
       }
@@ -266,10 +216,10 @@ export default function NewVenuePage() {
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
               <Building2 className="h-8 w-8 text-primary" />
-              Add New Facility
+              Add New Venue
             </h1>
             <p className="text-muted-foreground">
-              Create a new sports facility to start accepting bookings
+              Create a new sports venue to start accepting bookings
             </p>
           </div>
         </div>
@@ -281,14 +231,14 @@ export default function NewVenuePage() {
               <CardHeader>
                 <CardTitle>Basic Information</CardTitle>
                 <CardDescription>
-                  Provide the essential details about your sports facility
+                  Provide the essential details about your sports venue
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <InputField
                     name="name"
-                    label="Facility Name"
+                    label="Venue Name"
                     type="text"
                     placeholder="e.g., Elite Sports Complex"
                     Icon={Building2}
@@ -311,81 +261,10 @@ export default function NewVenuePage() {
                   name="description"
                   label="Description"
                   type="text-area"
-                  placeholder="Describe your facility, its features, and what makes it special..."
+                  placeholder="Describe your venue, its features, and what makes it special..."
                   Icon={FileText}
                   className="max-w-none"
                 />
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <InputField
-                    name="latitude"
-                    label="Latitude (Optional)"
-                    type="number"
-                    placeholder="e.g., 19.0760"
-                    Icon={Globe}
-                    className="max-w-none"
-                  />
-
-                  <InputField
-                    name="longitude"
-                    label="Longitude (Optional)"
-                    type="number"
-                    placeholder="e.g., 72.8777"
-                    Icon={Globe}
-                    className="max-w-none"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Sports Selection */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Sports Offered</CardTitle>
-                <CardDescription>
-                  Select the sports that will be available at your facility
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {loadingSports ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin" />
-                    <span className="ml-2">Loading sports...</span>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {sports.map((sport) => (
-                      <div
-                        key={sport.id}
-                        className="flex items-center space-x-2"
-                      >
-                        <Checkbox
-                          id={`sport-${sport.id}`}
-                          checked={watchedSportIds?.includes(sport.id) || false}
-                          onCheckedChange={(checked) =>
-                            handleSportChange(sport.id, checked as boolean)
-                          }
-                        />
-                        <Label
-                          htmlFor={`sport-${sport.id}`}
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                        >
-                          {sport.name}
-                          {sport.isPopular && (
-                            <Badge variant="secondary" className="ml-1 text-xs">
-                              Popular
-                            </Badge>
-                          )}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {errors.sportIds && (
-                  <p className="text-sm text-red-500 mt-2">
-                    {errors.sportIds.message}
-                  </p>
-                )}
               </CardContent>
             </Card>
 
@@ -394,7 +273,7 @@ export default function NewVenuePage() {
               <CardHeader>
                 <CardTitle>Amenities</CardTitle>
                 <CardDescription>
-                  Select the amenities available at your facility
+                  Select the amenities available at your venue
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -512,7 +391,7 @@ export default function NewVenuePage() {
               <CardHeader>
                 <CardTitle>Photos</CardTitle>
                 <CardDescription>
-                  Upload photos of your facility (maximum 10 photos, 5MB each)
+                  Upload photos of your venue (maximum 10 photos, 5MB each)
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -587,12 +466,12 @@ export default function NewVenuePage() {
                 {isLoading ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Creating Facility...
+                    Creating Venue...
                   </>
                 ) : (
                   <>
                     <CheckCircle className="h-4 w-4" />
-                    Create Facility
+                    Create Venue
                   </>
                 )}
               </Button>

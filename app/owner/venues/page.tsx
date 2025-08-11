@@ -29,7 +29,7 @@ import {
 import { toast } from "react-hot-toast";
 import { type Venue } from "@/types/venue";
 
-export default function FacilitiesPage() {
+export default function VenuesPage() {
   const router = useRouter();
   const [venues, setVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,11 +45,11 @@ export default function FacilitiesPage() {
         if (data.success) {
           setVenues(data.venues);
         } else {
-          toast.error("Failed to load facilities");
+          toast.error("Failed to load venues");
         }
       } catch (error) {
         console.error("Error fetching venues:", error);
-        toast.error("Failed to load facilities");
+        toast.error("Failed to load venues");
       } finally {
         setLoading(false);
       }
@@ -78,15 +78,15 @@ export default function FacilitiesPage() {
   };
 
   const handleViewVenue = (venueId: string) => {
-    router.push(`/owner/facilities/${venueId}`);
+    router.push(`/owner/venues/${venueId}`);
   };
 
   const handleEditVenue = (venueId: string) => {
-    router.push(`/owner/facilities/${venueId}/edit`);
+    router.push(`/owner/venues/${venueId}/edit`);
   };
 
   const handleDeleteVenue = async (venueId: string) => {
-    if (!confirm("Are you sure you want to delete this facility? This action cannot be undone.")) {
+    if (!confirm("Are you sure you want to delete this venue? This action cannot be undone.")) {
       return;
     }
 
@@ -98,14 +98,14 @@ export default function FacilitiesPage() {
       const data = await response.json();
 
       if (data.success) {
-        toast.success("Facility deleted successfully");
+        toast.success("Venue deleted successfully");
         setVenues(venues.filter(venue => venue.id !== venueId));
       } else {
-        toast.error(data.error || "Failed to delete facility");
+        toast.error(data.error || "Failed to delete venue");
       }
     } catch (error) {
       console.error("Error deleting venue:", error);
-      toast.error("Failed to delete facility");
+      toast.error("Failed to delete venue");
     }
   };
 
@@ -115,7 +115,7 @@ export default function FacilitiesPage() {
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin" />
-            <span className="ml-2 text-lg">Loading facilities...</span>
+            <span className="ml-2 text-lg">Loading venues...</span>
           </div>
         </div>
       </div>
@@ -130,19 +130,19 @@ export default function FacilitiesPage() {
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
               <Building2 className="h-8 w-8 text-primary" />
-              My Facilities
+              My Venues
             </h1>
             <p className="text-muted-foreground">
-              Manage your sports facilities and track their performance
+              Manage your sports venues and track their performance
             </p>
           </div>
           
           <Button 
-            onClick={() => router.push("/owner/facilities/new")}
+            onClick={() => router.push("/owner/venues/new")}
             className="flex items-center gap-2"
           >
             <Plus className="h-4 w-4" />
-            Add New Facility
+            Add New Venue
           </Button>
         </div>
 
@@ -151,7 +151,7 @@ export default function FacilitiesPage() {
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search facilities..."
+              placeholder="Search venues..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -159,27 +159,27 @@ export default function FacilitiesPage() {
           </div>
         </div>
 
-        {/* Facilities Grid */}
+        {/* Venues Grid */}
         {filteredVenues.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Building2 className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">
-                {venues.length === 0 ? "No facilities yet" : "No facilities found"}
+                {venues.length === 0 ? "No venues yet" : "No venues found"}
               </h3>
               <p className="text-muted-foreground text-center mb-6">
                 {venues.length === 0 
-                  ? "Get started by adding your first sports facility"
+                  ? "Get started by adding your first sports venue"
                   : "Try adjusting your search criteria"
                 }
               </p>
               {venues.length === 0 && (
                 <Button 
-                  onClick={() => router.push("/owner/facilities/new")}
+                  onClick={() => router.push("/owner/venues/new")}
                   className="flex items-center gap-2"
                 >
                   <Plus className="h-4 w-4" />
-                  Add Your First Facility
+                  Add Your First Venue
                 </Button>
               )}
             </CardContent>
