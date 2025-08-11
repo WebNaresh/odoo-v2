@@ -59,13 +59,13 @@ export const createVenueSchema = z.object({
     .min(10, "Address must be at least 10 characters")
     .max(200, "Address must be less than 200 characters"),
 
-  location: locationSchema,
+  location: locationSchema.optional(),
 
   amenities: z.array(z.string())
     .default([]),
 
   sportIds: z.array(z.string())
-    .min(1, "Please select at least one sport"),
+    .default([]),
 
   operatingHours: operatingHoursSchema,
 

@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, FormProvider, type SubmitHandler } from "react-hook-form";
-
 import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,8 +35,10 @@ import { type CreateVenueData, AVAILABLE_AMENITIES } from "@/types/venue";
 
 interface VenueFormData
   extends Omit<CreateVenueData, "photoUrls" | "sportIds"> {
-  photos: FileList | null;
+  photos?: FileList | null;
 }
+
+// Client-side validation is now handled manually in the onSubmit function
 
 export default function NewVenuePage() {
   const router = useRouter();
@@ -46,6 +47,7 @@ export default function NewVenuePage() {
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
 
   const form = useForm<VenueFormData>({
+    mode: "onChange", // Enable real-time validation
     defaultValues: {
       name: "",
       description: "",
@@ -64,7 +66,15 @@ export default function NewVenuePage() {
     },
   });
 
-  const { register, handleSubmit, setValue, watch } = form;
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+    setError,
+    clearErrors,
+  } = form;
 
   const watchedAmenities = watch("amenities");
 
@@ -138,31 +148,201 @@ export default function NewVenuePage() {
   };
 
   const onSubmit: SubmitHandler<VenueFormData> = async (data) => {
+    console.log("🚀 [VENUE FORM] Starting form submission");
+    console.log(
+      "📝 [VENUE FORM] Raw form data:",
+      JSON.stringify(data, null, 2)
+    );
+    console.log("🖼️ [VENUE FORM] Photo files state:", {
+      photoFilesLength: photoFiles.length,
+      photoFiles: photoFiles.map((file, i) => ({
+        index: i,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+      })),
+    });
+
+    // Manual client-side validation
+    console.log("🔍 [VENUE FORM] Starting client-side validation");
+    let hasErrors = false;
+
+    // Clear previous errors
+    clearErrors();
+
+    // Validate name
+    if (!data.name || data.name.trim().length < 2) {
+      setError("name", {
+        type: "manual",
+        message: "Venue name must be at least 2 characters",
+      });
+      hasErrors = true;
+    } else if (data.name.length > 100) {
+      setError("name", {
+        type: "manual",
+        message: "Venue name must be less than 100 characters",
+      });
+      hasErrors = true;
+    }
+
+    // Validate address
+    if (!data.address) {
+      setError("address", {
+        type: "manual",
+        message: "Address is required",
+      });
+      hasErrors = true;
+    } else {
+      // Check if address is a string or object and extract the address string
+      let addressString = "";
+      if (typeof data.address === "string") {
+        addressString = data.address;
+      } else if (data.address && typeof data.address === "object") {
+        const addressObj = data.address as any;
+        addressString =
+          addressObj.address ||
+          addressObj.formatted_address ||
+          addressObj.description ||
+          addressObj.name ||
+          "";
+      }
+
+      if (!addressString || addressString.length < 10) {
+        setError("address", {
+          type: "manual",
+          message: "Address must be at least 10 characters",
+        });
+        hasErrors = true;
+      }
+    }
+
+    // Validate description (optional but if provided, check length)
+    if (data.description && data.description.length > 500) {
+      setError("description", {
+        type: "manual",
+        message: "Description must be less than 500 characters",
+      });
+      hasErrors = true;
+    }
+
+    if (hasErrors) {
+      console.log("❌ [VENUE FORM] Client-side validation failed");
+      setIsLoading(false);
+      toast.error("Please fix the validation errors before submitting");
+      return;
+    }
+
+    console.log("✅ [VENUE FORM] Client-side validation passed");
     setIsLoading(true);
 
     try {
       // Upload photos first (in a real app, you'd upload to a cloud service)
       const photoUrls: string[] = [];
 
+      console.log("📸 [VENUE FORM] Processing photos...");
       // For now, we'll create placeholder URLs
       // In production, you'd upload to AWS S3, Cloudinary, etc.
       for (let i = 0; i < photoFiles.length; i++) {
-        photoUrls.push(
-          `/api/placeholder/800/600?venue=${Date.now()}&photo=${i}`
-        );
+        const photoUrl = `/api/placeholder/800/600?venue=${Date.now()}&photo=${i}`;
+        photoUrls.push(photoUrl);
+        console.log(`📷 [VENUE FORM] Added photo ${i + 1}:`, photoUrl);
       }
+
+      console.log("✅ [VENUE FORM] Final photo URLs:", photoUrls);
+
+      // Handle address - extract string value and location coordinates from Google Places
+      console.log("🏠 [VENUE FORM] Processing address:", {
+        addressType: typeof data.address,
+        addressValue: data.address,
+      });
+
+      let addressString: string;
+      let location:
+        | { type: "Point"; coordinates: [number, number] }
+        | undefined;
+
+      if (typeof data.address === "string") {
+        addressString = data.address;
+        // No location coordinates available for plain string
+      } else if (data.address && typeof data.address === "object") {
+        const addressObj = data.address as any;
+
+        // Extract address string
+        addressString =
+          addressObj.address ||
+          addressObj.formatted_address ||
+          addressObj.description ||
+          addressObj.name ||
+          String(data.address);
+
+        // Extract location coordinates if available
+        if (
+          addressObj.position &&
+          addressObj.position.lat &&
+          addressObj.position.lng
+        ) {
+          location = {
+            type: "Point",
+            coordinates: [addressObj.position.lng, addressObj.position.lat], // [longitude, latitude] for GeoJSON
+          };
+          console.log(
+            "📍 [VENUE FORM] Extracted location coordinates:",
+            location
+          );
+        } else if (addressObj.geometry && addressObj.geometry.location) {
+          // Alternative structure from Google Places
+          const lat = addressObj.geometry.location.lat();
+          const lng = addressObj.geometry.location.lng();
+          location = {
+            type: "Point",
+            coordinates: [lng, lat],
+          };
+          console.log(
+            "📍 [VENUE FORM] Extracted location from geometry:",
+            location
+          );
+        }
+      } else {
+        addressString = String(data.address || "");
+      }
+
+      console.log("🏠 [VENUE FORM] Final address string:", addressString);
+      console.log("📍 [VENUE FORM] Final location:", location);
 
       // Prepare venue data
       const venueData: CreateVenueData = {
         name: data.name,
         description: data.description || undefined,
-        address: data.address,
+        address: addressString,
+        location: location, // Include location coordinates if available
         amenities: data.amenities,
         sportIds: [], // Will be set up later when configuring courts
         operatingHours: data.operatingHours,
         photoUrls,
       };
 
+      console.log(
+        "📦 [VENUE FORM] Prepared venue data for API:",
+        JSON.stringify(venueData, null, 2)
+      );
+      console.log("🔍 [VENUE FORM] Venue data validation:", {
+        hasName: !!venueData.name,
+        nameLength: venueData.name?.length || 0,
+        hasAddress: !!venueData.address,
+        addressLength: venueData.address?.length || 0,
+        hasAmenities: Array.isArray(venueData.amenities),
+        amenitiesCount: venueData.amenities?.length || 0,
+        hasSportIds: Array.isArray(venueData.sportIds),
+        sportIdsCount: venueData.sportIds?.length || 0,
+        hasOperatingHours: !!venueData.operatingHours,
+        operatingHoursDays: venueData.operatingHours
+          ? Object.keys(venueData.operatingHours)
+          : [],
+        hasPhotoUrls: Array.isArray(venueData.photoUrls),
+        photoUrlsCount: venueData.photoUrls?.length || 0,
+      });
+
+      console.log("🌐 [VENUE FORM] Making API request to /api/owner/venues");
       const response = await fetch("/api/owner/venues", {
         method: "POST",
         headers: {
@@ -171,19 +351,39 @@ export default function NewVenuePage() {
         body: JSON.stringify(venueData),
       });
 
+      console.log("📡 [VENUE FORM] API response status:", response.status);
+      console.log("📡 [VENUE FORM] API response ok:", response.ok);
+
       const result = await response.json();
+      console.log(
+        "📋 [VENUE FORM] API response body:",
+        JSON.stringify(result, null, 2)
+      );
 
       if (result.success) {
+        console.log("✅ [VENUE FORM] Venue created successfully!");
         toast.success("Venue created successfully!");
         router.push("/owner/venues");
       } else {
+        console.log("❌ [VENUE FORM] API returned error:", result.error);
+        console.log("🔍 [VENUE FORM] Error details:", result.details);
+        console.log("📝 [VENUE FORM] Validation info:", {
+          receivedFields: result.receivedFields,
+          expectedFields: result.expectedFields,
+        });
         toast.error(result.error || "Failed to create venue");
       }
     } catch (error) {
-      console.error("Error creating venue:", error);
+      console.error("💥 [VENUE FORM] Error creating venue:", error);
+      console.error("🔍 [VENUE FORM] Error details:", {
+        name: error instanceof Error ? error.name : "Unknown",
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       toast.error("An unexpected error occurred");
     } finally {
       setIsLoading(false);
+      console.log("🏁 [VENUE FORM] Form submission completed");
     }
   };
 
