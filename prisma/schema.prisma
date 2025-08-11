@@ -81,6 +81,7 @@ model Venue {
   name           String
   description    String?
   address        String
+  location       Json? // GeoJSON format: { type: "Point", coordinates: [longitude, latitude] }
   ownerId        String         @db.ObjectId
   amenities      String[]
   photoUrls      String[]

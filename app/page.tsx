@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { MainNav } from "@/components/layout/main-nav";
 import { Button } from "@/components/ui/button";
@@ -54,8 +55,19 @@ const popularSports = [
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/venues?search=${encodeURIComponent(searchQuery)}`);
+    }
+  };
+
+  const handleSportClick = (sport: string) => {
+    router.push(`/venues?sport=${encodeURIComponent(sport)}`);
+  };
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
