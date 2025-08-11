@@ -348,6 +348,395 @@ class EmailService {
   }
 
   /**
+   * Send booking confirmation email
+   */
+  async sendBookingConfirmationEmail(
+    bookingDetails: {
+      userEmail: string;
+      userName: string;
+      bookingReference: string;
+      venueName: string;
+      venueAddress: string;
+      venuePhone?: string;
+      venueEmail?: string;
+      courtName: string;
+      date: string;
+      startTime: string;
+      endTime: string;
+      playerCount: number;
+      totalPrice: number;
+      paymentId: string;
+      paymentMethod: string;
+      paidAt: Date;
+      notes?: string;
+      venueInstructions?: string;
+      cancellationPolicy?: string;
+    }
+  ): Promise<boolean> {
+    const subject = `🎉 Booking Confirmed - ${bookingDetails.venueName}`;
+
+    const formatDate = (date: string) => {
+      return new Date(date).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    };
+
+    const formatTime = (time: string) => {
+      return new Date(`2000-01-01T${time}`).toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    };
+
+    const formatCurrency = (amount: number) => {
+      return new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR'
+      }).format(amount);
+    };
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Booking Confirmation</title>
+          <style>
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+              line-height: 1.6;
+              color: #333;
+              margin: 0;
+              padding: 0;
+              background-color: #f8f9fa;
+            }
+            .container {
+              max-width: 600px;
+              margin: 0 auto;
+              padding: 20px;
+            }
+            .email-wrapper {
+              background: #ffffff;
+              border-radius: 12px;
+              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+              overflow: hidden;
+            }
+            .header {
+              background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+              color: white;
+              padding: 40px 30px;
+              text-align: center;
+            }
+            .header h1 {
+              margin: 0 0 10px 0;
+              font-size: 28px;
+              font-weight: 700;
+            }
+            .header p {
+              margin: 0;
+              font-size: 16px;
+              opacity: 0.9;
+            }
+            .content {
+              padding: 40px 30px;
+            }
+            .success-badge {
+              background: #10b981;
+              color: white;
+              padding: 8px 16px;
+              border-radius: 20px;
+              font-size: 14px;
+              font-weight: 600;
+              display: inline-block;
+              margin-bottom: 20px;
+            }
+            .booking-card {
+              background: #f8f9fa;
+              border: 1px solid #e9ecef;
+              border-radius: 8px;
+              padding: 24px;
+              margin: 24px 0;
+            }
+            .booking-header {
+              border-bottom: 2px solid #e9ecef;
+              padding-bottom: 16px;
+              margin-bottom: 20px;
+            }
+            .booking-ref {
+              font-size: 18px;
+              font-weight: 700;
+              color: #1f2937;
+              margin-bottom: 4px;
+            }
+            .venue-name {
+              font-size: 20px;
+              font-weight: 600;
+              color: #059669;
+              margin-bottom: 8px;
+            }
+            .detail-grid {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 16px;
+              margin: 20px 0;
+            }
+            .detail-item {
+              background: white;
+              padding: 16px;
+              border-radius: 6px;
+              border: 1px solid #e5e7eb;
+            }
+            .detail-label {
+              font-size: 12px;
+              font-weight: 600;
+              color: #6b7280;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+              margin-bottom: 4px;
+            }
+            .detail-value {
+              font-size: 16px;
+              font-weight: 600;
+              color: #1f2937;
+            }
+            .payment-section {
+              background: #f0f9ff;
+              border: 1px solid #bae6fd;
+              border-radius: 8px;
+              padding: 20px;
+              margin: 24px 0;
+            }
+            .payment-header {
+              display: flex;
+              align-items: center;
+              margin-bottom: 16px;
+            }
+            .payment-icon {
+              background: #0ea5e9;
+              color: white;
+              width: 32px;
+              height: 32px;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              margin-right: 12px;
+              font-weight: bold;
+            }
+            .payment-title {
+              font-size: 18px;
+              font-weight: 600;
+              color: #0c4a6e;
+            }
+            .venue-info {
+              background: #fefce8;
+              border: 1px solid #fde047;
+              border-radius: 8px;
+              padding: 20px;
+              margin: 24px 0;
+            }
+            .info-title {
+              font-size: 16px;
+              font-weight: 600;
+              color: #a16207;
+              margin-bottom: 12px;
+              display: flex;
+              align-items: center;
+            }
+            .info-icon {
+              margin-right: 8px;
+            }
+            .button {
+              display: inline-block;
+              background: #10b981;
+              color: white;
+              padding: 14px 28px;
+              text-decoration: none;
+              border-radius: 8px;
+              font-weight: 600;
+              font-size: 16px;
+              margin: 20px 0;
+              text-align: center;
+              transition: background-color 0.2s;
+            }
+            .button:hover {
+              background: #059669;
+            }
+            .footer {
+              background: #f8f9fa;
+              text-align: center;
+              padding: 30px;
+              color: #6b7280;
+              font-size: 14px;
+              border-top: 1px solid #e5e7eb;
+            }
+            .footer-links {
+              margin: 16px 0;
+            }
+            .footer-links a {
+              color: #059669;
+              text-decoration: none;
+              margin: 0 12px;
+            }
+            @media (max-width: 600px) {
+              .container { padding: 10px; }
+              .content { padding: 24px 20px; }
+              .detail-grid { grid-template-columns: 1fr; }
+              .header { padding: 30px 20px; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="email-wrapper">
+              <div class="header">
+                <h1>🎉 Booking Confirmed!</h1>
+                <p>Your venue booking has been successfully confirmed</p>
+              </div>
+
+              <div class="content">
+                <div class="success-badge">✅ Payment Successful</div>
+
+                <p>Hello <strong>${bookingDetails.userName}</strong>,</p>
+
+                <p>Great news! Your booking has been confirmed and payment has been processed successfully. Here are your booking details:</p>
+
+                <div class="booking-card">
+                  <div class="booking-header">
+                    <div class="booking-ref">Booking Reference: ${bookingDetails.bookingReference}</div>
+                    <div class="venue-name">${bookingDetails.venueName}</div>
+                  </div>
+
+                  <div class="detail-grid">
+                    <div class="detail-item">
+                      <div class="detail-label">Court</div>
+                      <div class="detail-value">${bookingDetails.courtName}</div>
+                    </div>
+                    <div class="detail-item">
+                      <div class="detail-label">Date</div>
+                      <div class="detail-value">${formatDate(bookingDetails.date)}</div>
+                    </div>
+                    <div class="detail-item">
+                      <div class="detail-label">Time</div>
+                      <div class="detail-value">${formatTime(bookingDetails.startTime)} - ${formatTime(bookingDetails.endTime)}</div>
+                    </div>
+                    <div class="detail-item">
+                      <div class="detail-label">Players</div>
+                      <div class="detail-value">${bookingDetails.playerCount} ${bookingDetails.playerCount === 1 ? 'Player' : 'Players'}</div>
+                    </div>
+                  </div>
+
+                  ${bookingDetails.notes ? `
+                    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
+                      <div class="detail-label">Notes</div>
+                      <div style="color: #4b5563; margin-top: 4px;">${bookingDetails.notes}</div>
+                    </div>
+                  ` : ''}
+                </div>
+
+                <div class="payment-section">
+                  <div class="payment-header">
+                    <div class="payment-icon">💳</div>
+                    <div class="payment-title">Payment Confirmation</div>
+                  </div>
+
+                  <div class="detail-grid">
+                    <div class="detail-item">
+                      <div class="detail-label">Amount Paid</div>
+                      <div class="detail-value" style="color: #059669; font-size: 18px;">${formatCurrency(bookingDetails.totalPrice)}</div>
+                    </div>
+                    <div class="detail-item">
+                      <div class="detail-label">Payment Method</div>
+                      <div class="detail-value">${bookingDetails.paymentMethod}</div>
+                    </div>
+                    <div class="detail-item">
+                      <div class="detail-label">Transaction ID</div>
+                      <div class="detail-value" style="font-family: monospace; font-size: 14px;">${bookingDetails.paymentId}</div>
+                    </div>
+                    <div class="detail-item">
+                      <div class="detail-label">Payment Date</div>
+                      <div class="detail-value">${bookingDetails.paidAt.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit'
+    })}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="venue-info">
+                  <div class="info-title">
+                    <span class="info-icon">📍</span>
+                    Venue Information
+                  </div>
+                  <p><strong>Address:</strong> ${bookingDetails.venueAddress}</p>
+                  ${bookingDetails.venuePhone ? `<p><strong>Phone:</strong> ${bookingDetails.venuePhone}</p>` : ''}
+                  ${bookingDetails.venueEmail ? `<p><strong>Email:</strong> ${bookingDetails.venueEmail}</p>` : ''}
+                </div>
+
+                ${bookingDetails.venueInstructions ? `
+                  <div class="venue-info" style="background: #f0f9ff; border-color: #bae6fd;">
+                    <div class="info-title" style="color: #0c4a6e;">
+                      <span class="info-icon">📋</span>
+                      Venue Instructions
+                    </div>
+                    <p>${bookingDetails.venueInstructions}</p>
+                  </div>
+                ` : ''}
+
+                ${bookingDetails.cancellationPolicy ? `
+                  <div class="venue-info" style="background: #fef2f2; border-color: #fecaca;">
+                    <div class="info-title" style="color: #b91c1c;">
+                      <span class="info-icon">⚠️</span>
+                      Cancellation Policy
+                    </div>
+                    <p>${bookingDetails.cancellationPolicy}</p>
+                  </div>
+                ` : ''}
+
+                <div style="text-align: center; margin: 32px 0;">
+                  <a href="${process.env.NEXTAUTH_URL}/bookings" class="button">
+                    View My Bookings
+                  </a>
+                </div>
+
+                <p>Please arrive at the venue 10-15 minutes before your scheduled time. If you need to make any changes or have questions, please contact the venue directly or reach out to our support team.</p>
+
+                <p>Thank you for choosing our platform for your venue booking!</p>
+
+                <p><strong>The Venue Booking Team</strong></p>
+              </div>
+
+              <div class="footer">
+                <p>This is an automated confirmation email for your booking.</p>
+                <div class="footer-links">
+                  <a href="${process.env.NEXTAUTH_URL}/bookings">My Bookings</a>
+                  <a href="${process.env.NEXTAUTH_URL}/support">Support</a>
+                  <a href="${process.env.NEXTAUTH_URL}/contact">Contact Us</a>
+                </div>
+                <p>&copy; ${new Date().getFullYear()} Venue Booking Platform. All rights reserved.</p>
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    return this.sendEmail({
+      to: bookingDetails.userEmail,
+      subject,
+      html,
+    });
+  }
+
+  /**
    * Send user unban notification email
    */
   async sendUserUnbanEmail(
