@@ -164,6 +164,11 @@ export async function GET(
     console.log("✅ [AVAILABILITY API] Availability calculated:", {
       courtsChecked: courts.length,
       availabilityKeys: Object.keys(availability),
+      availabilityDetails: Object.entries(availability).map(([courtId, data]) => ({
+        courtId,
+        bookedSlotsCount: data.bookedSlots.length,
+        bookedSlots: data.bookedSlots,
+      })),
     });
 
     return NextResponse.json({
