@@ -224,6 +224,7 @@ export default function VenuesPage() {
                         <DropdownMenuItem
                           onClick={() => handleViewVenue(venue.id)}
                         >
+                          
                           <Eye className="h-4 w-4 mr-2" />
                           View Details
                         </DropdownMenuItem>

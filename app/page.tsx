@@ -17,46 +17,12 @@ import {
   Search,
   MapPin,
   Star,
-  Clock,
   Users,
   Zap,
   Shield,
-  Calendar,
 } from "lucide-react";
-
-// Mock data for featured venues
-const featuredVenues = [
-  {
-    id: 1,
-    name: "Elite Sports Complex",
-    location: "Downtown, Mumbai",
-    rating: 4.8,
-    reviewCount: 124,
-    image: "/api/placeholder/400/300",
-    sports: ["Basketball", "Tennis", "Badminton"],
-    priceRange: "₹500-1200/hr",
-  },
-  {
-    id: 2,
-    name: "Champions Arena",
-    location: "Bandra, Mumbai",
-    rating: 4.6,
-    reviewCount: 89,
-    image: "/api/placeholder/400/300",
-    sports: ["Football", "Cricket", "Volleyball"],
-    priceRange: "₹800-1500/hr",
-  },
-  {
-    id: 3,
-    name: "Victory Courts",
-    location: "Andheri, Mumbai",
-    rating: 4.7,
-    reviewCount: 156,
-    image: "/api/placeholder/400/300",
-    sports: ["Tennis", "Squash", "Table Tennis"],
-    priceRange: "₹400-900/hr",
-  },
-];
+import { useFeaturedVenues } from "@/hooks/use-venues";
+import Link from "next/link";
 
 const popularSports = [
   { name: "Basketball", icon: "🏀", venues: 45 },
@@ -70,6 +36,13 @@ const popularSports = [
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
+
+  // Use React Query hook for featured venues
+  const {
+    data: featuredVenues = [],
+    isLoading: loading,
+    isError,
+  } = useFeaturedVenues(6);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -254,60 +227,116 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredVenues.map((venue) => (
-                <Card
-                  key={venue.id}
-                  className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+            {loading ? (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(6)].map((_, index) => (
+                  <Card key={index} className="overflow-hidden">
+                    <div className="aspect-video bg-muted animate-pulse" />
+                    <CardHeader>
+                      <div className="space-y-2">
+                        <div className="h-4 bg-muted animate-pulse rounded" />
+                        <div className="h-3 bg-muted animate-pulse rounded w-2/3" />
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="flex gap-2">
+                          <div className="h-6 bg-muted animate-pulse rounded w-16" />
+                          <div className="h-6 bg-muted animate-pulse rounded w-20" />
+                        </div>
+                        <div className="h-10 bg-muted animate-pulse rounded" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : isError ? (
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">⚠️</div>
+                <h3 className="text-xl font-semibold mb-2">Unable to load venues</h3>
+                <p className="text-muted-foreground mb-4">
+                  There was an error loading featured venues. Please try again later.
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={() => window.location.reload()}
                 >
-                  <div className="aspect-video bg-muted relative">
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                    <div className="absolute bottom-4 left-4 text-white">
-                      <Badge className="mb-2">{venue.priceRange}</Badge>
-                    </div>
-                  </div>
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-lg">{venue.name}</CardTitle>
-                        <CardDescription className="flex items-center gap-1 mt-1">
-                          <MapPin className="h-4 w-4" />
-                          {venue.location}
-                        </CardDescription>
+                  Retry
+                </Button>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {featuredVenues.map((venue) => (
+                  <Card
+                    key={venue.id}
+                    className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                  >
+                    <div className="aspect-video bg-muted relative">
+                      {venue.photoUrls && venue.photoUrls.length > 0 ? (
+                        <img
+                          src={venue.photoUrls[0]}
+                          alt={venue.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                          <span className="text-4xl">🏟️</span>
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                      <div className="absolute bottom-4 left-4 text-white">
+                        <Badge className="mb-2">{venue.priceRange}</Badge>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm font-medium">
-                          {venue.rating}
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                          ({venue.reviewCount})
-                        </span>
+                    </div>
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <CardTitle className="text-lg">{venue.name}</CardTitle>
+                          <CardDescription className="flex items-center gap-1 mt-1">
+                            <MapPin className="h-4 w-4" />
+                            {venue.address}
+                          </CardDescription>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                          <span className="text-sm font-medium">
+                            {venue.rating ? venue.rating.toFixed(1) : "New"}
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            ({venue.reviewCount})
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-wrap gap-1 mb-4">
-                      {venue.sports.map((sport) => (
-                        <Badge
-                          key={sport}
-                          variant="secondary"
-                          className="text-xs"
-                        >
-                          {sport}
-                        </Badge>
-                      ))}
-                    </div>
-                    <Button
-                      className="w-full"
-                      onClick={() => router.push(`/venues/${venue.id}`)}
-                    >
-                      View Details
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex flex-wrap gap-1 mb-4">
+                        {venue.sports.slice(0, 3).map((sport) => (
+                          <Badge
+                            key={sport}
+                            variant="secondary"
+                            className="text-xs"
+                          >
+                            {sport}
+                          </Badge>
+                        ))}
+                        {venue.sports.length > 3 && (
+                          <Badge variant="secondary" className="text-xs">
+                            +{venue.sports.length - 3} more
+                          </Badge>
+                        )}
+                      </div>
+                      <Link href={`/venues/${venue.id}`}>
+                      <Button
+                        className="w-full"
+                
+                      >
+                        View Details
+                      </Button></Link>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
 
             <div className="text-center mt-8">
               <Button
