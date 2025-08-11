@@ -2,7 +2,13 @@ import { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,7 +71,10 @@ export default async function SettingsPage() {
           <CardContent className="space-y-6">
             <div className="flex items-center gap-4">
               <Avatar className="h-20 w-20">
-                <AvatarImage src={user.image || undefined} alt={user.name || "User"} />
+                <AvatarImage
+                  src={user.image || undefined}
+                  alt={user.name || "User"}
+                />
                 <AvatarFallback className="text-lg font-medium bg-primary text-primary-foreground">
                   {initials}
                 </AvatarFallback>
@@ -75,7 +84,9 @@ export default async function SettingsPage() {
                 <p className="text-sm text-muted-foreground">{user.email}</p>
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
                   <Shield className="h-3 w-3" />
-                  {user.role === "FACILITY_OWNER" ? "Facility Owner" : user.role}
+                  {user.role === "FACILITY_OWNER"
+                    ? "Facility Owner"
+                    : user.role}
                 </p>
               </div>
             </div>
@@ -128,7 +139,9 @@ export default async function SettingsPage() {
                 <Label>Account Type</Label>
                 <div className="p-3 bg-muted rounded-md">
                   <p className="font-medium">
-                    {user.role === "FACILITY_OWNER" ? "Facility Owner" : user.role}
+                    {user.role === "FACILITY_OWNER"
+                      ? "Facility Owner"
+                      : user.role}
                   </p>
                   <p className="text-sm text-muted-foreground">
                     Full access to venue management features
@@ -143,44 +156,6 @@ export default async function SettingsPage() {
                     Secure sign-in with your Google account
                   </p>
                 </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Coming Soon Features */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Coming Soon</CardTitle>
-            <CardDescription>
-              Features we&apos;re working on for future releases
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-3 md:grid-cols-2">
-              <div className="p-3 border rounded-md opacity-60">
-                <h4 className="font-medium">Notification Preferences</h4>
-                <p className="text-sm text-muted-foreground">
-                  Customize email and push notifications
-                </p>
-              </div>
-              <div className="p-3 border rounded-md opacity-60">
-                <h4 className="font-medium">Two-Factor Authentication</h4>
-                <p className="text-sm text-muted-foreground">
-                  Enhanced security for your account
-                </p>
-              </div>
-              <div className="p-3 border rounded-md opacity-60">
-                <h4 className="font-medium">API Access</h4>
-                <p className="text-sm text-muted-foreground">
-                  Generate API keys for integrations
-                </p>
-              </div>
-              <div className="p-3 border rounded-md opacity-60">
-                <h4 className="font-medium">Data Export</h4>
-                <p className="text-sm text-muted-foreground">
-                  Download your venue and booking data
-                </p>
               </div>
             </div>
           </CardContent>

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { z } from "zod";
 
 export async function GET(
   request: NextRequest,
@@ -279,6 +280,219 @@ export async function DELETE(
       {
         success: false,
         error: "Failed to delete venue",
+        details: error instanceof Error ? error.message : String(error)
+      },
+      { status: 500 }
+    );
+  }
+}
+
+// Validation schema for updating venue
+const updateVenueSchema = z.object({
+  name: z.string().min(1, "Venue name is required").max(100, "Venue name is too long"),
+  description: z.string().optional(),
+  address: z.string().min(1, "Address is required").max(500, "Address is too long"),
+  amenities: z.array(z.string()).default([]),
+  sports: z.array(z.string()).min(1, "At least one sport is required"),
+  photoUrls: z.array(z.string().url("Invalid URL format")).default([]),
+  operatingHours: z.object({
+    monday: z.object({
+      isOpen: z.boolean(),
+      openTime: z.string().optional(),
+      closeTime: z.string().optional(),
+    }),
+    tuesday: z.object({
+      isOpen: z.boolean(),
+      openTime: z.string().optional(),
+      closeTime: z.string().optional(),
+    }),
+    wednesday: z.object({
+      isOpen: z.boolean(),
+      openTime: z.string().optional(),
+      closeTime: z.string().optional(),
+    }),
+    thursday: z.object({
+      isOpen: z.boolean(),
+      openTime: z.string().optional(),
+      closeTime: z.string().optional(),
+    }),
+    friday: z.object({
+      isOpen: z.boolean(),
+      openTime: z.string().optional(),
+      closeTime: z.string().optional(),
+    }),
+    saturday: z.object({
+      isOpen: z.boolean(),
+      openTime: z.string().optional(),
+      closeTime: z.string().optional(),
+    }),
+    sunday: z.object({
+      isOpen: z.boolean(),
+      openTime: z.string().optional(),
+      closeTime: z.string().optional(),
+    }),
+  }),
+});
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    console.log("🔄 [UPDATE VENUE API] Starting venue update request for ID:", id);
+
+    const session = await getServerSession(authOptions);
+    console.log("👤 [UPDATE VENUE API] Session user:", {
+      id: session?.user?.id,
+      email: session?.user?.email,
+      role: session?.user?.role
+    });
+
+    if (!session?.user?.email) {
+      console.log("❌ [UPDATE VENUE API] Unauthorized - no session");
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Unauthorized"
+        },
+        { status: 401 }
+      );
+    }
+
+    // Only allow FACILITY_OWNER users
+    if (session.user.role !== "FACILITY_OWNER") {
+      console.log("❌ [UPDATE VENUE API] Forbidden - user role:", session.user.role);
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Only facility owners can update venues"
+        },
+        { status: 403 }
+      );
+    }
+
+    // Validate venue ID
+    if (!id || typeof id !== 'string') {
+      console.log("❌ [UPDATE VENUE API] Invalid venue ID:", id);
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid venue ID"
+        },
+        { status: 400 }
+      );
+    }
+
+    // Parse and validate request body
+    const body = await request.json();
+    console.log("📝 [UPDATE VENUE API] Request body received:", {
+      name: body.name,
+      address: body.address,
+      amenitiesCount: body.amenities?.length || 0,
+      sportsCount: body.sports?.length || 0,
+      photoUrlsCount: body.photoUrls?.length || 0,
+    });
+
+    const validationResult = updateVenueSchema.safeParse(body);
+    if (!validationResult.success) {
+      console.log("❌ [UPDATE VENUE API] Validation failed:", validationResult.error.errors);
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid venue data",
+          details: validationResult.error.errors
+        },
+        { status: 400 }
+      );
+    }
+
+    const venueData = validationResult.data;
+
+    // Check if venue exists and belongs to the user
+    const existingVenue = await prisma.venue.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        ownerId: true,
+        name: true,
+      },
+    });
+
+    if (!existingVenue) {
+      console.log("❌ [UPDATE VENUE API] Venue not found:", id);
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Venue not found"
+        },
+        { status: 404 }
+      );
+    }
+
+    if (existingVenue.ownerId !== session.user.id) {
+      console.log("❌ [UPDATE VENUE API] Access denied - venue belongs to different owner:", {
+        venueOwnerId: existingVenue.ownerId,
+        sessionUserId: session.user.id,
+      });
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Access denied - you can only update your own venues"
+        },
+        { status: 403 }
+      );
+    }
+
+    console.log("✅ [UPDATE VENUE API] Venue ownership verified, proceeding with update");
+
+    // Update the venue
+    const updatedVenue = await prisma.venue.update({
+      where: { id },
+      data: {
+        name: venueData.name,
+        description: venueData.description || null,
+        address: venueData.address,
+        amenities: venueData.amenities,
+        sports: venueData.sports,
+        photoUrls: venueData.photoUrls,
+        operatingHours: venueData.operatingHours,
+        updatedAt: new Date(),
+      },
+      include: {
+        courts: {
+          include: {
+            timeSlots: true,
+          },
+        },
+        _count: {
+          select: {
+            courts: true,
+            bookings: true,
+          },
+        },
+      },
+    });
+
+    console.log("✅ [UPDATE VENUE API] Venue updated successfully:", {
+      id: updatedVenue.id,
+      name: updatedVenue.name,
+      courtsCount: updatedVenue._count.courts,
+      bookingsCount: updatedVenue._count.bookings,
+    });
+
+    return NextResponse.json({
+      success: true,
+      venue: updatedVenue,
+      message: "Venue updated successfully"
+    });
+
+  } catch (error) {
+    console.error("❌ [UPDATE VENUE API] Error:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Failed to update venue",
         details: error instanceof Error ? error.message : String(error)
       },
       { status: 500 }
