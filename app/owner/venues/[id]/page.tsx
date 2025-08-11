@@ -41,6 +41,7 @@ import {
   XCircle,
   AlertCircle,
   Loader2,
+  Trophy,
 } from "lucide-react";
 
 interface Venue {
@@ -53,6 +54,7 @@ interface Venue {
     coordinates: [number, number];
   };
   amenities: string[];
+  sports: string[];
   photoUrls: string[];
   approvalStatus: "PENDING" | "APPROVED" | "REJECTED";
   isActive: boolean;
@@ -423,6 +425,26 @@ export default function VenueDetailsPage() {
                     ) : (
                       <p className="text-muted-foreground text-sm">
                         No amenities listed
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold mb-2 flex items-center gap-2">
+                    <Trophy className="h-4 w-4" />
+                    Sports Available
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {venue.sports && venue.sports.length > 0 ? (
+                      venue.sports.map((sport, index) => (
+                        <Badge key={index} variant="secondary">
+                          {sport}
+                        </Badge>
+                      ))
+                    ) : (
+                      <p className="text-muted-foreground text-sm">
+                        No sports configured yet
                       </p>
                     )}
                   </div>

@@ -61,14 +61,6 @@ export async function GET(
         ownerId: session.user.id, // Ensure user owns this venue
       },
       include: {
-        supportedSports: {
-          select: {
-            id: true,
-            name: true,
-            category: true,
-            isPopular: true,
-          }
-        },
         courts: {
           select: {
             id: true,
@@ -118,8 +110,9 @@ export async function GET(
     console.log("✅ [VENUE DETAILS API] Venue details fetched successfully:", {
       id: venue.id,
       name: venue.name,
-      courtsCount: venue._count.courts,
-      reviewsCount: venue._count.reviews
+      courtsCount: venue._count?.courts || 0,
+      reviewsCount: venue._count?.reviews || 0,
+      sportsCount: venue.sports?.length || 0
     });
 
     return NextResponse.json({
