@@ -1,123 +1,91 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Search, 
-  Filter, 
-  Eye, 
-  CheckCircle, 
-  XCircle, 
-  Clock, 
-  MapPin, 
-  Building2, 
-  Users, 
+import {
+  Search,
+  Filter,
+  Eye,
+  CheckCircle,
+  XCircle,
+  Clock,
+  MapPin,
+  Building2,
+  Users,
   Star,
   Calendar,
   AlertCircle,
   FileText,
   Phone,
-  Mail
+  Mail,
+  Loader2,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
+import Image from "next/image";
 
-// Mock pending approvals data
-const mockApprovals = [
-  {
-    id: 1,
-    facilityName: "Champions Arena",
-    ownerName: "Rajesh Kumar",
-    ownerEmail: "rajesh@championsarena.com",
-    ownerPhone: "+91 98765 43210",
-    location: "Bandra, Mumbai",
-    address: "123 Champions Lane, Bandra West, Mumbai 400050",
-    submittedDate: "2024-01-20",
-    status: "pending_review",
-    courts: 4,
-    sports: ["Football", "Cricket", "Volleyball"],
-    amenities: ["Parking", "Changing Rooms", "Cafeteria", "Equipment Rental"],
-    operatingHours: "6:00 AM - 11:00 PM",
-    priceRange: "₹800-1500/hr",
-    documents: [
-      { name: "Business License", status: "verified" },
-      { name: "Property Documents", status: "verified" },
-      { name: "Insurance Certificate", status: "pending" },
-      { name: "Safety Compliance", status: "verified" },
-    ],
-    images: ["/api/placeholder/400/300", "/api/placeholder/400/300"],
-    description: "State-of-the-art sports facility with professional-grade courts and modern amenities.",
-    notes: "All documents look good. Insurance certificate pending verification.",
-  },
-  {
-    id: 2,
-    facilityName: "Sports Hub",
-    ownerName: "Priya Sharma",
-    ownerEmail: "priya@sportshub.com",
-    ownerPhone: "+91 87654 32109",
-    location: "Powai, Mumbai",
-    address: "456 Hub Street, Powai, Mumbai 400076",
-    submittedDate: "2024-01-19",
-    status: "pending_documents",
-    courts: 2,
-    sports: ["Badminton", "Table Tennis"],
-    amenities: ["Parking", "Changing Rooms"],
-    operatingHours: "7:00 AM - 10:00 PM",
-    priceRange: "₹400-800/hr",
-    documents: [
-      { name: "Business License", status: "verified" },
-      { name: "Property Documents", status: "pending" },
-      { name: "Insurance Certificate", status: "pending" },
-      { name: "Safety Compliance", status: "verified" },
-    ],
-    images: ["/api/placeholder/400/300"],
-    description: "Compact sports facility focusing on indoor games with quality equipment.",
-    notes: "Property documents and insurance certificate required.",
-  },
-  {
-    id: 3,
-    facilityName: "Elite Fitness Center",
-    ownerName: "Amit Patel",
-    ownerEmail: "amit@elitefitness.com",
-    ownerPhone: "+91 76543 21098",
-    location: "Andheri, Mumbai",
-    address: "789 Elite Road, Andheri East, Mumbai 400069",
-    submittedDate: "2024-01-18",
-    status: "pending_review",
-    courts: 6,
-    sports: ["Basketball", "Tennis", "Squash"],
-    amenities: ["Parking", "Changing Rooms", "Cafeteria", "WiFi", "Shower", "Locker"],
-    operatingHours: "5:00 AM - 12:00 AM",
-    priceRange: "₹600-1200/hr",
-    documents: [
-      { name: "Business License", status: "verified" },
-      { name: "Property Documents", status: "verified" },
-      { name: "Insurance Certificate", status: "verified" },
-      { name: "Safety Compliance", status: "verified" },
-    ],
-    images: ["/api/placeholder/400/300", "/api/placeholder/400/300", "/api/placeholder/400/300"],
-    description: "Premium sports facility with multiple courts and comprehensive amenities.",
-    notes: "Excellent facility with all documents in order. Ready for approval.",
-  },
-];
+// Types for venue data
+interface VenueOwner {
+  id: string;
+  name: string;
+  email: string;
+}
+
+interface Venue {
+  id: string;
+  name: string;
+  description: string;
+  address: string;
+  location: string;
+  sports: string[];
+  amenities: string[];
+  photoUrls: string[];
+  operatingHours: any;
+  approvalStatus: string;
+  rating: number;
+  reviewCount: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  owner: VenueOwner;
+  courtsCount: number;
+  reviewsCount: number;
+}
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case "pending_review":
+    case "PENDING":
       return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300";
-    case "pending_documents":
-      return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300";
-    case "approved":
+    case "APPROVED":
       return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
-    case "rejected":
+    case "REJECTED":
       return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
     default:
       return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
@@ -139,79 +107,179 @@ const getDocumentStatusColor = (status: string) => {
 
 export default function ApprovalsPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [selectedApproval, setSelectedApproval] = useState<any>(null);
+  const [statusFilter, setStatusFilter] = useState("PENDING");
+  const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [isApprovalDialogOpen, setIsApprovalDialogOpen] = useState(false);
-  const [approvalAction, setApprovalAction] = useState<"approve" | "reject">("approve");
+  const [approvalAction, setApprovalAction] = useState<"APPROVED" | "REJECTED">(
+    "APPROVED"
+  );
   const [approvalNotes, setApprovalNotes] = useState("");
+  const [venues, setVenues] = useState<Venue[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState(false);
 
-  const filteredApprovals = mockApprovals.filter((approval) => {
-    const matchesSearch = approval.facilityName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         approval.ownerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         approval.location.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "all" || approval.status === statusFilter;
-    return matchesSearch && matchesStatus;
+  // Fetch venues data
+  const fetchVenues = async (status: string = "PENDING") => {
+    try {
+      setLoading(true);
+      console.log("🔍 [ADMIN APPROVALS] Fetching venues with status:", status);
+
+      const response = await fetch(`/api/admin/venues?status=${status}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch venues");
+      }
+
+      const data = await response.json();
+      console.log("✅ [ADMIN APPROVALS] Fetched venues:", data.venues.length);
+      setVenues(data.venues);
+    } catch (error) {
+      console.error("❌ [ADMIN APPROVALS] Error fetching venues:", error);
+      toast.error("Failed to load venues");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle venue approval/rejection
+  const handleApprovalAction = async () => {
+    if (!selectedVenue) return;
+
+    try {
+      setProcessing(true);
+      console.log(
+        "🔍 [ADMIN APPROVALS] Processing action:",
+        approvalAction,
+        "for venue:",
+        selectedVenue.id
+      );
+
+      const response = await fetch(
+        `/api/admin/venues/${selectedVenue.id}/approve`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            action: approvalAction,
+            notes: approvalNotes,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to process venue approval");
+      }
+
+      const data = await response.json();
+      console.log("✅ [ADMIN APPROVALS] Action processed:", data);
+
+      toast.success(`Venue ${approvalAction.toLowerCase()} successfully`);
+
+      // Refresh the venues list
+      await fetchVenues(statusFilter);
+
+      // Close dialogs and reset state
+      setIsApprovalDialogOpen(false);
+      setSelectedVenue(null);
+      setApprovalNotes("");
+    } catch (error) {
+      console.error("❌ [ADMIN APPROVALS] Error processing approval:", error);
+      toast.error("Failed to process venue approval");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  // Load venues on component mount and when status filter changes
+  useEffect(() => {
+    fetchVenues(statusFilter);
+  }, [statusFilter]);
+
+  const filteredVenues = venues.filter((venue) => {
+    const matchesSearch =
+      venue.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      venue.owner.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      venue.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      venue.address.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesSearch;
   });
 
-  const handleApprovalAction = (action: "approve" | "reject") => {
+  const handleApprovalActionDialog = (action: "APPROVED" | "REJECTED") => {
     setApprovalAction(action);
     setIsApprovalDialogOpen(true);
   };
 
-  const handleSubmitApproval = () => {
-    const actionText = approvalAction === "approve" ? "approved" : "rejected";
-    toast.success(`Facility ${actionText} successfully`);
-    setIsApprovalDialogOpen(false);
-    setIsDetailDialogOpen(false);
-    setApprovalNotes("");
-  };
-
-  const ApprovalCard = ({ approval }: { approval: any }) => (
+  const VenueCard = ({ venue }: { venue: Venue }) => (
     <Card className="hover:shadow-lg transition-shadow">
       <CardContent className="p-6">
         <div className="flex items-start justify-between mb-4">
-          <div>
-            <h3 className="font-semibold text-lg mb-1">{approval.facilityName}</h3>
-            <div className="flex items-center gap-1 text-sm text-muted-foreground mb-1">
-              <MapPin className="h-4 w-4" />
-              {approval.location}
+          <div className="flex-1">
+            <div className="flex items-start gap-3">
+              {venue.photoUrls && venue.photoUrls.length > 0 ? (
+                <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                  <Image
+                    src={venue.photoUrls[0]}
+                    alt={venue.name}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                  <Building2 className="h-8 w-8 text-muted-foreground" />
+                </div>
+              )}
+              <div className="flex-1">
+                <h3 className="font-semibold text-lg mb-1">{venue.name}</h3>
+                <div className="flex items-center gap-1 text-sm text-muted-foreground mb-1">
+                  <MapPin className="h-4 w-4" />
+                  {venue.location}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Owner: {venue.owner.name}
+                </p>
+              </div>
             </div>
-            <p className="text-sm text-muted-foreground">Owner: {approval.ownerName}</p>
           </div>
-          <Badge className={getStatusColor(approval.status)}>
-            {approval.status.replace('_', ' ')}
+          <Badge className={getStatusColor(venue.approvalStatus)}>
+            {venue.approvalStatus}
           </Badge>
         </div>
 
         <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
           <div>
             <span className="text-muted-foreground">Courts:</span>
-            <p className="font-medium">{approval.courts}</p>
+            <p className="font-medium">{venue.courtsCount}</p>
           </div>
           <div>
             <span className="text-muted-foreground">Sports:</span>
-            <p className="font-medium">{approval.sports.length}</p>
+            <p className="font-medium">{venue.sports.length}</p>
           </div>
           <div>
             <span className="text-muted-foreground">Submitted:</span>
-            <p className="font-medium">{approval.submittedDate}</p>
+            <p className="font-medium">
+              {new Date(venue.createdAt).toLocaleDateString()}
+            </p>
           </div>
           <div>
-            <span className="text-muted-foreground">Price Range:</span>
-            <p className="font-medium">{approval.priceRange}</p>
+            <span className="text-muted-foreground">Rating:</span>
+            <p className="font-medium">
+              {venue.rating > 0 ? `${venue.rating}/5` : "No ratings"}
+            </p>
           </div>
         </div>
 
         <div className="flex flex-wrap gap-1 mb-4">
-          {approval.sports.slice(0, 3).map((sport: string) => (
+          {venue.sports.slice(0, 3).map((sport: string) => (
             <Badge key={sport} variant="secondary" className="text-xs">
               {sport}
             </Badge>
           ))}
-          {approval.sports.length > 3 && (
+          {venue.sports.length > 3 && (
             <Badge variant="outline" className="text-xs">
-              +{approval.sports.length - 3} more
+              +{venue.sports.length - 3} more
             </Badge>
           )}
         </div>
@@ -220,22 +288,22 @@ export default function ApprovalsPage() {
           <Button
             size="sm"
             onClick={() => {
-              setSelectedApproval(approval);
+              setSelectedVenue(venue);
               setIsDetailDialogOpen(true);
             }}
           >
             <Eye className="h-4 w-4 mr-2" />
             Review Details
           </Button>
-          {approval.status === "pending_review" && (
+          {venue.approvalStatus === "PENDING" && (
             <>
               <Button
                 size="sm"
                 variant="outline"
                 className="text-green-600 border-green-600 hover:bg-green-50"
                 onClick={() => {
-                  setSelectedApproval(approval);
-                  handleApprovalAction("approve");
+                  setSelectedVenue(venue);
+                  handleApprovalActionDialog("APPROVED");
                 }}
               >
                 <CheckCircle className="h-4 w-4 mr-2" />
@@ -246,8 +314,8 @@ export default function ApprovalsPage() {
                 variant="outline"
                 className="text-red-600 border-red-600 hover:bg-red-50"
                 onClick={() => {
-                  setSelectedApproval(approval);
-                  handleApprovalAction("reject");
+                  setSelectedVenue(venue);
+                  handleApprovalActionDialog("REJECTED");
                 }}
               >
                 <XCircle className="h-4 w-4 mr-2" />
@@ -262,8 +330,8 @@ export default function ApprovalsPage() {
 
   return (
     <DashboardLayout
-      title="Facility Approvals"
-      description="Review and approve new facility registrations"
+      title="Venue Approvals"
+      description="Review and approve new venue registrations"
     >
       <div className="space-y-6">
         {/* Search and Filters */}
@@ -273,7 +341,7 @@ export default function ApprovalsPage() {
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
-                  placeholder="Search facilities, owners, or locations..."
+                  placeholder="Search venues, owners, or locations..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
@@ -284,11 +352,9 @@ export default function ApprovalsPage() {
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Submissions</SelectItem>
-                  <SelectItem value="pending_review">Pending Review</SelectItem>
-                  <SelectItem value="pending_documents">Pending Documents</SelectItem>
-                  <SelectItem value="approved">Approved</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
+                  <SelectItem value="PENDING">Pending Review</SelectItem>
+                  <SelectItem value="APPROVED">Approved</SelectItem>
+                  <SelectItem value="REJECTED">Rejected</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -296,71 +362,75 @@ export default function ApprovalsPage() {
         </Card>
 
         {/* Summary Stats */}
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Pending</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Pending Review
+              </CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {mockApprovals.filter(a => a.status.includes("pending")).length}
+                {statusFilter === "PENDING"
+                  ? venues.length
+                  : venues.filter((v) => v.approvalStatus === "PENDING").length}
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Review</CardTitle>
-              <Eye className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Approved</CardTitle>
+              <CheckCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {mockApprovals.filter(a => a.status === "pending_review").length}
+                {statusFilter === "APPROVED"
+                  ? venues.length
+                  : venues.filter((v) => v.approvalStatus === "APPROVED")
+                      .length}
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Documents</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Rejected</CardTitle>
+              <XCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {mockApprovals.filter(a => a.status === "pending_documents").length}
+                {statusFilter === "REJECTED"
+                  ? venues.length
+                  : venues.filter((v) => v.approvalStatus === "REJECTED")
+                      .length}
               </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">This Month</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{mockApprovals.length}</div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Approvals List */}
-        {filteredApprovals.length > 0 ? (
+        {/* Venues List */}
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin" />
+            <span className="ml-2">Loading venues...</span>
+          </div>
+        ) : filteredVenues.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2">
-            {filteredApprovals.map((approval) => (
-              <ApprovalCard key={approval.id} approval={approval} />
+            {filteredVenues.map((venue) => (
+              <VenueCard key={venue.id} venue={venue} />
             ))}
           </div>
         ) : (
           <Card>
             <CardContent className="p-12 text-center">
               <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">No approvals found</h3>
+              <h3 className="text-lg font-medium mb-2">No venues found</h3>
               <p className="text-muted-foreground">
-                {searchQuery || statusFilter !== "all" 
+                {searchQuery || statusFilter !== "PENDING"
                   ? "Try adjusting your search or filters"
-                  : "No pending facility approvals at the moment"
-                }
+                  : "No pending venue approvals at the moment"}
               </p>
             </CardContent>
           </Card>
@@ -370,17 +440,17 @@ export default function ApprovalsPage() {
         <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Facility Review: {selectedApproval?.facilityName}</DialogTitle>
+              <DialogTitle>Venue Review: {selectedVenue?.name}</DialogTitle>
               <DialogDescription>
-                Complete facility details and documentation review
+                Complete venue details and documentation review
               </DialogDescription>
             </DialogHeader>
-            
-            {selectedApproval && (
+
+            {selectedVenue && (
               <Tabs defaultValue="details" className="space-y-4">
                 <TabsList>
-                  <TabsTrigger value="details">Facility Details</TabsTrigger>
-                  <TabsTrigger value="documents">Documents</TabsTrigger>
+                  <TabsTrigger value="details">Venue Details</TabsTrigger>
+                  <TabsTrigger value="photos">Photos</TabsTrigger>
                   <TabsTrigger value="owner">Owner Info</TabsTrigger>
                 </TabsList>
 
@@ -391,84 +461,116 @@ export default function ApprovalsPage() {
                       <div className="space-y-2 text-sm">
                         <div>
                           <span className="text-muted-foreground">Name:</span>
-                          <p className="font-medium">{selectedApproval.facilityName}</p>
+                          <p className="font-medium">{selectedVenue.name}</p>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Location:</span>
-                          <p className="font-medium">{selectedApproval.location}</p>
+                          <span className="text-muted-foreground">
+                            Location:
+                          </span>
+                          <p className="font-medium">
+                            {selectedVenue.location}
+                          </p>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Address:</span>
-                          <p className="font-medium">{selectedApproval.address}</p>
+                          <span className="text-muted-foreground">
+                            Address:
+                          </span>
+                          <p className="font-medium">{selectedVenue.address}</p>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Operating Hours:</span>
-                          <p className="font-medium">{selectedApproval.operatingHours}</p>
+                          <span className="text-muted-foreground">Status:</span>
+                          <Badge
+                            className={getStatusColor(
+                              selectedVenue.approvalStatus
+                            )}
+                          >
+                            {selectedVenue.approvalStatus}
+                          </Badge>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">
+                            Created:
+                          </span>
+                          <p className="font-medium">
+                            {new Date(
+                              selectedVenue.createdAt
+                            ).toLocaleDateString()}
+                          </p>
                         </div>
                       </div>
                     </div>
-                    
+
                     <div>
-                      <h4 className="font-medium mb-2">Facility Details</h4>
+                      <h4 className="font-medium mb-2">Venue Details</h4>
                       <div className="space-y-2 text-sm">
                         <div>
                           <span className="text-muted-foreground">Courts:</span>
-                          <p className="font-medium">{selectedApproval.courts}</p>
+                          <p className="font-medium">
+                            {selectedVenue.courtsCount}
+                          </p>
                         </div>
                         <div>
                           <span className="text-muted-foreground">Sports:</span>
-                          <p className="font-medium">{selectedApproval.sports.join(", ")}</p>
+                          <p className="font-medium">
+                            {selectedVenue.sports.join(", ")}
+                          </p>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Price Range:</span>
-                          <p className="font-medium">{selectedApproval.priceRange}</p>
+                          <span className="text-muted-foreground">Rating:</span>
+                          <p className="font-medium">
+                            {selectedVenue.rating > 0
+                              ? `${selectedVenue.rating}/5 (${selectedVenue.reviewCount} reviews)`
+                              : "No ratings yet"}
+                          </p>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Amenities:</span>
-                          <p className="font-medium">{selectedApproval.amenities.join(", ")}</p>
+                          <span className="text-muted-foreground">
+                            Amenities:
+                          </span>
+                          <p className="font-medium">
+                            {selectedVenue.amenities.join(", ")}
+                          </p>
                         </div>
                       </div>
                     </div>
                   </div>
-                  
+
                   <div>
                     <h4 className="font-medium mb-2">Description</h4>
-                    <p className="text-sm text-muted-foreground">{selectedApproval.description}</p>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-medium mb-2">Images</h4>
-                    <div className="grid grid-cols-3 gap-2">
-                      {selectedApproval.images.map((image: string, index: number) => (
-                        <div key={index} className="aspect-video bg-muted rounded" />
-                      ))}
-                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedVenue.description}
+                    </p>
                   </div>
                 </TabsContent>
 
-                <TabsContent value="documents" className="space-y-4">
-                  <div className="space-y-3">
-                    {selectedApproval.documents.map((doc: any, index: number) => (
-                      <div key={index} className="flex items-center justify-between p-3 border rounded">
-                        <div className="flex items-center gap-3">
-                          <FileText className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">{doc.name}</span>
-                        </div>
-                        <Badge className={getDocumentStatusColor(doc.status)}>
-                          {doc.status}
-                        </Badge>
+                <TabsContent value="photos" className="space-y-4">
+                  <div>
+                    <h4 className="font-medium mb-2">Venue Photos</h4>
+                    {selectedVenue.photoUrls &&
+                    selectedVenue.photoUrls.length > 0 ? (
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {selectedVenue.photoUrls.map(
+                          (photo: string, index: number) => (
+                            <div
+                              key={index}
+                              className="relative aspect-video rounded-lg overflow-hidden"
+                            >
+                              <Image
+                                src={photo}
+                                alt={`${selectedVenue.name} photo ${index + 1}`}
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+                          )
+                        )}
                       </div>
-                    ))}
-                  </div>
-                  
-                  {selectedApproval.notes && (
-                    <div>
-                      <h4 className="font-medium mb-2">Review Notes</h4>
-                      <p className="text-sm text-muted-foreground p-3 bg-muted rounded">
-                        {selectedApproval.notes}
+                    ) : (
+                      <p className="text-muted-foreground">
+                        No photos uploaded
                       </p>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </TabsContent>
 
                 <TabsContent value="owner" className="space-y-4">
@@ -478,31 +580,44 @@ export default function ApprovalsPage() {
                       <div className="space-y-2 text-sm">
                         <div>
                           <span className="text-muted-foreground">Name:</span>
-                          <p className="font-medium">{selectedApproval.ownerName}</p>
+                          <p className="font-medium">
+                            {selectedVenue.owner.name}
+                          </p>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Mail className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">{selectedApproval.ownerEmail}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Phone className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">{selectedApproval.ownerPhone}</span>
+                        <div>
+                          <span className="text-muted-foreground">Email:</span>
+                          <p className="font-medium">
+                            {selectedVenue.owner.email}
+                          </p>
                         </div>
                       </div>
                     </div>
-                    
                     <div>
-                      <h4 className="font-medium mb-2">Submission Details</h4>
+                      <h4 className="font-medium mb-2">Venue Statistics</h4>
                       <div className="space-y-2 text-sm">
                         <div>
-                          <span className="text-muted-foreground">Submitted:</span>
-                          <p className="font-medium">{selectedApproval.submittedDate}</p>
+                          <span className="text-muted-foreground">
+                            Total Courts:
+                          </span>
+                          <p className="font-medium">
+                            {selectedVenue.courtsCount}
+                          </p>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Status:</span>
-                          <Badge className={getStatusColor(selectedApproval.status)}>
-                            {selectedApproval.status.replace('_', ' ')}
-                          </Badge>
+                          <span className="text-muted-foreground">
+                            Total Reviews:
+                          </span>
+                          <p className="font-medium">
+                            {selectedVenue.reviewsCount}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">
+                            Active Status:
+                          </span>
+                          <p className="font-medium">
+                            {selectedVenue.isActive ? "Active" : "Inactive"}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -510,23 +625,23 @@ export default function ApprovalsPage() {
                 </TabsContent>
               </Tabs>
             )}
-            
-            {selectedApproval?.status === "pending_review" && (
+
+            {selectedVenue?.approvalStatus === "PENDING" && (
               <div className="flex gap-2 pt-4 border-t">
                 <Button
                   className="flex-1"
-                  onClick={() => handleApprovalAction("approve")}
+                  onClick={() => handleApprovalActionDialog("APPROVED")}
                 >
                   <CheckCircle className="h-4 w-4 mr-2" />
-                  Approve Facility
+                  Approve Venue
                 </Button>
                 <Button
                   variant="destructive"
                   className="flex-1"
-                  onClick={() => handleApprovalAction("reject")}
+                  onClick={() => handleApprovalActionDialog("REJECTED")}
                 >
                   <XCircle className="h-4 w-4 mr-2" />
-                  Reject Facility
+                  Reject Venue
                 </Button>
               </div>
             )}
@@ -534,37 +649,46 @@ export default function ApprovalsPage() {
         </Dialog>
 
         {/* Approval Action Dialog */}
-        <Dialog open={isApprovalDialogOpen} onOpenChange={setIsApprovalDialogOpen}>
+        <Dialog
+          open={isApprovalDialogOpen}
+          onOpenChange={setIsApprovalDialogOpen}
+        >
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                {approvalAction === "approve" ? "Approve" : "Reject"} Facility
+                {approvalAction === "APPROVED" ? "Approve" : "Reject"} Venue
               </DialogTitle>
               <DialogDescription>
-                {approvalAction === "approve" 
-                  ? "This facility will be approved and made available on the platform."
-                  : "This facility will be rejected and the owner will be notified."
-                }
+                {approvalAction === "APPROVED"
+                  ? "This venue will be approved and made available on the platform. The owner will receive an email notification."
+                  : "This venue will be rejected and the owner will be notified with your feedback."}
               </DialogDescription>
             </DialogHeader>
-            
+
             <div className="space-y-4">
               <div>
                 <label className="text-sm font-medium">
-                  {approvalAction === "approve" ? "Approval" : "Rejection"} Notes
+                  {approvalAction === "APPROVED" ? "Approval" : "Rejection"}{" "}
+                  Notes {approvalAction === "REJECTED" && "(Required)"}
                 </label>
                 <Textarea
-                  placeholder={`Add notes for the ${approvalAction} decision...`}
+                  placeholder={
+                    approvalAction === "APPROVED"
+                      ? "Add congratulatory notes or next steps..."
+                      : "Explain the reason for rejection..."
+                  }
                   value={approvalNotes}
                   onChange={(e) => setApprovalNotes(e.target.value)}
                   className="mt-1"
+                  required={approvalAction === "REJECTED"}
                 />
               </div>
-              
+
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  The facility owner will be notified via email about this decision.
+                  The venue owner will be notified via email about this decision
+                  with your notes included.
                 </AlertDescription>
               </Alert>
             </div>
@@ -574,14 +698,32 @@ export default function ApprovalsPage() {
                 variant="outline"
                 onClick={() => setIsApprovalDialogOpen(false)}
                 className="flex-1"
+                disabled={processing}
               >
                 Cancel
               </Button>
               <Button
-                onClick={handleSubmitApproval}
-                className={`flex-1 ${approvalAction === "reject" ? "bg-red-600 hover:bg-red-700" : ""}`}
+                onClick={handleApprovalAction}
+                disabled={
+                  processing ||
+                  (approvalAction === "REJECTED" && !approvalNotes.trim())
+                }
+                className={`flex-1 ${
+                  approvalAction === "REJECTED"
+                    ? "bg-red-600 hover:bg-red-700"
+                    : ""
+                }`}
               >
-                {approvalAction === "approve" ? "Approve" : "Reject"} Facility
+                {processing ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  `${
+                    approvalAction === "APPROVED" ? "Approve" : "Reject"
+                  } Venue`
+                )}
               </Button>
             </div>
           </DialogContent>
