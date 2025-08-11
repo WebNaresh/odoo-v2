@@ -1,0 +1,98 @@
+import { NextAuthOptions } from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
+import { prisma } from "@/lib/prisma";
+
+export const authOptions: NextAuthOptions = {
+    providers: [
+        GoogleProvider({
+            clientId: process.env.GOOGLE_CLIENT_ID!,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+        }),
+    ],
+    pages: {
+        signIn: "/auth/signin",
+    },
+    callbacks: {
+        async signIn({ user, account, profile }) {
+            if (account?.provider === "google" && profile?.sub) {
+                try {
+                    // Check if user exists in database
+                    const existingUser = await prisma.user.findUnique({
+                        where: { googleId: profile.sub },
+                    });
+
+                    if (!existingUser) {
+                        // Create new user if doesn't exist
+                        await prisma.user.create({
+                            data: {
+                                googleId: profile.sub,
+                                email: user.email!,
+                                name: user.name,
+                                image: user.image,
+                                emailVerified: user.email ? new Date() : null,
+                                role: "USER", // Default role for new users
+                            },
+                        });
+                    } else {
+                        // Update existing user with latest info
+                        await prisma.user.update({
+                            where: { googleId: profile.sub },
+                            data: {
+                                name: user.name,
+                                image: user.image,
+                            },
+                        });
+                    }
+                    return true;
+                } catch (error) {
+                    console.error("Error during sign in:", error);
+                    return false;
+                }
+            }
+            return true;
+        },
+        async jwt({ token, account, profile }) {
+            if (account?.provider === "google" && profile?.sub) {
+                // Get complete user object from database
+                const dbUser = await prisma.user.findUnique({
+                    where: { googleId: profile.sub },
+                });
+
+                if (dbUser) {
+                    // Include all user fields from database in the token
+                    token.id = dbUser.id;
+                    token.googleId = dbUser.googleId;
+                    token.email = dbUser.email;
+                    token.name = dbUser.name;
+                    token.image = dbUser.image;
+                    token.emailVerified = dbUser.emailVerified;
+                    token.role = dbUser.role;
+                    token.createdAt = dbUser.createdAt;
+                    token.updatedAt = dbUser.updatedAt;
+                }
+            }
+            return token;
+        },
+        async session({ session, token }) {
+            if (token && session.user) {
+                // Include all user fields from database in the session
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const sessionUser = session.user as any;
+                sessionUser.id = token.id as string;
+                sessionUser.googleId = token.googleId as string;
+                sessionUser.email = token.email as string;
+                sessionUser.name = token.name as string | null;
+                sessionUser.image = token.image as string | null;
+                sessionUser.emailVerified = token.emailVerified as Date | null;
+                sessionUser.role = token.role as string;
+                sessionUser.createdAt = token.createdAt as Date;
+                sessionUser.updatedAt = token.updatedAt as Date;
+            }
+            return session;
+        },
+    },
+    session: {
+        strategy: "jwt",
+    },
+    secret: process.env.NEXTAUTH_SECRET,
+};
