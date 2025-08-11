@@ -68,9 +68,7 @@ model Sport {
   updatedAt   DateTime @updatedAt
 
   // Relations
-  venues   Venue[]  @relation("VenueSports", fields: [venueIds], references: [id])
-  venueIds String[] @db.ObjectId
-  courts   Court[]
+  courts Court[]
 
   @@map("sports")
 }
@@ -93,11 +91,10 @@ model Venue {
   updatedAt      DateTime       @updatedAt
 
   // Relations
-  owner           User     @relation("VenueOwner", fields: [ownerId], references: [id])
-  supportedSports Sport[]  @relation("VenueSports", fields: [sportIds], references: [id])
-  sportIds        String[] @db.ObjectId
-  courts          Court[]
-  reviews         Review[]
+  owner    User     @relation("VenueOwner", fields: [ownerId], references: [id])
+  sportIds String[] @db.ObjectId
+  courts   Court[]
+  reviews  Review[]
 
   @@map("venues")
 }
