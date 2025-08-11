@@ -2,16 +2,46 @@
 
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useRouter } from "next/navigation";
-import { Calendar, Clock, MapPin, Star, Search, Filter, MoreHorizontal, AlertCircle, CheckCircle, XCircle } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  Star,
+  Search,
+  Filter,
+  MoreHorizontal,
+  AlertCircle,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
 import { toast } from "react-hot-toast";
 
 // Mock bookings data
@@ -112,19 +142,23 @@ export default function BookingsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const filteredBookings = mockBookings.filter((booking) => {
-    const matchesSearch = booking.venueName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         booking.courtName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         booking.sport.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "all" || booking.status === statusFilter;
+    const matchesSearch =
+      booking.venueName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      booking.courtName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      booking.sport.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus =
+      statusFilter === "all" || booking.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
-  const upcomingBookings = filteredBookings.filter(booking => 
-    new Date(booking.date) >= new Date() && booking.status !== "cancelled"
+  const upcomingBookings = filteredBookings.filter(
+    (booking) =>
+      new Date(booking.date) >= new Date() && booking.status !== "cancelled"
   );
-  
-  const pastBookings = filteredBookings.filter(booking => 
-    new Date(booking.date) < new Date() || booking.status === "cancelled"
+
+  const pastBookings = filteredBookings.filter(
+    (booking) =>
+      new Date(booking.date) < new Date() || booking.status === "cancelled"
   );
 
   const handleCancelBooking = (bookingId: number) => {
@@ -133,7 +167,7 @@ export default function BookingsPage() {
   };
 
   const handleRescheduleBooking = (bookingId: number) => {
-    toast.info("Reschedule feature coming soon");
+    toast.success("Reschedule feature coming soon");
     setIsDialogOpen(false);
   };
 
@@ -181,7 +215,9 @@ export default function BookingsPage() {
           </div>
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Date & Time:</span>
-            <span className="text-sm font-medium">{booking.date} • {booking.time}</span>
+            <span className="text-sm font-medium">
+              {booking.date} • {booking.time}
+            </span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Amount:</span>
@@ -189,7 +225,11 @@ export default function BookingsPage() {
           </div>
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Payment:</span>
-            <Badge variant={booking.paymentStatus === "paid" ? "default" : "secondary"}>
+            <Badge
+              variant={
+                booking.paymentStatus === "paid" ? "default" : "secondary"
+              }
+            >
               {booking.paymentStatus}
             </Badge>
           </div>
@@ -207,20 +247,21 @@ export default function BookingsPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => toast.info("Review feature coming soon")}
+              onClick={() => toast.success("Review feature coming soon")}
             >
               Write Review
             </Button>
           )}
-          {booking.status === "confirmed" && new Date(booking.date) > new Date() && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleRescheduleBooking(booking.id)}
-            >
-              Reschedule
-            </Button>
-          )}
+          {booking.status === "confirmed" &&
+            new Date(booking.date) > new Date() && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleRescheduleBooking(booking.id)}
+              >
+                Reschedule
+              </Button>
+            )}
         </div>
       </CardContent>
     </Card>
@@ -267,9 +308,7 @@ export default function BookingsPage() {
             <TabsTrigger value="upcoming">
               Upcoming ({upcomingBookings.length})
             </TabsTrigger>
-            <TabsTrigger value="past">
-              Past ({pastBookings.length})
-            </TabsTrigger>
+            <TabsTrigger value="past">Past ({pastBookings.length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="upcoming" className="space-y-4">
@@ -283,9 +322,12 @@ export default function BookingsPage() {
               <Card>
                 <CardContent className="p-12 text-center">
                   <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-medium mb-2">No upcoming bookings</h3>
+                  <h3 className="text-lg font-medium mb-2">
+                    No upcoming bookings
+                  </h3>
                   <p className="text-muted-foreground mb-4">
-                    You don't have any upcoming bookings. Book a venue to get started!
+                    You don't have any upcoming bookings. Book a venue to get
+                    started!
                   </p>
                   <Button onClick={() => router.push("/venues")}>
                     Browse Venues
@@ -325,7 +367,7 @@ export default function BookingsPage() {
                 Manage your booking for {selectedBooking?.venueName}
               </DialogDescription>
             </DialogHeader>
-            
+
             {selectedBooking && (
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4 text-sm">
@@ -357,14 +399,16 @@ export default function BookingsPage() {
                   </div>
                 </div>
 
-                {selectedBooking.status === "confirmed" && new Date(selectedBooking.date) > new Date() && (
-                  <Alert>
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      You can cancel this booking up to 2 hours before the scheduled time.
-                    </AlertDescription>
-                  </Alert>
-                )}
+                {selectedBooking.status === "confirmed" &&
+                  new Date(selectedBooking.date) > new Date() && (
+                    <Alert>
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        You can cancel this booking up to 2 hours before the
+                        scheduled time.
+                      </AlertDescription>
+                    </Alert>
+                  )}
 
                 <div className="flex gap-2 pt-4">
                   <Button
@@ -373,27 +417,34 @@ export default function BookingsPage() {
                   >
                     View Venue
                   </Button>
-                  
-                  {selectedBooking.status === "confirmed" && new Date(selectedBooking.date) > new Date() && (
-                    <>
-                      <Button
-                        variant="outline"
-                        onClick={() => handleRescheduleBooking(selectedBooking.id)}
-                      >
-                        Reschedule
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={() => handleCancelBooking(selectedBooking.id)}
-                      >
-                        Cancel Booking
-                      </Button>
-                    </>
-                  )}
-                  
+
+                  {selectedBooking.status === "confirmed" &&
+                    new Date(selectedBooking.date) > new Date() && (
+                      <>
+                        <Button
+                          variant="outline"
+                          onClick={() =>
+                            handleRescheduleBooking(selectedBooking.id)
+                          }
+                        >
+                          Reschedule
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          onClick={() =>
+                            handleCancelBooking(selectedBooking.id)
+                          }
+                        >
+                          Cancel Booking
+                        </Button>
+                      </>
+                    )}
+
                   {selectedBooking.status === "completed" && (
                     <Button
-                      onClick={() => toast.info("Review feature coming soon")}
+                      onClick={() =>
+                        toast.success("Review feature coming soon")
+                      }
                     >
                       Write Review
                     </Button>
