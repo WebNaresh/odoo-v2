@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useQueryState } from "nuqs";
 import { MainNav } from "@/components/layout/main-nav";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,6 +35,7 @@ import {
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useVenueDetails } from "@/hooks/use-venues";
+import { VenueTimingDisplay } from "@/components/venues/VenueTimingDisplay";
 import Image from "next/image";
 
 // Mock venue data
@@ -156,6 +158,11 @@ export default function VenueDetailPage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorited, setIsFavorited] = useState(false);
 
+  // URL state management for selected court
+  const [selectedCourtId, setSelectedCourtId] = useQueryState("selectedCourt", {
+    defaultValue: "",
+  });
+
   // Fetch venue details using the ID from params
   const {
     data: venueResponse,
@@ -170,6 +177,10 @@ export default function VenueDetailPage() {
     if (venue) {
       router.push(`/venues/${venue.id}/book`);
     }
+  };
+
+  const handleCourtSelect = (courtId: string) => {
+    setSelectedCourtId(courtId);
   };
 
   // Loading state
@@ -418,13 +429,28 @@ export default function VenueDetailPage() {
               <TabsContent value="courts" className="space-y-4">
                 {venue.courts && venue.courts.length > 0 ? (
                   venue.courts.map((court) => (
-                    <Card key={court.id}>
+                    <Card
+                      key={court.id}
+                      className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
+                        selectedCourtId === court.id
+                          ? "ring-2 ring-primary ring-offset-2 shadow-lg"
+                          : ""
+                      }`}
+                      onClick={() => handleCourtSelect(court.id)}
+                    >
                       <CardHeader>
                         <div className="flex items-center justify-between">
-                          <div>
-                            <CardTitle className="text-lg">
-                              {court.name}
-                            </CardTitle>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <CardTitle className="text-lg">
+                                {court.name}
+                              </CardTitle>
+                              {selectedCourtId === court.id && (
+                                <Badge variant="default" className="text-xs">
+                                  Selected
+                                </Badge>
+                              )}
+                            </div>
                             <CardDescription>{court.courtType}</CardDescription>
                           </div>
                           <div className="text-right">
@@ -439,17 +465,24 @@ export default function VenueDetailPage() {
                         </div>
                       </CardHeader>
                       <CardContent>
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-sm">
-                            <span
-                              className={`inline-block w-2 h-2 rounded-full ${
-                                court.isActive ? "bg-green-500" : "bg-red-500"
-                              }`}
-                            />
-                            <span>
-                              {court.isActive ? "Available" : "Unavailable"}
-                            </span>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-sm">
+                              <span
+                                className={`inline-block w-2 h-2 rounded-full ${
+                                  court.isActive ? "bg-green-500" : "bg-red-500"
+                                }`}
+                              />
+                              <span>
+                                {court.isActive ? "Available" : "Unavailable"}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                              <Clock className="h-3 w-3" />
+                              <span>Available for booking</span>
+                            </div>
                           </div>
+
                           {court.features && court.features.length > 0 && (
                             <div>
                               <h4 className="font-medium text-sm">Features:</h4>
@@ -460,6 +493,25 @@ export default function VenueDetailPage() {
                               </ul>
                             </div>
                           )}
+
+                          <Button
+                            variant={
+                              selectedCourtId === court.id
+                                ? "default"
+                                : "outline"
+                            }
+                            size="sm"
+                            className="w-full"
+                            disabled={!court.isActive}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCourtSelect(court.id);
+                            }}
+                          >
+                            {selectedCourtId === court.id
+                              ? "Selected - View Times"
+                              : "Select Court"}
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -633,6 +685,16 @@ export default function VenueDetailPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Court Timing Display */}
+            {selectedCourtId && venue && venue.courts && (
+              <VenueTimingDisplay
+                venueId={venue.id}
+                venueName={venue.name}
+                courts={venue.courts}
+                selectedCourtId={selectedCourtId}
+              />
+            )}
 
             {/* Quick Info */}
             <Card>
