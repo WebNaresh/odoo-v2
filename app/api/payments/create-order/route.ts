@@ -97,6 +97,18 @@ export async function POST(request: NextRequest) {
     const shortBookingId = bookingId.slice(-8); // Last 8 characters of booking ID
     const receipt = `BK_${shortBookingId}_${timestamp}`; // Format: BK_12345678_87654321 (max 23 chars)
 
+    // Validate receipt length
+    if (receipt.length > 40) {
+      console.error("❌ [PAYMENT ORDER] Receipt too long:", receipt.length);
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Internal error: Receipt generation failed"
+        },
+        { status: 500 }
+      );
+    }
+
     console.log("📋 [PAYMENT ORDER] Receipt generated:", {
       receipt,
       length: receipt.length,
