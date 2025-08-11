@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useForm, FormProvider } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm, FormProvider, type SubmitHandler } from "react-hook-form";
+
 import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,13 +32,10 @@ import {
   User,
   FileText,
 } from "lucide-react";
-import {
-  createVenueSchema,
-  type CreateVenueData,
-  AVAILABLE_AMENITIES,
-} from "@/types/venue";
+import { type CreateVenueData, AVAILABLE_AMENITIES } from "@/types/venue";
 
-interface VenueFormData extends Omit<CreateVenueData, "photoUrls"> {
+interface VenueFormData
+  extends Omit<CreateVenueData, "photoUrls" | "sportIds"> {
   photos: FileList | null;
 }
 
@@ -49,14 +46,12 @@ export default function NewVenuePage() {
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
 
   const form = useForm<VenueFormData>({
-    resolver: zodResolver(
-      createVenueSchema.omit({ photoUrls: true, sportIds: true })
-    ),
     defaultValues: {
       name: "",
       description: "",
       address: "",
       amenities: [],
+      photos: null,
       operatingHours: {
         monday: { isOpen: true, openTime: "06:00", closeTime: "22:00" },
         tuesday: { isOpen: true, openTime: "06:00", closeTime: "22:00" },
@@ -69,14 +64,7 @@ export default function NewVenuePage() {
     },
   });
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    setValue,
-    watch,
-    reset,
-  } = form;
+  const { register, handleSubmit, setValue, watch } = form;
 
   const watchedAmenities = watch("amenities");
 
@@ -149,7 +137,7 @@ export default function NewVenuePage() {
     setValue(`operatingHours.${day}.${field}`, value);
   };
 
-  const onSubmit = async (data: VenueFormData) => {
+  const onSubmit: SubmitHandler<VenueFormData> = async (data) => {
     setIsLoading(true);
 
     try {

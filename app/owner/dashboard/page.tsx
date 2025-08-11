@@ -2,7 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -15,7 +21,7 @@ import {
   BarChart3,
   Clock,
   MapPin,
-  Star
+  Star,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -100,15 +106,26 @@ export default function OwnerDashboardPage() {
 
       {/* Quick Actions */}
       <div className="flex flex-wrap gap-4">
-        <Button onClick={() => router.push("/owner/venues/new")} className="gap-2">
+        <Button
+          onClick={() => router.push("/owner/venues/new")}
+          className="gap-2"
+        >
           <Plus className="h-4 w-4" />
           Add New Venue
         </Button>
-        <Button variant="outline" onClick={() => router.push("/owner/venues")} className="gap-2">
+        <Button
+          variant="outline"
+          onClick={() => router.push("/owner/venues")}
+          className="gap-2"
+        >
           <Eye className="h-4 w-4" />
           View All Venues
         </Button>
-        <Button variant="outline" onClick={() => router.push("/owner/analytics")} className="gap-2">
+        <Button
+          variant="outline"
+          onClick={() => router.push("/owner/analytics")}
+          className="gap-2"
+        >
           <BarChart3 className="h-4 w-4" />
           View Analytics
         </Button>
@@ -131,14 +148,14 @@ export default function OwnerDashboardPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Bookings
+            </CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalBookings}</div>
-            <p className="text-xs text-muted-foreground">
-              This month
-            </p>
+            <p className="text-xs text-muted-foreground">This month</p>
           </CardContent>
         </Card>
 
@@ -148,10 +165,10 @@ export default function OwnerDashboardPage() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">₹{stats.totalRevenue.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              This month
-            </p>
+            <div className="text-2xl font-bold">
+              ₹{stats.totalRevenue.toLocaleString()}
+            </div>
+            <p className="text-xs text-muted-foreground">This month</p>
           </CardContent>
         </Card>
 
@@ -162,9 +179,7 @@ export default function OwnerDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.activeUsers}</div>
-            <p className="text-xs text-muted-foreground">
-              Regular customers
-            </p>
+            <p className="text-xs text-muted-foreground">Regular customers</p>
           </CardContent>
         </Card>
       </div>
@@ -173,9 +188,7 @@ export default function OwnerDashboardPage() {
       <Card>
         <CardHeader>
           <CardTitle>Recent Venues</CardTitle>
-          <CardDescription>
-            Your latest venues and their status
-          </CardDescription>
+          <CardDescription>Your latest venues and their status</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -193,7 +206,10 @@ export default function OwnerDashboardPage() {
           ) : recentVenues.length > 0 ? (
             <div className="space-y-4">
               {recentVenues.map((venue) => (
-                <div key={venue.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div
+                  key={venue.id}
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
                   <div className="flex items-center space-x-4">
                     <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
                       <Building2 className="h-6 w-6 text-primary" />
@@ -218,7 +234,9 @@ export default function OwnerDashboardPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-medium">{venue.bookingsCount} bookings</p>
+                    <p className="text-sm font-medium">
+                      {venue.bookingsCount} bookings
+                    </p>
                     <Button
                       variant="outline"
                       size="sm"
@@ -270,7 +288,9 @@ export default function OwnerDashboardPage() {
                   </div>
                   <div>
                     <p className="text-sm font-medium">Court A - Basketball</p>
-                    <p className="text-xs text-muted-foreground">Today, 2:00 PM</p>
+                    <p className="text-xs text-muted-foreground">
+                      Today, 2:00 PM
+                    </p>
                   </div>
                 </div>
                 <Badge variant="secondary">Confirmed</Badge>
@@ -282,7 +302,9 @@ export default function OwnerDashboardPage() {
                   </div>
                   <div>
                     <p className="text-sm font-medium">Court B - Tennis</p>
-                    <p className="text-xs text-muted-foreground">Tomorrow, 10:00 AM</p>
+                    <p className="text-xs text-muted-foreground">
+                      Tomorrow, 10:00 AM
+                    </p>
                   </div>
                 </div>
                 <Badge variant="secondary">Pending</Badge>
@@ -314,7 +336,7 @@ export default function OwnerDashboardPage() {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm">Response Time</span>
-                <span className="text-sm font-medium">< 2 hours</span>
+                <span className="text-sm font-medium">&lt; 2 hours</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm">Customer Satisfaction</span>
