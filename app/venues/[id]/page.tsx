@@ -1153,6 +1153,18 @@ export default function VenueDetailPage() {
                 selectedCourtIds={selectedCourtIdsArray}
                 onTimeSlotsSelect={setSelectedTimeSlots}
                 selectedTimeSlots={selectedTimeSlots}
+                onBookingRequest={(timeSlots) => {
+                  console.log(
+                    "🎯 [VENUE PAGE] Received booking request from VenueTimingDisplay:",
+                    timeSlots
+                  );
+                  // Set the selected time slots and trigger booking
+                  setSelectedTimeSlots(timeSlots);
+                  // Trigger the booking process
+                  setTimeout(() => {
+                    handleBookNow();
+                  }, 100);
+                }}
               />
             )}
 

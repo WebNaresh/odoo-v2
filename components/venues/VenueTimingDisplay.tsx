@@ -57,6 +57,16 @@ interface VenueTimingDisplayProps {
       price: number;
     }[]
   ) => void;
+  onBookingRequest?: (
+    timeSlots: {
+      id: string;
+      courtId: string;
+      startTime: string;
+      endTime: string;
+      date: string;
+      price: number;
+    }[]
+  ) => void;
   selectedTimeSlot?: {
     id: string;
     courtId: string;
@@ -84,6 +94,7 @@ export function VenueTimingDisplay({
   selectedCourtIds,
   onTimeSlotSelect,
   onTimeSlotsSelect,
+  onBookingRequest,
   selectedTimeSlot: externalSelectedTimeSlot,
   selectedTimeSlots: externalSelectedTimeSlots,
   className,
@@ -344,15 +355,9 @@ export function VenueTimingDisplay({
       finalSelectedTimeSlot: selectedTimeSlot,
     });
 
-    if (selectedTimeSlot) {
+    if (selectedTimeSlots.length > 0) {
       console.log(
-        "✅ [BOOK SLOT] Single slot selected, proceeding with booking"
-      );
-      // Navigate to booking page with selected slot
-      window.location.href = `/venues/${venueId}/book?courtId=${selectedTimeSlot.courtId}&date=${selectedTimeSlot.date}&startTime=${selectedTimeSlot.startTime}`;
-    } else if (selectedTimeSlots.length > 0) {
-      console.log(
-        "✅ [BOOK SLOT] Multiple slots selected, proceeding with multiple bookings"
+        `✅ [BOOK SLOT] ${selectedTimeSlots.length} slot(s) selected, proceeding with booking`
       );
       console.log(
         "📋 [BOOK SLOT] Available slots:",
@@ -364,39 +369,36 @@ export function VenueTimingDisplay({
         }))
       );
 
-      // For multiple slots, we need to handle them differently
-      // Option 1: Create separate bookings for each slot
-      // Option 2: Navigate to a multi-slot booking page
-      // For now, let's create separate bookings for each slot
-
-      console.log("🚀 [BOOK SLOT] Creating multiple bookings...");
-
-      // Call a function to handle multiple slot bookings
-      if (
-        typeof window !== "undefined" &&
-        (window as any).handleMultipleSlotBookings
-      ) {
-        (window as any).handleMultipleSlotBookings(selectedTimeSlots);
+      // Use the callback to let the parent component handle the booking
+      if (onBookingRequest) {
+        console.log("📤 [BOOK SLOT] Calling parent booking handler");
+        onBookingRequest(
+          selectedTimeSlots.map((slot) => ({
+            id: slot.id,
+            courtId: slot.courtId,
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+            date: slot.date,
+            price: slot.price,
+          }))
+        );
       } else {
-        // Fallback: Navigate to booking page with multiple slots as URL params
-        const slotsParam = selectedTimeSlots
-          .map(
-            (slot) =>
-              `slot=${encodeURIComponent(
-                JSON.stringify({
-                  id: slot.id,
-                  courtId: slot.courtId,
-                  startTime: slot.startTime,
-                  endTime: slot.endTime,
-                  date: slot.date,
-                  price: slot.price,
-                })
-              )}`
-          )
-          .join("&");
-
-        console.log("🔗 [BOOK SLOT] Navigating to multi-slot booking page");
-        window.location.href = `/venues/${venueId}/book-multiple?${slotsParam}`;
+        console.log(
+          "⚠️ [BOOK SLOT] No booking handler provided, using fallback"
+        );
+        // Fallback for single slot - navigate to booking page
+        if (selectedTimeSlots.length === 1) {
+          const slot = selectedTimeSlots[0];
+          window.location.href = `/venues/${venueId}/book?courtId=${slot.courtId}&date=${slot.date}&startTime=${slot.startTime}`;
+        } else {
+          // Show error for multiple slots without handler
+          if (typeof window !== "undefined" && (window as any).showToast) {
+            (window as any).showToast(
+              "Multiple slot booking not supported in this context",
+              "error"
+            );
+          }
+        }
       }
     } else {
       console.log("❌ [BOOK SLOT] No slots selected");

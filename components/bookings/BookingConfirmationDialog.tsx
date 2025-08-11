@@ -163,32 +163,32 @@ export function BookingConfirmationDialog({
             {step === "error" && "Booking Failed"}
           </DialogTitle>
           <DialogDescription>
-            {step === "confirm" && (
-              <div>
-                <span>Review your booking details before confirming.</span>
-                {queueInfo && queueInfo.total > 1 && (
-                  <div className="text-sm text-muted-foreground mt-1">
-                    This is booking {queueInfo.current} of {queueInfo.total}.
-                    You'll be prompted for each booking.
-                  </div>
-                )}
-              </div>
-            )}
+            {step === "confirm" &&
+              "Review your booking details before confirming."}
             {step === "processing" &&
               "Please wait while we process your booking."}
-            {step === "success" && (
-              <div>
-                <span>Your booking has been successfully created.</span>
-                {queueInfo && queueInfo.current < queueInfo.total && (
-                  <div className="text-sm text-green-600 mt-1">
-                    Proceeding to booking {queueInfo.current + 1} of{" "}
-                    {queueInfo.total}...
-                  </div>
-                )}
-              </div>
-            )}
+            {step === "success" &&
+              "Your booking has been successfully created."}
             {step === "error" && "There was an issue creating your booking."}
           </DialogDescription>
+
+          {/* Queue Info - Outside DialogDescription to avoid nesting issues */}
+          {queueInfo && queueInfo.total > 1 && (
+            <div className="text-sm text-muted-foreground -mt-2 mb-4">
+              {step === "confirm" && (
+                <span>
+                  This is booking {queueInfo.current} of {queueInfo.total}.
+                  You'll be prompted for each booking.
+                </span>
+              )}
+              {step === "success" && queueInfo.current < queueInfo.total && (
+                <span className="text-green-600">
+                  Proceeding to booking {queueInfo.current + 1} of{" "}
+                  {queueInfo.total}...
+                </span>
+              )}
+            </div>
+          )}
         </DialogHeader>
 
         {step === "confirm" && (
