@@ -83,6 +83,7 @@ interface VenueTimingDisplayProps {
     date: string;
     price: number;
   }[];
+  onRefetchAvailability?: () => void;
   className?: string;
 }
 
@@ -97,6 +98,7 @@ export function VenueTimingDisplay({
   onBookingRequest,
   selectedTimeSlot: externalSelectedTimeSlot,
   selectedTimeSlots: externalSelectedTimeSlots,
+  onRefetchAvailability,
   className,
 }: VenueTimingDisplayProps) {
   const { data: session, status } = useSession();
@@ -178,7 +180,16 @@ export function VenueTimingDisplay({
     data: courtsWithTimeSlots,
     isLoading,
     error,
-  } = useCourtTimeSlots(courts, selectedDate);
+    refetch: refetchTimeSlots,
+  } = useCourtTimeSlots(courts, selectedDate, venueId);
+
+  // Expose refetch function to parent component
+  useEffect(() => {
+    if (onRefetchAvailability && refetchTimeSlots) {
+      // Store the refetch function in a way the parent can access it
+      (window as any).refetchTimeSlots = refetchTimeSlots;
+    }
+  }, [onRefetchAvailability, refetchTimeSlots]);
 
   // Filter courts based on selectedCourtId or selectedCourtIds if provided
   const filteredCourts = (() => {

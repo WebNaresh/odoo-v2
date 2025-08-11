@@ -305,6 +305,21 @@ export default function VenueDetailPage() {
             setSelectedTimeSlots([]);
             setSelectedCourtIds("");
 
+            // Refetch venue details and time slot availability
+            console.log(
+              "🔄 [VENUE PAGE] Refetching venue details and time slot availability"
+            );
+            refetchVenueDetails();
+
+            // Also refetch time slots to update availability immediately
+            if (
+              typeof window !== "undefined" &&
+              (window as any).refetchTimeSlots
+            ) {
+              console.log("🔄 [VENUE PAGE] Refetching time slot availability");
+              (window as any).refetchTimeSlots();
+            }
+
             // Optionally redirect to bookings page
             // router.push('/bookings');
           },
@@ -345,6 +360,7 @@ export default function VenueDetailPage() {
     isLoading,
     isError,
     error,
+    refetch: refetchVenueDetails,
   } = useVenueDetails(params.id as string);
 
   const venue = venueResponse?.success ? venueResponse.venue : null;
@@ -1059,6 +1075,13 @@ export default function VenueDetailPage() {
                   setTimeout(() => {
                     handleDirectPayment(timeSlots);
                   }, 100);
+                }}
+                onRefetchAvailability={() => {
+                  console.log(
+                    "🔄 [VENUE PAGE] Refetching time slot availability"
+                  );
+                  // This will be called by the VenueTimingDisplay component
+                  // The actual refetch function will be set by the component
                 }}
               />
             )}

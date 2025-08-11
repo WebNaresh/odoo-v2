@@ -30,7 +30,19 @@ export interface CourtWithTimeSlots {
 // Generate time slots based on court configuration
 function generateTimeSlots(
   court: any,
-  selectedDate: Date = new Date()
+  selectedDate: Date = new Date(),
+  availability?: Record<string, {
+    courtId: string;
+    courtName: string;
+    capacity: number;
+    bookedSlots: Array<{
+      startTime: string;
+      endTime: string;
+      bookedPlayers: number;
+      availableSpots: number;
+      isFullyBooked: boolean;
+    }>;
+  }>
 ): TimeSlot[] {
   const slots: TimeSlot[] = [];
 
@@ -86,6 +98,19 @@ function generateTimeSlots(
     });
 
     if (!isExcluded) {
+      // Check availability against real booking data
+      let isAvailable = true;
+      if (availability && availability[court.id]) {
+        const courtAvailability = availability[court.id];
+        const bookedSlot = courtAvailability.bookedSlots.find(
+          slot => slot.startTime === startTimeStr && slot.endTime === endTimeStr
+        );
+
+        if (bookedSlot) {
+          isAvailable = !bookedSlot.isFullyBooked;
+        }
+      }
+
       slots.push({
         id: `${court.id}-${dateStr}-${startTimeStr}`,
         courtId: court.id,
@@ -94,7 +119,7 @@ function generateTimeSlots(
         endTime: endTimeStr,
         date: dateStr,
         price: court.pricePerHour,
-        isAvailable: true, // TODO: Check against actual bookings
+        isAvailable,
         duration: slotDuration,
         isPopular: startHour >= 18 && startHour <= 21, // Evening slots are popular
       });
@@ -104,16 +129,37 @@ function generateTimeSlots(
   return slots;
 }
 
-// Updated hook that accepts courts data directly
-export function useCourtTimeSlots(courts: any[], selectedDate: Date = new Date()) {
+// Updated hook that accepts courts data directly and fetches availability
+export function useCourtTimeSlots(courts: any[], selectedDate: Date = new Date(), venueId?: string) {
   return useQuery({
-    queryKey: ['court-time-slots', courts?.map(c => c.id).join(','), format(selectedDate, 'yyyy-MM-dd')],
+    queryKey: ['court-time-slots', courts?.map(c => c.id).join(','), format(selectedDate, 'yyyy-MM-dd'), venueId],
     queryFn: async (): Promise<CourtWithTimeSlots[]> => {
       if (!courts || courts.length === 0) {
         return [];
       }
 
-      // Generate time slots for each court
+      let availability: any = {};
+
+      // Fetch availability data if venueId is provided
+      if (venueId) {
+        try {
+          const courtIds = courts.map(c => c.id).join(',');
+          const dateStr = format(selectedDate, 'yyyy-MM-dd');
+          const response = await fetch(`/api/venues/${venueId}/availability?date=${dateStr}&courtIds=${courtIds}`);
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+              availability = data.availability || {};
+              console.log("📊 [COURT TIME SLOTS] Fetched availability data:", availability);
+            }
+          }
+        } catch (error) {
+          console.error("❌ [COURT TIME SLOTS] Failed to fetch availability:", error);
+        }
+      }
+
+      // Generate time slots for each court with availability data
       const courtsWithTimeSlots: CourtWithTimeSlots[] = courts.map((court: any) => ({
         id: court.id,
         name: court.name,
@@ -122,15 +168,16 @@ export function useCourtTimeSlots(courts: any[], selectedDate: Date = new Date()
         capacity: court.capacity || 10,
         slotDuration: court.slotDuration || 60,
         isActive: court.isActive,
-        timeSlots: generateTimeSlots(court, selectedDate),
+        timeSlots: generateTimeSlots(court, selectedDate, availability),
       }));
 
       return courtsWithTimeSlots.filter(court => court.isActive);
     },
     enabled: !!courts && courts.length > 0,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
-    refetchOnWindowFocus: false,
+    staleTime: 30 * 1000, // 30 seconds - shorter for real-time availability
+    gcTime: 2 * 60 * 1000, // 2 minutes
+    refetchOnWindowFocus: true, // Refetch when window gains focus
+    refetchInterval: 60 * 1000, // Refetch every minute for live updates
   });
 }
 
