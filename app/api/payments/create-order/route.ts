@@ -6,8 +6,10 @@ import { z } from "zod";
 
 // Validation schema
 const createOrderSchema = z.object({
-  bookingId: z.string().min(1, "Booking ID is required"),
-  amount: z.number().min(1, "Amount must be greater than 0"),
+  timeSlotId: z.string().min(1, "Time slot ID is required"),
+  courtId: z.string().min(1, "Court ID is required"),
+  playerCount: z.number().min(1, "Player count must be at least 1"),
+  notes: z.string().optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -40,62 +42,138 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { bookingId, amount } = validationResult.data;
+    const { timeSlotId, courtId, playerCount, notes } = validationResult.data;
 
-    // Verify booking exists and belongs to user
-    const booking = await prisma.booking.findUnique({
-      where: { id: bookingId },
-      include: {
-        court: {
-          include: {
-            venue: true,
-          },
-        },
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
+    console.log("🔍 [PAYMENT ORDER] Validating slot availability:", {
+      timeSlotId,
+      courtId,
+      playerCount,
+      userId: session.user.id,
     });
 
-    if (!booking) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Booking not found"
-        },
-        { status: 404 }
-      );
-    }
+    // Parse dynamic time slot ID and validate court
+    let slotDate: string;
+    let slotStartTime: string;
+    let slotEndTime: string;
+    let timeSlotPrice: number = 500; // Default price
 
-    if (booking.userId !== session.user.id) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Access denied"
-        },
-        { status: 403 }
-      );
-    }
+    if (timeSlotId.includes('-') && timeSlotId.split('-').length >= 3) {
+      // Dynamic time slot ID
+      const parts = timeSlotId.split('-');
+      const parsedCourtId = parts[0];
+      slotDate = `${parts[1]}-${parts[2]}-${parts[3]}`;
+      slotStartTime = parts[4];
 
-    if (booking.paymentStatus === "PAID") {
+      // Calculate end time (assume 1 hour slots)
+      const startHour = parseInt(slotStartTime.split(':')[0]);
+      slotEndTime = `${String(startHour + 1).padStart(2, '0')}:${slotStartTime.split(':')[1]}`;
+
+      // Check if court matches
+      if (parsedCourtId !== courtId) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Court and time slot mismatch"
+          },
+          { status: 400 }
+        );
+      }
+    } else {
       return NextResponse.json(
         {
           success: false,
-          error: "Booking is already paid"
+          error: "Invalid time slot format"
         },
         { status: 400 }
       );
     }
 
+    // Get court details
+    const court = await prisma.court.findUnique({
+      where: { id: courtId },
+      include: {
+        venue: true,
+      },
+    });
+
+    if (!court) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Court not found"
+        },
+        { status: 404 }
+      );
+    }
+
+    if (!court.isActive) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Court is not active"
+        },
+        { status: 400 }
+      );
+    }
+
+    // Check for existing bookings for this time slot
+    const slotDateTime = new Date(`${slotDate}T${slotStartTime}:00`);
+    const slotEndDateTime = new Date(`${slotDate}T${slotEndTime}:00`);
+
+    const existingBookings = await prisma.booking.findMany({
+      where: {
+        courtId: courtId,
+        startTime: {
+          gte: slotDateTime,
+          lt: slotEndDateTime,
+        },
+        status: {
+          in: ["PENDING", "CONFIRMED"],
+        },
+      },
+    });
+
+    // Check capacity
+    const maxCapacity = court.capacity;
+    const currentBookedPlayers = existingBookings.reduce(
+      (total, booking) => total + booking.playerCount,
+      0
+    );
+
+    if (currentBookedPlayers + playerCount > maxCapacity) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Insufficient capacity. Available spots: ${maxCapacity - currentBookedPlayers}`
+        },
+        { status: 409 }
+      );
+    }
+
+    // Check for existing booking by same user for same slot
+    const userExistingBooking = existingBookings.find(
+      booking => booking.userId === session.user.id
+    );
+
+    if (userExistingBooking) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "You already have a booking for this time slot"
+        },
+        { status: 409 }
+      );
+    }
+
+    // Calculate amount
+    timeSlotPrice = court.pricePerHour;
+    const amount = timeSlotPrice * playerCount;
+
     // Create Razorpay order
     // Keep receipt under 40 characters (Razorpay limit)
     const timestamp = Date.now().toString().slice(-8); // Last 8 digits
-    const shortBookingId = bookingId.slice(-8); // Last 8 characters of booking ID
-    const receipt = `BK_${shortBookingId}_${timestamp}`; // Format: BK_12345678_87654321 (max 23 chars)
+    const shortCourtId = courtId.slice(-8); // Last 8 characters of court ID
+    const receipt = `CT_${shortCourtId}_${timestamp}`; // Format: CT_12345678_87654321 (max 23 chars)
 
     // Validate receipt length
     if (receipt.length > 40) {
@@ -112,17 +190,22 @@ export async function POST(request: NextRequest) {
     console.log("📋 [PAYMENT ORDER] Receipt generated:", {
       receipt,
       length: receipt.length,
-      bookingId,
+      courtId,
       timestamp,
     });
 
     const notes = {
-      bookingId: booking.id,
+      timeSlotId,
       userId: session.user.id,
-      courtId: booking.courtId,
-      venueName: booking.court.venue.name,
-      courtName: booking.court.name,
-      userEmail: booking.user.email,
+      courtId: courtId,
+      venueName: court.venue.name,
+      courtName: court.name,
+      userEmail: session.user.email,
+      slotDate,
+      slotStartTime,
+      slotEndTime,
+      playerCount: playerCount.toString(),
+      notes: notes || "",
     };
 
     const orderResult = await createRazorpayOrder(amount, receipt, notes);
@@ -137,33 +220,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update booking with payment order ID
-    await prisma.booking.update({
-      where: { id: bookingId },
-      data: {
-        paymentId: orderResult.order.id,
-        paymentStatus: "PENDING",
-      },
-    });
-
     console.log("✅ [PAYMENT ORDER] Order created successfully:", {
       orderId: orderResult.order.id,
-      bookingId,
+      timeSlotId,
+      courtId,
       amount,
     });
 
     return NextResponse.json({
       success: true,
       order: orderResult.order,
-      booking: {
-        id: booking.id,
-        bookingReference: booking.bookingReference,
-        venueName: booking.court.venue.name,
-        courtName: booking.court.name,
-        startTime: booking.startTime,
-        endTime: booking.endTime,
-        playerCount: booking.playerCount,
-        totalPrice: booking.totalPrice,
+      slotDetails: {
+        timeSlotId,
+        courtId,
+        venueName: court.venue.name,
+        courtName: court.name,
+        slotDate,
+        startTime: slotStartTime,
+        endTime: slotEndTime,
+        playerCount,
+        totalPrice: amount,
+        notes,
       },
     });
 

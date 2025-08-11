@@ -9,7 +9,6 @@ const verifyPaymentSchema = z.object({
   razorpay_order_id: z.string().min(1, "Order ID is required"),
   razorpay_payment_id: z.string().min(1, "Payment ID is required"),
   razorpay_signature: z.string().min(1, "Signature is required"),
-  bookingId: z.string().min(1, "Booking ID is required"),
 });
 
 export async function POST(request: NextRequest) {
@@ -46,56 +45,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, bookingId } = validationResult.data;
-
-    // Verify booking exists and belongs to user
-    const booking = await prisma.booking.findUnique({
-      where: { id: bookingId },
-      include: {
-        court: {
-          include: {
-            venue: true,
-          },
-        },
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
-    });
-
-    if (!booking) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Booking not found"
-        },
-        { status: 404 }
-      );
-    }
-
-    if (booking.userId !== session.user.id) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Access denied"
-        },
-        { status: 403 }
-      );
-    }
-
-    if (booking.paymentStatus === "PAID") {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Payment already verified"
-        },
-        { status: 400 }
-      );
-    }
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = validationResult.data;
 
     // Verify payment signature
     const isSignatureValid = await verifyRazorpaySignature(
