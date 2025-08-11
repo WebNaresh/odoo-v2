@@ -37,6 +37,7 @@ import {
 import { toast } from "react-hot-toast";
 import { useVenueDetails } from "@/hooks/use-venues";
 import { VenueTimingDisplay } from "@/components/venues/VenueTimingDisplay";
+import { RelatedVenues } from "@/components/venues/RelatedVenues";
 import Image from "next/image";
 
 // Mock venue data
@@ -184,15 +185,17 @@ export default function VenueDetailPage() {
     setSelectedCourtIds(courtIds.join(","));
   };
 
-  // State for selected time slot
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState<{
-    id: string;
-    courtId: string;
-    startTime: string;
-    endTime: string;
-    date: string;
-    price: number;
-  } | null>(null);
+  // State for selected time slots (multiple selection)
+  const [selectedTimeSlots, setSelectedTimeSlots] = useState<
+    {
+      id: string;
+      courtId: string;
+      startTime: string;
+      endTime: string;
+      date: string;
+      price: number;
+    }[]
+  >([]);
 
   // State for member count
   const [memberCount, setMemberCount] = useState(1);
@@ -229,9 +232,9 @@ export default function VenueDetailPage() {
       return;
     }
 
-    // Validation: Check if time slot is selected
-    if (!selectedTimeSlot) {
-      toast.error("Please select a time slot first");
+    // Validation: Check if time slots are selected
+    if (selectedTimeSlots.length === 0) {
+      toast.error("Please select at least one time slot first");
       return;
     }
 
@@ -252,9 +255,25 @@ export default function VenueDetailPage() {
       return;
     }
 
-    // Navigate to booking page with selected courts, time slot, and member count
+    // Navigate to booking page with selected courts, time slots, and member count
+    const timeSlotParams = selectedTimeSlots
+      .map(
+        (slot) =>
+          `timeSlots[]=${encodeURIComponent(
+            JSON.stringify({
+              id: slot.id,
+              courtId: slot.courtId,
+              startTime: slot.startTime,
+              endTime: slot.endTime,
+              date: slot.date,
+              price: slot.price,
+            })
+          )}`
+      )
+      .join("&");
+
     router.push(
-      `/venues/${venue.id}/book?courtIds=${selectedCourtIds}&date=${selectedTimeSlot.date}&startTime=${selectedTimeSlot.startTime}&endTime=${selectedTimeSlot.endTime}&memberCount=${memberCount}`
+      `/venues/${venue.id}/book?courtIds=${selectedCourtIds}&${timeSlotParams}&memberCount=${memberCount}`
     );
   };
 
@@ -272,8 +291,8 @@ export default function VenueDetailPage() {
       updateSelectedCourts(newSelection);
     }
 
-    // Reset time slot when court selection changes
-    setSelectedTimeSlot(null);
+    // Reset time slots when court selection changes
+    setSelectedTimeSlots([]);
   };
 
   // Loading state
@@ -832,7 +851,30 @@ export default function VenueDetailPage() {
                       -
                     </Button>
                     <div className="flex flex-col items-center">
-                      <span className="text-2xl font-bold">{memberCount}</span>
+                      <input
+                        type="number"
+                        value={memberCount}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value) || 1;
+                          const maxCapacity =
+                            selectedCourtIdsArray.length > 0
+                              ? Math.max(
+                                  ...selectedCourtIdsArray.map((courtId) => {
+                                    const court = venue?.courts?.find(
+                                      (c) => c.id === courtId
+                                    );
+                                    return (court as any)?.capacity || 10;
+                                  })
+                                )
+                              : 100; // Default max if no courts selected
+                          setMemberCount(
+                            Math.min(Math.max(1, value), maxCapacity)
+                          );
+                        }}
+                        className="text-2xl font-bold text-center w-16 bg-transparent border-none outline-none"
+                        min="1"
+                        max="100"
+                      />
                       <span className="text-xs text-muted-foreground">
                         {memberCount === 1 ? "player" : "players"}
                       </span>
@@ -840,20 +882,49 @@ export default function VenueDetailPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setMemberCount(memberCount + 1)}
-                      disabled={memberCount >= 20} // Max limit
+                      onClick={() => {
+                        const maxCapacity =
+                          selectedCourtIdsArray.length > 0
+                            ? Math.max(
+                                ...selectedCourtIdsArray.map((courtId) => {
+                                  const court = venue?.courts?.find(
+                                    (c) => c.id === courtId
+                                  );
+                                  return (court as any)?.capacity || 10;
+                                })
+                              )
+                            : 100;
+                        setMemberCount(Math.min(memberCount + 1, maxCapacity));
+                      }}
                       className="h-8 w-8 p-0"
                     >
                       +
                     </Button>
                   </div>
-                  <div className="text-xs text-muted-foreground text-center">
-                    Court capacity varies by sport type
-                  </div>
+                  {selectedCourtIdsArray.length > 0 && (
+                    <div className="text-xs text-muted-foreground text-center">
+                      Max capacity:{" "}
+                      {Math.max(
+                        ...selectedCourtIdsArray.map((courtId) => {
+                          const court = venue?.courts?.find(
+                            (c) => c.id === courtId
+                          );
+                          return (court as any)?.capacity || 10;
+                        })
+                      )}{" "}
+                      players for selected courts
+                    </div>
+                  )}
+                  {selectedCourtIdsArray.length === 0 && (
+                    <div className="text-xs text-muted-foreground text-center">
+                      Select courts to see capacity limits
+                    </div>
+                  )}
                 </div>
 
                 {/* Selection Summary */}
-                {(selectedCourtIdsArray.length > 0 || selectedTimeSlot) && (
+                {(selectedCourtIdsArray.length > 0 ||
+                  selectedTimeSlots.length > 0) && (
                   <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 space-y-2">
                     <h4 className="font-medium text-sm">Current Selection</h4>
                     {selectedCourtIdsArray.length > 0 && (
@@ -862,17 +933,35 @@ export default function VenueDetailPage() {
                         {selectedCourtIdsArray.length} selected
                       </div>
                     )}
-                    {selectedTimeSlot && (
+                    {selectedTimeSlots.length > 0 && (
                       <div className="text-xs text-muted-foreground">
-                        <span className="font-medium">Time:</span>{" "}
-                        {formatTime(selectedTimeSlot.startTime)} -{" "}
-                        {formatTime(selectedTimeSlot.endTime)}
+                        <span className="font-medium">Time Slots:</span>{" "}
+                        {selectedTimeSlots.length} selected
+                        {selectedTimeSlots.length <= 3 && (
+                          <div className="mt-1 space-y-1">
+                            {selectedTimeSlots.map((slot, index) => (
+                              <div key={slot.id} className="text-xs">
+                                {index + 1}. {formatTime(slot.startTime)} -{" "}
+                                {formatTime(slot.endTime)}
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
                     <div className="text-xs text-muted-foreground">
                       <span className="font-medium">Players:</span>{" "}
                       {memberCount}
                     </div>
+                    {selectedTimeSlots.length > 0 && (
+                      <div className="text-xs text-muted-foreground">
+                        <span className="font-medium">Total Cost:</span> ₹
+                        {selectedTimeSlots.reduce(
+                          (total, slot) => total + slot.price,
+                          0
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>
@@ -885,8 +974,8 @@ export default function VenueDetailPage() {
                 venueName={venue.name}
                 courts={venue.courts}
                 selectedCourtIds={selectedCourtIdsArray}
-                onTimeSlotSelect={setSelectedTimeSlot}
-                selectedTimeSlot={selectedTimeSlot}
+                onTimeSlotsSelect={setSelectedTimeSlots}
+                selectedTimeSlots={selectedTimeSlots}
               />
             )}
 
@@ -911,6 +1000,11 @@ export default function VenueDetailPage() {
               </CardContent>
             </Card>
           </div>
+        </div>
+
+        {/* Related Venues Section */}
+        <div className="mt-12 pt-8 border-t">
+          <RelatedVenues currentVenueId={venue.id} limit={8} />
         </div>
       </main>
     </div>

@@ -46,6 +46,16 @@ interface VenueTimingDisplayProps {
       price: number;
     } | null
   ) => void;
+  onTimeSlotsSelect?: (
+    timeSlots: {
+      id: string;
+      courtId: string;
+      startTime: string;
+      endTime: string;
+      date: string;
+      price: number;
+    }[]
+  ) => void;
   selectedTimeSlot?: {
     id: string;
     courtId: string;
@@ -54,6 +64,14 @@ interface VenueTimingDisplayProps {
     date: string;
     price: number;
   } | null;
+  selectedTimeSlots?: {
+    id: string;
+    courtId: string;
+    startTime: string;
+    endTime: string;
+    date: string;
+    price: number;
+  }[];
   className?: string;
 }
 
@@ -64,14 +82,21 @@ export function VenueTimingDisplay({
   selectedCourtId,
   selectedCourtIds,
   onTimeSlotSelect,
+  onTimeSlotsSelect,
   selectedTimeSlot: externalSelectedTimeSlot,
+  selectedTimeSlots: externalSelectedTimeSlots,
   className,
 }: VenueTimingDisplayProps) {
   const [selectedDate, setSelectedDate] = useState(startOfDay(new Date()));
   const [internalSelectedTimeSlot, setInternalSelectedTimeSlot] =
     useState<TimeSlot | null>(null);
+  const [internalSelectedTimeSlots, setInternalSelectedTimeSlots] = useState<
+    TimeSlot[]
+  >([]);
 
-  // Use external selected time slot if provided, otherwise use internal state
+  // Use external selected time slots if provided, otherwise use internal state
+  const selectedTimeSlots =
+    externalSelectedTimeSlots || internalSelectedTimeSlots;
   const selectedTimeSlot = externalSelectedTimeSlot || internalSelectedTimeSlot;
 
   const {
@@ -103,10 +128,14 @@ export function VenueTimingDisplay({
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date);
     setInternalSelectedTimeSlot(null); // Reset selected time slot when date changes
+    setInternalSelectedTimeSlots([]); // Reset selected time slots when date changes
 
-    // Reset external time slot if handler provided
+    // Reset external time slots if handlers provided
     if (onTimeSlotSelect) {
       onTimeSlotSelect(null);
+    }
+    if (onTimeSlotsSelect) {
+      onTimeSlotsSelect([]);
     }
   };
 
@@ -120,11 +149,41 @@ export function VenueTimingDisplay({
       price: timeSlot.price,
     };
 
-    setInternalSelectedTimeSlot(timeSlot);
+    // Check if slot is already selected
+    const isSelected = selectedTimeSlots.some(
+      (slot) => slot.id === timeSlot.id
+    );
 
-    // Call external handler if provided
+    let newSelectedSlots: TimeSlot[];
+    if (isSelected) {
+      // Remove slot from selection
+      newSelectedSlots = selectedTimeSlots.filter(
+        (slot) => slot.id !== timeSlot.id
+      );
+    } else {
+      // Add slot to selection
+      newSelectedSlots = [...selectedTimeSlots, timeSlot];
+    }
+
+    setInternalSelectedTimeSlots(newSelectedSlots);
+
+    // Call external handlers if provided
+    if (onTimeSlotsSelect) {
+      onTimeSlotsSelect(
+        newSelectedSlots.map((slot) => ({
+          id: slot.id,
+          courtId: slot.courtId,
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+          date: slot.date,
+          price: slot.price,
+        }))
+      );
+    }
+
+    // For backward compatibility with single slot selection
     if (onTimeSlotSelect) {
-      onTimeSlotSelect(slotData);
+      onTimeSlotSelect(newSelectedSlots.length > 0 ? slotData : null);
     }
   };
 
@@ -306,15 +365,19 @@ export function VenueTimingDisplay({
                     <Button
                       key={slot.id}
                       variant={
-                        selectedTimeSlot?.id === slot.id ? "default" : "outline"
+                        selectedTimeSlots.some((s) => s.id === slot.id)
+                          ? "default"
+                          : "outline"
                       }
                       size="sm"
                       className={cn(
-                        "flex flex-col h-auto py-3 px-2 min-h-[4.5rem] text-center",
+                        "flex flex-col h-auto py-3 px-2 min-h-[4.5rem] text-center relative",
                         !slot.isAvailable && "opacity-50 cursor-not-allowed",
                         slot.isPopular &&
-                          selectedTimeSlot?.id !== slot.id &&
-                          "border-orange-200 bg-orange-50"
+                          !selectedTimeSlots.some((s) => s.id === slot.id) &&
+                          "border-orange-200 bg-orange-50",
+                        selectedTimeSlots.some((s) => s.id === slot.id) &&
+                          "ring-2 ring-primary ring-offset-1"
                       )}
                       disabled={!slot.isAvailable}
                       onClick={() => handleTimeSlotSelect(slot)}
@@ -330,12 +393,21 @@ export function VenueTimingDisplay({
                         <IndianRupee className="h-3 w-3 flex-shrink-0" />
                         <span className="truncate">{slot.price}</span>
                       </div>
-                      {slot.isPopular && (
+                      {slot.isPopular &&
+                        !selectedTimeSlots.some((s) => s.id === slot.id) && (
+                          <Badge
+                            variant="secondary"
+                            className="text-[10px] px-1 py-0 mt-1"
+                          >
+                            Popular
+                          </Badge>
+                        )}
+                      {selectedTimeSlots.some((s) => s.id === slot.id) && (
                         <Badge
-                          variant="secondary"
+                          variant="default"
                           className="text-[10px] px-1 py-0 mt-1"
                         >
-                          Popular
+                          Selected
                         </Badge>
                       )}
                     </Button>
@@ -351,36 +423,65 @@ export function VenueTimingDisplay({
         </div>
 
         {/* Selected Slot Summary */}
-        {selectedTimeSlot && (
+        {selectedTimeSlots.length > 0 && (
           <div className="border-t pt-4">
-            <h4 className="font-medium mb-3">Selected Slot</h4>
-            <div className="bg-muted rounded-lg p-4 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="font-medium">
-                  {selectedTimeSlot.courtName}
-                </span>
-                <Badge variant="default">Selected</Badge>
+            <h4 className="font-medium mb-3">
+              Selected Slot{selectedTimeSlots.length > 1 ? "s" : ""} (
+              {selectedTimeSlots.length})
+            </h4>
+            <div className="bg-muted rounded-lg p-4 space-y-3">
+              {selectedTimeSlots.slice(0, 3).map((slot, index) => (
+                <div
+                  key={slot.id}
+                  className="flex items-center justify-between text-sm"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-xs bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center">
+                      {index + 1}
+                    </span>
+                    <span className="font-medium">{slot.courtName}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      <span>
+                        {formatTime(slot.startTime)} -{" "}
+                        {formatTime(slot.endTime)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <IndianRupee className="h-3 w-3" />
+                      <span>{slot.price}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {selectedTimeSlots.length > 3 && (
+                <div className="text-xs text-muted-foreground text-center">
+                  +{selectedTimeSlots.length - 3} more slots selected
+                </div>
+              )}
+
+              <div className="border-t pt-3 mt-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium">Total Cost:</span>
+                  <div className="flex items-center gap-1">
+                    <IndianRupee className="h-4 w-4" />
+                    <span className="font-bold">
+                      {selectedTimeSlots.reduce(
+                        (total, slot) => total + slot.price,
+                        0
+                      )}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  <span>{format(selectedDate, "MMM d, yyyy")}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  <span>
-                    {formatTime(selectedTimeSlot.startTime)} -{" "}
-                    {formatTime(selectedTimeSlot.endTime)}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <IndianRupee className="h-4 w-4" />
-                  <span>{selectedTimeSlot.price}</span>
-                </div>
-              </div>
+
               <Button className="w-full mt-3" onClick={handleBookSlot}>
                 <Calendar className="h-4 w-4 mr-2" />
-                Book This Slot
+                Book {selectedTimeSlots.length} Slot
+                {selectedTimeSlots.length > 1 ? "s" : ""}
               </Button>
             </div>
           </div>

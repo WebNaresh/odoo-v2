@@ -13,6 +13,7 @@ export const venueKeys = {
   sport: (sport: string) => [...venueKeys.all, 'sport', sport] as const,
   amenities: (amenities: string[]) => [...venueKeys.all, 'amenities', amenities] as const,
   priceRange: (minPrice: number, maxPrice: number) => [...venueKeys.all, 'priceRange', minPrice, maxPrice] as const,
+  related: (venueId: string, limit?: number) => [...venueKeys.all, 'related', venueId, limit] as const,
 };
 
 // Hook for fetching venues with filters
@@ -152,6 +153,25 @@ export function useVenueDetails(id: string) {
     enabled: !!id, // Only run query if ID is provided
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
+    retry: 2,
+    refetchOnWindowFocus: false,
+  });
+}
+
+// Hook for fetching related venues
+export function useRelatedVenues(venueId: string, limit: number = 8) {
+  return useQuery({
+    queryKey: venueKeys.related(venueId, limit),
+    queryFn: async () => {
+      const response = await fetch(`/api/venues/${venueId}/related?limit=${limit}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch related venues');
+      }
+      return response.json();
+    },
+    enabled: !!venueId, // Only run query if venue ID is provided
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
     retry: 2,
     refetchOnWindowFocus: false,
   });

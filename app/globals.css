@@ -100,7 +100,7 @@
   --chart-1: oklch(0.65 0.15 152); /* Primary green for dark */
   --chart-2: oklch(0.55 0.13 152); /* Darker green */
   --chart-3: oklch(0.45 0.11 152); /* Even darker green */
-  --chart-4: oklch(0.75 0.10 152); /* Lighter green */
+  --chart-4: oklch(0.75 0.1 152); /* Lighter green */
   --chart-5: oklch(0.85 0.07 152); /* Very light green */
   --sidebar: oklch(0.18 0.01 152);
   --sidebar-foreground: oklch(0.985 0 0);
@@ -124,15 +124,28 @@
 @layer utilities {
   /* Gradient backgrounds */
   .bg-gradient-primary {
-    background: linear-gradient(135deg, oklch(0.52 0.18 152) 0%, oklch(0.45 0.16 152) 100%);
+    background: linear-gradient(
+      135deg,
+      oklch(0.52 0.18 152) 0%,
+      oklch(0.45 0.16 152) 100%
+    );
   }
 
   .bg-gradient-primary-soft {
-    background: linear-gradient(135deg, oklch(0.96 0.02 152) 0%, oklch(0.94 0.03 152) 100%);
+    background: linear-gradient(
+      135deg,
+      oklch(0.96 0.02 152) 0%,
+      oklch(0.94 0.03 152) 100%
+    );
   }
 
   .bg-gradient-hero {
-    background: linear-gradient(135deg, oklch(0.52 0.18 152) 0%, oklch(0.45 0.16 152) 50%, oklch(0.38 0.14 152) 100%);
+    background: linear-gradient(
+      135deg,
+      oklch(0.52 0.18 152) 0%,
+      oklch(0.45 0.16 152) 50%,
+      oklch(0.38 0.14 152) 100%
+    );
   }
 
   /* Glass morphism effects */
@@ -155,7 +168,8 @@
 
   .hover-lift:hover {
     transform: translateY(-4px);
-    box-shadow: 0 10px 25px -5px oklch(0.52 0.18 152 / 0.1), 0 8px 10px -6px oklch(0.52 0.18 152 / 0.1);
+    box-shadow: 0 10px 25px -5px oklch(0.52 0.18 152 / 0.1),
+      0 8px 10px -6px oklch(0.52 0.18 152 / 0.1);
   }
 
   /* Custom shadows */
@@ -164,12 +178,17 @@
   }
 
   .shadow-primary-lg {
-    box-shadow: 0 10px 25px -5px oklch(0.52 0.18 152 / 0.15), 0 8px 10px -6px oklch(0.52 0.18 152 / 0.1);
+    box-shadow: 0 10px 25px -5px oklch(0.52 0.18 152 / 0.15),
+      0 8px 10px -6px oklch(0.52 0.18 152 / 0.1);
   }
 
   /* Text gradients */
   .text-gradient-primary {
-    background: linear-gradient(135deg, oklch(0.52 0.18 152), oklch(0.45 0.16 152));
+    background: linear-gradient(
+      135deg,
+      oklch(0.52 0.18 152),
+      oklch(0.45 0.16 152)
+    );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -179,7 +198,8 @@
   .border-gradient {
     position: relative;
     background: linear-gradient(oklch(1 0 0), oklch(1 0 0)) padding-box,
-                linear-gradient(135deg, oklch(0.52 0.18 152), oklch(0.45 0.16 152)) border-box;
+      linear-gradient(135deg, oklch(0.52 0.18 152), oklch(0.45 0.16 152))
+        border-box;
     border: 2px solid transparent;
   }
 
@@ -190,7 +210,8 @@
   }
 
   .navbar-shadow {
-    box-shadow: 0 1px 3px 0 oklch(0.52 0.18 152 / 0.1), 0 1px 2px 0 oklch(0.52 0.18 152 / 0.06);
+    box-shadow: 0 1px 3px 0 oklch(0.52 0.18 152 / 0.1),
+      0 1px 2px 0 oklch(0.52 0.18 152 / 0.06);
   }
 
   /* Extra small screen utilities */
@@ -269,15 +290,27 @@
 @layer utilities {
   /* QuickCourt Custom Utilities */
   .gradient-primary {
-    background: linear-gradient(135deg, oklch(0.52 0.18 152) 0%, oklch(0.45 0.16 152) 100%);
+    background: linear-gradient(
+      135deg,
+      oklch(0.52 0.18 152) 0%,
+      oklch(0.45 0.16 152) 100%
+    );
   }
 
   .gradient-primary-soft {
-    background: linear-gradient(135deg, oklch(0.96 0.02 152) 0%, oklch(0.94 0.03 152) 100%);
+    background: linear-gradient(
+      135deg,
+      oklch(0.96 0.02 152) 0%,
+      oklch(0.94 0.03 152) 100%
+    );
   }
 
   .text-gradient-primary {
-    background: linear-gradient(135deg, oklch(0.52 0.18 152) 0%, oklch(0.45 0.16 152) 100%);
+    background: linear-gradient(
+      135deg,
+      oklch(0.52 0.18 152) 0%,
+      oklch(0.45 0.16 152) 100%
+    );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -288,7 +321,8 @@
   }
 
   .shadow-primary-lg {
-    box-shadow: 0 10px 25px -3px oklch(0.52 0.18 152 / 0.2), 0 4px 6px -2px oklch(0.52 0.18 152 / 0.1);
+    box-shadow: 0 10px 25px -3px oklch(0.52 0.18 152 / 0.2),
+      0 4px 6px -2px oklch(0.52 0.18 152 / 0.1);
   }
 
   .border-primary-soft {
@@ -350,4 +384,26 @@
     opacity: 1;
     transform: scale(1);
   }
+}
+
+/* Line clamp utilities */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }
