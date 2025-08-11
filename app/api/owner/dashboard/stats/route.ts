@@ -71,41 +71,41 @@ export async function GET(request: NextRequest) {
     const totalCourts = venues.reduce((sum, venue) => sum + venue.courts.length, 0);
 
     // Get all bookings for owner's venues
-    const allBookings = venues.flatMap(venue => 
+    const allBookings = venues.flatMap(venue =>
       venue.courts.flatMap(court => court.bookings)
     );
 
     // Calculate current month stats
-    const currentMonthBookings = allBookings.filter(booking => 
+    const currentMonthBookings = allBookings.filter(booking =>
       booking.createdAt >= startOfMonth
     );
 
-    const currentMonthRevenue = currentMonthBookings.reduce((sum, booking) => 
+    const currentMonthRevenue = currentMonthBookings.reduce((sum, booking) =>
       sum + booking.totalPrice, 0
     );
 
     // Calculate last month stats for growth comparison
-    const lastMonthBookings = allBookings.filter(booking => 
+    const lastMonthBookings = allBookings.filter(booking =>
       booking.createdAt >= startOfLastMonth && booking.createdAt <= endOfLastMonth
     );
 
-    const lastMonthRevenue = lastMonthBookings.reduce((sum, booking) => 
+    const lastMonthRevenue = lastMonthBookings.reduce((sum, booking) =>
       sum + booking.totalPrice, 0
     );
 
     // Calculate growth percentages
-    const revenueGrowth = lastMonthRevenue > 0 
-      ? ((currentMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 
+    const revenueGrowth = lastMonthRevenue > 0
+      ? ((currentMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100
       : 0;
 
-    const bookingGrowth = lastMonthBookings.length > 0 
-      ? ((currentMonthBookings.length - lastMonthBookings.length) / lastMonthBookings.length) * 100 
+    const bookingGrowth = lastMonthBookings.length > 0
+      ? ((currentMonthBookings.length - lastMonthBookings.length) / lastMonthBookings.length) * 100
       : 0;
 
     // Calculate average rating
     const allReviews = venues.flatMap(venue => venue.reviews);
-    const averageRating = allReviews.length > 0 
-      ? allReviews.reduce((sum, review) => sum + review.rating, 0) / allReviews.length 
+    const averageRating = allReviews.length > 0
+      ? allReviews.reduce((sum, review) => sum + review.rating, 0) / allReviews.length
       : 0;
 
     // Calculate occupancy rate (simplified - based on bookings vs available slots)
@@ -113,8 +113,8 @@ export async function GET(request: NextRequest) {
     const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
     const operatingHoursPerDay = 12; // Assuming 12 hours operation per day
     const totalAvailableSlots = totalCourts * daysInMonth * operatingHoursPerDay;
-    const occupancyRate = totalAvailableSlots > 0 
-      ? (totalBookingsThisMonth / totalAvailableSlots) * 100 
+    const occupancyRate = totalAvailableSlots > 0
+      ? (totalBookingsThisMonth / totalAvailableSlots) * 100
       : 0;
 
     // Calculate total revenue (all time)
@@ -167,12 +167,14 @@ export async function GET(request: NextRequest) {
       venues: venues.map(venue => ({
         id: venue.id,
         name: venue.name,
+        address: venue.address,
+        photoUrls: venue.photoUrls,
         courtsCount: venue.courts.length,
         rating: venue.rating || 0,
         reviewCount: venue._count.reviews,
         status: venue.approvalStatus.toLowerCase(),
-        bookingsToday: venue.courts.flatMap(court => 
-          court.bookings.filter(booking => 
+        bookingsToday: venue.courts.flatMap(court =>
+          court.bookings.filter(booking =>
             booking.bookingDate.toDateString() === now.toDateString()
           )
         ).length

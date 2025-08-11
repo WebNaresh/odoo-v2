@@ -2,15 +2,22 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Building2, 
-  Plus, 
-  Search, 
-  MapPin, 
+import {
+  Building2,
+  Plus,
+  Search,
+  MapPin,
   Star,
   Users,
   Calendar,
@@ -18,7 +25,7 @@ import {
   Edit,
   Eye,
   Trash2,
-  Loader2
+  Loader2,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -41,7 +48,7 @@ export default function VenuesPage() {
       try {
         const response = await fetch("/api/owner/venues");
         const data = await response.json();
-        
+
         if (data.success) {
           setVenues(data.venues);
         } else {
@@ -59,9 +66,10 @@ export default function VenuesPage() {
   }, []);
 
   // Filter venues based on search query
-  const filteredVenues = venues.filter(venue =>
-    venue.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    venue.address.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredVenues = venues.filter(
+    (venue) =>
+      venue.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      venue.address.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const getStatusColor = (status: string) => {
@@ -86,7 +94,11 @@ export default function VenuesPage() {
   };
 
   const handleDeleteVenue = async (venueId: string) => {
-    if (!confirm("Are you sure you want to delete this venue? This action cannot be undone.")) {
+    if (
+      !confirm(
+        "Are you sure you want to delete this venue? This action cannot be undone."
+      )
+    ) {
       return;
     }
 
@@ -99,7 +111,7 @@ export default function VenuesPage() {
 
       if (data.success) {
         toast.success("Venue deleted successfully");
-        setVenues(venues.filter(venue => venue.id !== venueId));
+        setVenues(venues.filter((venue) => venue.id !== venueId));
       } else {
         toast.error(data.error || "Failed to delete venue");
       }
@@ -136,8 +148,8 @@ export default function VenuesPage() {
               Manage your sports venues and track their performance
             </p>
           </div>
-          
-          <Button 
+
+          <Button
             onClick={() => router.push("/owner/venues/new")}
             className="flex items-center gap-2"
           >
@@ -168,13 +180,12 @@ export default function VenuesPage() {
                 {venues.length === 0 ? "No venues yet" : "No venues found"}
               </h3>
               <p className="text-muted-foreground text-center mb-6">
-                {venues.length === 0 
+                {venues.length === 0
                   ? "Get started by adding your first sports venue"
-                  : "Try adjusting your search criteria"
-                }
+                  : "Try adjusting your search criteria"}
               </p>
               {venues.length === 0 && (
-                <Button 
+                <Button
                   onClick={() => router.push("/owner/venues/new")}
                   className="flex items-center gap-2"
                 >
@@ -187,17 +198,22 @@ export default function VenuesPage() {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredVenues.map((venue) => (
-              <Card key={venue.id} className="hover:shadow-lg transition-shadow">
+              <Card
+                key={venue.id}
+                className="hover:shadow-lg transition-shadow"
+              >
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <CardTitle className="text-lg mb-1">{venue.name}</CardTitle>
+                      <CardTitle className="text-lg mb-1">
+                        {venue.name}
+                      </CardTitle>
                       <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
                         <MapPin className="h-3 w-3" />
                         {venue.address}
                       </div>
                     </div>
-                    
+
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="sm">
@@ -205,15 +221,19 @@ export default function VenuesPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleViewVenue(venue.id)}>
+                        <DropdownMenuItem
+                          onClick={() => handleViewVenue(venue.id)}
+                        >
                           <Eye className="h-4 w-4 mr-2" />
                           View Details
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEditVenue(venue.id)}>
+                        <DropdownMenuItem
+                          onClick={() => handleEditVenue(venue.id)}
+                        >
                           <Edit className="h-4 w-4 mr-2" />
                           Edit
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={() => handleDeleteVenue(venue.id)}
                           className="text-red-600"
                         >
@@ -231,7 +251,9 @@ export default function VenuesPage() {
                     {venue.rating && (
                       <div className="flex items-center gap-1">
                         <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm font-medium">{venue.rating}</span>
+                        <span className="text-sm font-medium">
+                          {venue.rating}
+                        </span>
                         <span className="text-sm text-muted-foreground">
                           ({venue.reviewCount})
                         </span>
@@ -239,6 +261,25 @@ export default function VenuesPage() {
                     )}
                   </div>
                 </CardHeader>
+
+                {/* Venue Image */}
+                <div className="px-6 pb-4">
+                  <div className="w-full h-48 bg-muted rounded-lg overflow-hidden">
+                    {venue.photoUrls && venue.photoUrls.length > 0 ? (
+                      <Image
+                        src={venue.photoUrls[0]}
+                        alt={venue.name}
+                        width={400}
+                        height={192}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-primary/10">
+                        <Building2 className="h-12 w-12 text-primary" />
+                      </div>
+                    )}
+                  </div>
+                </div>
 
                 <CardContent className="pt-0">
                   {venue.description && (
@@ -254,7 +295,7 @@ export default function VenuesPage() {
                         {venue.supportedSports?.length || 0} sports
                       </span>
                     </div>
-                    
+
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Courts:</span>
                       <span className="font-medium">
@@ -264,31 +305,36 @@ export default function VenuesPage() {
 
                     <div className="flex flex-wrap gap-1 mt-3">
                       {venue.supportedSports?.slice(0, 3).map((sport) => (
-                        <Badge key={sport.id} variant="secondary" className="text-xs">
+                        <Badge
+                          key={sport.id}
+                          variant="secondary"
+                          className="text-xs"
+                        >
                           {sport.name}
                         </Badge>
                       ))}
-                      {venue.supportedSports && venue.supportedSports.length > 3 && (
-                        <Badge variant="secondary" className="text-xs">
-                          +{venue.supportedSports.length - 3} more
-                        </Badge>
-                      )}
+                      {venue.supportedSports &&
+                        venue.supportedSports.length > 3 && (
+                          <Badge variant="secondary" className="text-xs">
+                            +{venue.supportedSports.length - 3} more
+                          </Badge>
+                        )}
                     </div>
                   </div>
 
                   <div className="flex gap-2 mt-4">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       className="flex-1"
                       onClick={() => handleViewVenue(venue.id)}
                     >
                       <Eye className="h-3 w-3 mr-1" />
                       View
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       className="flex-1"
                       onClick={() => handleEditVenue(venue.id)}
                     >

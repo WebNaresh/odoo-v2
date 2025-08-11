@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import Image from "next/image";
 import {
   Card,
   CardContent,
@@ -24,7 +25,7 @@ import {
   IndianRupee,
   RefreshCw,
   AlertCircle,
-  Loader2
+  Loader2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -71,6 +72,7 @@ interface RecentVenue {
   status: "APPROVED" | "PENDING" | "REJECTED";
   bookingsCount: number;
   rating?: number;
+  photoUrls: string[];
 }
 
 export default function OwnerDashboardPage() {
@@ -276,26 +278,42 @@ export default function OwnerDashboardPage() {
             <IndianRupee className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">₹{stats.totalRevenue.toLocaleString()}</div>
+            <div className="text-2xl font-bold">
+              ₹{stats.totalRevenue.toLocaleString()}
+            </div>
             <p className="text-xs text-muted-foreground">
-              <span className={stats.monthlyGrowth >= 0 ? "text-green-600" : "text-red-600"}>
-                {stats.monthlyGrowth >= 0 ? "+" : ""}{(stats.monthlyGrowth || 0).toFixed(1)}%
-              </span> from last month
+              <span
+                className={
+                  stats.monthlyGrowth >= 0 ? "text-green-600" : "text-red-600"
+                }
+              >
+                {stats.monthlyGrowth >= 0 ? "+" : ""}
+                {(stats.monthlyGrowth || 0).toFixed(1)}%
+              </span>{" "}
+              from last month
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Bookings
+            </CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalBookings}</div>
             <p className="text-xs text-muted-foreground">
-              <span className={stats.bookingGrowth >= 0 ? "text-green-600" : "text-red-600"}>
-                {stats.bookingGrowth >= 0 ? "+" : ""}{(stats.bookingGrowth || 0).toFixed(1)}%
-              </span> from last month
+              <span
+                className={
+                  stats.bookingGrowth >= 0 ? "text-green-600" : "text-red-600"
+                }
+              >
+                {stats.bookingGrowth >= 0 ? "+" : ""}
+                {(stats.bookingGrowth || 0).toFixed(1)}%
+              </span>{" "}
+              from last month
             </p>
           </CardContent>
         </Card>
@@ -319,7 +337,9 @@ export default function OwnerDashboardPage() {
             <Star className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{(stats.averageRating || 0).toFixed(1)}</div>
+            <div className="text-2xl font-bold">
+              {(stats.averageRating || 0).toFixed(1)}
+            </div>
             <p className="text-xs text-muted-foreground">
               {stats.totalReviews} reviews
             </p>
@@ -354,8 +374,18 @@ export default function OwnerDashboardPage() {
                   className="flex items-center justify-between p-4 border rounded-lg"
                 >
                   <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                      <Building2 className="h-6 w-6 text-primary" />
+                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center overflow-hidden">
+                      {venue.photoUrls && venue.photoUrls.length > 0 ? (
+                        <Image
+                          src={venue.photoUrls[0]}
+                          alt={venue.name}
+                          width={48}
+                          height={48}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <Building2 className="h-6 w-6 text-primary" />
+                      )}
                     </div>
                     <div>
                       <h3 className="font-medium">{venue.name}</h3>
@@ -427,23 +457,36 @@ export default function OwnerDashboardPage() {
               {recentBookings.length > 0 ? (
                 <>
                   {recentBookings.slice(0, 3).map((booking) => (
-                    <div key={booking.id} className="flex items-center justify-between">
+                    <div
+                      key={booking.id}
+                      className="flex items-center justify-between"
+                    >
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
                           <Calendar className="h-4 w-4 text-green-600" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium">{booking.courtName} - {booking.venueName}</p>
+                          <p className="text-sm font-medium">
+                            {booking.courtName} - {booking.venueName}
+                          </p>
                           <p className="text-xs text-muted-foreground">
                             {booking.date} • {booking.time}
                           </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <Badge variant={booking.status === "confirmed" ? "default" : "secondary"}>
+                        <Badge
+                          variant={
+                            booking.status === "confirmed"
+                              ? "default"
+                              : "secondary"
+                          }
+                        >
                           {booking.status}
                         </Badge>
-                        <p className="text-xs text-muted-foreground mt-1">₹{booking.amount}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          ₹{booking.amount}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -459,7 +502,9 @@ export default function OwnerDashboardPage() {
               ) : (
                 <div className="text-center py-4">
                   <Calendar className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">No recent bookings</p>
+                  <p className="text-sm text-muted-foreground">
+                    No recent bookings
+                  </p>
                 </div>
               )}
             </div>
@@ -489,11 +534,15 @@ export default function OwnerDashboardPage() {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm">Monthly Revenue</span>
-                <span className="text-sm font-medium">₹{stats.currentMonthRevenue.toLocaleString()}</span>
+                <span className="text-sm font-medium">
+                  ₹{stats.currentMonthRevenue.toLocaleString()}
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm">Monthly Bookings</span>
-                <span className="text-sm font-medium">{stats.currentMonthBookings}</span>
+                <span className="text-sm font-medium">
+                  {stats.currentMonthBookings}
+                </span>
               </div>
               <Button
                 variant="outline"
@@ -522,9 +571,13 @@ export default function OwnerDashboardPage() {
                   <div className="flex items-center justify-between mb-3">
                     <div>
                       <h3 className="font-semibold">{venue.name}</h3>
-                      <p className="text-sm text-muted-foreground">{venue.courtsCount} courts</p>
+                      <p className="text-sm text-muted-foreground">
+                        {venue.courtsCount} courts
+                      </p>
                     </div>
-                    <Badge className={getStatusColor(venue.status.toUpperCase())}>
+                    <Badge
+                      className={getStatusColor(venue.status.toUpperCase())}
+                    >
                       {venue.status}
                     </Badge>
                   </div>
@@ -539,7 +592,9 @@ export default function OwnerDashboardPage() {
                       </div>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">Today's Bookings</p>
+                      <p className="text-sm text-muted-foreground">
+                        Today's Bookings
+                      </p>
                       <p className="font-medium">{venue.bookingsToday}</p>
                     </div>
                     <div className="flex justify-end">
