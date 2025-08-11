@@ -1,139 +1,91 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useRouter } from "next/navigation";
-import { 
-  Users, 
-  Building2, 
-  Calendar, 
-  IndianRupee, 
-  TrendingUp, 
-  AlertCircle, 
-  CheckCircle, 
+import {
+  Users,
+  Building2,
+  Calendar,
+  IndianRupee,
+  TrendingUp,
+  AlertCircle,
+  CheckCircle,
   Clock,
   Star,
   Activity,
   Shield,
   BarChart3,
   UserCheck,
-  FileText
+  FileText,
+  Loader2,
 } from "lucide-react";
 
-// Mock admin dashboard data
-const platformStats = {
-  totalUsers: 12450,
-  userGrowth: 15.2,
-  totalFacilities: 156,
-  facilityGrowth: 8.7,
-  totalBookings: 8920,
-  bookingGrowth: 22.1,
-  totalRevenue: 2840000,
-  revenueGrowth: 18.5,
-  pendingApprovals: 12,
-  activeReports: 3,
-};
+// Interfaces for dashboard data
+interface PlatformStats {
+  totalUsers: number;
+  userGrowth: number;
+  totalFacilities: number;
+  facilityGrowth: number;
+  totalBookings: number;
+  bookingGrowth: number;
+  totalRevenue: number;
+  revenueGrowth: number;
+  pendingApprovals: number;
+  approvedVenues: number;
+  rejectedVenues: number;
+  activeReports: number;
+}
 
-const recentActivities = [
-  {
-    id: 1,
-    type: "facility_approval",
-    title: "New facility pending approval",
-    description: "Champions Arena - Bandra, Mumbai",
-    time: "2 hours ago",
-    priority: "high",
-  },
-  {
-    id: 2,
-    type: "user_report",
-    title: "User report received",
-    description: "Inappropriate review content reported",
-    time: "4 hours ago",
-    priority: "medium",
-  },
-  {
-    id: 3,
-    type: "payment_issue",
-    title: "Payment dispute",
-    description: "Booking #12345 - ₹1,200",
-    time: "6 hours ago",
-    priority: "high",
-  },
-  {
-    id: 4,
-    type: "new_user",
-    title: "New facility owner registered",
-    description: "Sports Hub - Powai, Mumbai",
-    time: "1 day ago",
-    priority: "low",
-  },
-];
+interface Activity {
+  id: string;
+  type: string;
+  title: string;
+  description: string;
+  time: string;
+  priority: string;
+  venueId?: string;
+}
 
-const pendingApprovals = [
-  {
-    id: 1,
-    facilityName: "Champions Arena",
-    ownerName: "Rajesh Kumar",
-    location: "Bandra, Mumbai",
-    submittedDate: "2024-01-20",
-    courts: 4,
-    sports: ["Football", "Cricket", "Volleyball"],
-    status: "pending_review",
-  },
-  {
-    id: 2,
-    facilityName: "Sports Hub",
-    ownerName: "Priya Sharma",
-    location: "Powai, Mumbai",
-    submittedDate: "2024-01-19",
-    courts: 2,
-    sports: ["Badminton", "Table Tennis"],
-    status: "pending_documents",
-  },
-  {
-    id: 3,
-    facilityName: "Elite Fitness Center",
-    ownerName: "Amit Patel",
-    location: "Andheri, Mumbai",
-    submittedDate: "2024-01-18",
-    courts: 6,
-    sports: ["Basketball", "Tennis", "Squash"],
-    status: "pending_review",
-  },
-];
+interface PendingApproval {
+  id: string;
+  facilityName: string;
+  ownerName: string;
+  location: string;
+  submittedDate: string;
+  courts: number;
+  sports: string[];
+  status: string;
+}
 
-const topFacilities = [
-  {
-    id: 1,
-    name: "Elite Sports Complex",
-    location: "Downtown, Mumbai",
-    rating: 4.8,
-    bookings: 1250,
-    revenue: 156000,
-    growth: 12.5,
-  },
-  {
-    id: 2,
-    name: "Victory Courts",
-    location: "Andheri, Mumbai",
-    rating: 4.7,
-    bookings: 890,
-    revenue: 84000,
-    growth: 8.3,
-  },
-  {
-    id: 3,
-    name: "Sports Arena",
-    location: "Bandra, Mumbai",
-    rating: 4.6,
-    bookings: 720,
-    revenue: 72000,
-    growth: 15.2,
-  },
-];
+interface TopFacility {
+  id: string;
+  name: string;
+  location: string;
+  rating: number;
+  bookings: number;
+  revenue: number;
+  growth: number;
+  courtCount: number;
+  reviewCount: number;
+}
+
+interface DashboardData {
+  platformStats: PlatformStats;
+  recentActivities: Activity[];
+  pendingApprovals: PendingApproval[];
+  topFacilities: TopFacility[];
+}
 
 const getActivityIcon = (type: string) => {
   switch (type) {
@@ -180,6 +132,76 @@ const getStatusColor = (status: string) => {
 
 export default function AdminDashboardPage() {
   const router = useRouter();
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(
+    null
+  );
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch dashboard data
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response = await fetch("/api/admin/dashboard/stats");
+        if (!response.ok) {
+          throw new Error("Failed to fetch dashboard data");
+        }
+
+        const data = await response.json();
+        setDashboardData(data);
+      } catch (err) {
+        console.error("Error fetching dashboard data:", err);
+        setError("Failed to load dashboard data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  // Show loading state
+  if (loading) {
+    return (
+      <DashboardLayout
+        title="Admin Dashboard"
+        description="Platform overview and management tools"
+      >
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading dashboard data...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Show error state
+  if (error || !dashboardData) {
+    return (
+      <DashboardLayout
+        title="Admin Dashboard"
+        description="Platform overview and management tools"
+      >
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-4" />
+            <p className="text-red-600 mb-4">
+              {error || "Failed to load dashboard data"}
+            </p>
+            <Button onClick={() => window.location.reload()}>Try Again</Button>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const { platformStats, recentActivities, pendingApprovals, topFacilities } =
+    dashboardData;
 
   return (
     <DashboardLayout
@@ -195,48 +217,74 @@ export default function AdminDashboardPage() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{platformStats.totalUsers.toLocaleString()}</div>
+              <div className="text-2xl font-bold">
+                {platformStats.totalUsers.toLocaleString()}
+              </div>
               <p className="text-xs text-muted-foreground">
-                <span className="text-green-600">+{platformStats.userGrowth}%</span> from last month
+                <span className="text-green-600">
+                  +{platformStats.userGrowth}%
+                </span>{" "}
+                from last month
               </p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Facilities</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Total Facilities
+              </CardTitle>
               <Building2 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{platformStats.totalFacilities}</div>
+              <div className="text-2xl font-bold">
+                {platformStats.totalFacilities}
+              </div>
               <p className="text-xs text-muted-foreground">
-                <span className="text-green-600">+{platformStats.facilityGrowth}%</span> from last month
+                <span className="text-green-600">
+                  +{platformStats.facilityGrowth}%
+                </span>{" "}
+                from last month
               </p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Total Bookings
+              </CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{platformStats.totalBookings.toLocaleString()}</div>
+              <div className="text-2xl font-bold">
+                {platformStats.totalBookings.toLocaleString()}
+              </div>
               <p className="text-xs text-muted-foreground">
-                <span className="text-green-600">+{platformStats.bookingGrowth}%</span> from last month
+                <span className="text-green-600">
+                  +{platformStats.bookingGrowth}%
+                </span>{" "}
+                from last month
               </p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Platform Revenue</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Platform Revenue
+              </CardTitle>
               <IndianRupee className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹{(platformStats.totalRevenue / 100000).toFixed(1)}L</div>
+              <div className="text-2xl font-bold">
+                ₹{(platformStats.totalRevenue / 100000).toFixed(1)}L
+              </div>
               <p className="text-xs text-muted-foreground">
-                <span className="text-green-600">+{platformStats.revenueGrowth}%</span> from last month
+                <span className="text-green-600">
+                  +{platformStats.revenueGrowth}%
+                </span>{" "}
+                from last month
               </p>
             </CardContent>
           </Card>
@@ -246,9 +294,7 @@ export default function AdminDashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>
-              Common administrative tasks
-            </CardDescription>
+            <CardDescription>Common administrative tasks</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-4">
@@ -256,15 +302,24 @@ export default function AdminDashboardPage() {
                 <CheckCircle className="mr-2 h-4 w-4" />
                 Facility Approvals ({platformStats.pendingApprovals})
               </Button>
-              <Button variant="outline" onClick={() => router.push("/admin/users")}>
+              <Button
+                variant="outline"
+                onClick={() => router.push("/admin/users")}
+              >
                 <UserCheck className="mr-2 h-4 w-4" />
                 User Management
               </Button>
-              <Button variant="outline" onClick={() => router.push("/admin/reports")}>
+              <Button
+                variant="outline"
+                onClick={() => router.push("/admin/reports")}
+              >
                 <FileText className="mr-2 h-4 w-4" />
                 Reports & Analytics
               </Button>
-              <Button variant="outline" onClick={() => router.push("/admin/moderation")}>
+              <Button
+                variant="outline"
+                onClick={() => router.push("/admin/moderation")}
+              >
                 <Shield className="mr-2 h-4 w-4" />
                 Content Moderation ({platformStats.activeReports})
               </Button>
@@ -283,23 +338,37 @@ export default function AdminDashboardPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               {recentActivities.map((activity) => (
-                <div key={activity.id} className="flex items-start gap-3 p-3 border rounded-lg">
+                <div
+                  key={activity.id}
+                  className="flex items-start gap-3 p-3 border rounded-lg"
+                >
                   <div className="p-2 bg-muted rounded-lg">
                     {getActivityIcon(activity.type)}
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-1">
                       <p className="font-medium text-sm">{activity.title}</p>
-                      <Badge className={getPriorityColor(activity.priority)} variant="secondary">
+                      <Badge
+                        className={getPriorityColor(activity.priority)}
+                        variant="secondary"
+                      >
                         {activity.priority}
                       </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-1">{activity.description}</p>
-                    <p className="text-xs text-muted-foreground">{activity.time}</p>
+                    <p className="text-sm text-muted-foreground mb-1">
+                      {activity.description}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {activity.time}
+                    </p>
                   </div>
                 </div>
               ))}
-              <Button variant="outline" className="w-full" onClick={() => router.push("/admin/activities")}>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => router.push("/admin/approvals")}
+              >
                 View All Activities
               </Button>
             </CardContent>
@@ -309,9 +378,7 @@ export default function AdminDashboardPage() {
           <Card>
             <CardHeader>
               <CardTitle>Pending Facility Approvals</CardTitle>
-              <CardDescription>
-                Facilities waiting for approval
-              </CardDescription>
+              <CardDescription>Facilities waiting for approval</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {pendingApprovals.slice(0, 3).map((approval) => (
@@ -319,7 +386,7 @@ export default function AdminDashboardPage() {
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-medium">{approval.facilityName}</h4>
                     <Badge className={getStatusColor(approval.status)}>
-                      {approval.status.replace('_', ' ')}
+                      {approval.status.replace("_", " ")}
                     </Badge>
                   </div>
                   <p className="text-sm text-muted-foreground mb-1">
@@ -329,12 +396,20 @@ export default function AdminDashboardPage() {
                     Location: {approval.location}
                   </p>
                   <div className="flex items-center justify-between text-sm">
-                    <span>{approval.courts} courts • {approval.sports.length} sports</span>
-                    <span className="text-muted-foreground">{approval.submittedDate}</span>
+                    <span>
+                      {approval.courts} courts • {approval.sports.length} sports
+                    </span>
+                    <span className="text-muted-foreground">
+                      {approval.submittedDate}
+                    </span>
                   </div>
                 </div>
               ))}
-              <Button variant="outline" className="w-full" onClick={() => router.push("/admin/approvals")}>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => router.push("/admin/approvals")}
+              >
                 View All Approvals ({platformStats.pendingApprovals})
               </Button>
             </CardContent>
@@ -352,26 +427,45 @@ export default function AdminDashboardPage() {
           <CardContent>
             <div className="space-y-4">
               {topFacilities.map((facility, index) => (
-                <div key={facility.id} className="flex items-center gap-4 p-4 border rounded-lg">
+                <div
+                  key={facility.id}
+                  className="flex items-center gap-4 p-4 border rounded-lg"
+                >
                   <div className="flex items-center justify-center w-8 h-8 bg-primary text-primary-foreground rounded-full font-bold">
                     {index + 1}
                   </div>
                   <div className="flex-1">
                     <h4 className="font-medium">{facility.name}</h4>
-                    <p className="text-sm text-muted-foreground">{facility.location}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {facility.location}
+                    </p>
                   </div>
                   <div className="text-right">
                     <div className="flex items-center gap-1 mb-1">
                       <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm font-medium">{facility.rating}</span>
+                      <span className="text-sm font-medium">
+                        {facility.rating}
+                      </span>
                     </div>
-                    <p className="text-xs text-muted-foreground">{facility.bookings} bookings</p>
+                    <p className="text-xs text-muted-foreground">
+                      {facility.bookings} bookings
+                    </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium">₹{(facility.revenue / 1000).toFixed(0)}K</p>
-                    <p className="text-xs text-green-600">+{facility.growth}%</p>
+                    <p className="font-medium">
+                      ₹{(facility.revenue / 1000).toFixed(0)}K
+                    </p>
+                    <p className="text-xs text-green-600">
+                      +{facility.growth}%
+                    </p>
                   </div>
-                  <Button size="sm" variant="outline" onClick={() => router.push(`/admin/facilities/${facility.id}`)}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      router.push(`/admin/facilities/${facility.id}`)
+                    }
+                  >
                     View
                   </Button>
                 </div>

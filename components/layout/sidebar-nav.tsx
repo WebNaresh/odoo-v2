@@ -69,9 +69,7 @@ export function SidebarNav({ className }: SidebarNavProps) {
   const { data: session } = useSession();
   const [pendingVenuesCount, setPendingVenuesCount] = useState<number>(0);
 
-  if (!session) return null;
-
-  const userRole = session.user?.role;
+  const userRole = session?.user?.role;
 
   // Fetch pending venues count for admin badge
   useEffect(() => {
@@ -91,6 +89,9 @@ export function SidebarNav({ className }: SidebarNavProps) {
 
     fetchPendingVenuesCount();
   }, [userRole]);
+
+  // Early return after all hooks
+  if (!session) return null;
 
   const getNavItems = () => {
     let items: SidebarNavItem[] = [...userNavItems];
