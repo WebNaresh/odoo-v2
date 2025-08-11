@@ -128,7 +128,7 @@ class EmailService {
     adminNotes?: string
   ): Promise<boolean> {
     const subject = `🎉 Venue Approved: ${venueName}`;
-    
+
     const html = `
       <!DOCTYPE html>
       <html>
@@ -207,7 +207,7 @@ class EmailService {
     rejectionReason: string
   ): Promise<boolean> {
     const subject = `Venue Review Update: ${venueName}`;
-    
+
     const html = `
       <!DOCTYPE html>
       <html>
@@ -277,22 +277,22 @@ class EmailService {
 }
 
 // Create and export a singleton instance
-let emailService: EmailService | null = null;
+let emailServiceInstance: EmailService | null = null;
 
 export const getEmailService = (): EmailService => {
-  if (!emailService) {
+  if (!emailServiceInstance) {
     try {
-      emailService = new EmailService();
+      emailServiceInstance = new EmailService();
     } catch (error) {
       console.error("❌ [EMAIL SERVICE] Failed to initialize email service:", error);
       throw error;
     }
   }
-  return emailService;
+  return emailServiceInstance;
 };
 
 // Export the email service instance for direct use
 export const emailService = getEmailService();
 
 // Export types for use in other files
-export type { EmailConfig, EmailOptions };
+export type { EmailConfig };

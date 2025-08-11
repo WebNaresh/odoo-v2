@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import { Calendar, User, Settings, Shield, CheckCircle } from "lucide-react";
+import { useState, useEffect } from "react";
 
 interface SidebarNavItem {
   title: string;
@@ -56,7 +57,6 @@ const adminNavItems: SidebarNavItem[] = [
     href: "/admin/approvals",
     icon: CheckCircle,
     roles: ["ADMIN"],
-    badge: "3",
   },
 ];
 
@@ -67,10 +67,30 @@ interface SidebarNavProps {
 export function SidebarNav({ className }: SidebarNavProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
+  const [pendingVenuesCount, setPendingVenuesCount] = useState<number>(0);
 
   if (!session) return null;
 
   const userRole = session.user?.role;
+
+  // Fetch pending venues count for admin badge
+  useEffect(() => {
+    const fetchPendingVenuesCount = async () => {
+      if (userRole === "ADMIN") {
+        try {
+          const response = await fetch("/api/admin/venues?status=PENDING");
+          if (response.ok) {
+            const data = await response.json();
+            setPendingVenuesCount(data.total || 0);
+          }
+        } catch (error) {
+          console.error("Failed to fetch pending venues count:", error);
+        }
+      }
+    };
+
+    fetchPendingVenuesCount();
+  }, [userRole]);
 
   const getNavItems = () => {
     let items: SidebarNavItem[] = [...userNavItems];
@@ -80,7 +100,14 @@ export function SidebarNav({ className }: SidebarNavProps) {
     }
 
     if (userRole === "ADMIN") {
-      items = [...items, ...adminNavItems];
+      // Add dynamic badge to venue approvals
+      const adminItemsWithBadge = adminNavItems.map((item) => {
+        if (item.href === "/admin/approvals" && pendingVenuesCount > 0) {
+          return { ...item, badge: pendingVenuesCount.toString() };
+        }
+        return item;
+      });
+      items = [...items, ...adminItemsWithBadge];
     }
 
     return items.filter((item) => {
@@ -123,7 +150,7 @@ export function SidebarNav({ className }: SidebarNavProps) {
                   <span>{item.title}</span>
                 </div>
                 {item.badge && (
-                  <span className="ml-auto bg-primary text-primary-foreground text-xs rounded-full px-2 py-1">
+                  <span className="ml-auto bg-primary text-white text-xs rounded-full px-2 py-1 font-medium">
                     {item.badge}
                   </span>
                 )}
@@ -157,7 +184,7 @@ export function SidebarNav({ className }: SidebarNavProps) {
                   <span>{item.title}</span>
                 </div>
                 {item.badge && (
-                  <span className="ml-auto bg-primary text-primary-foreground text-xs rounded-full px-2 py-1">
+                  <span className="ml-auto bg-primary text-white text-xs rounded-full px-2 py-1 font-medium">
                     {item.badge}
                   </span>
                 )}
@@ -191,7 +218,7 @@ export function SidebarNav({ className }: SidebarNavProps) {
                   <span>{item.title}</span>
                 </div>
                 {item.badge && (
-                  <span className="ml-auto bg-destructive text-destructive-foreground text-xs rounded-full px-2 py-1">
+                  <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-1 font-medium">
                     {item.badge}
                   </span>
                 )}
