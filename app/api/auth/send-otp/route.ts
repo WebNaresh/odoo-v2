@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getEmailService } from "@/lib/email";
-
-// In-memory storage for OTPs (in production, use Redis or database)
-const otpStorage = new Map<string, { otp: string; expiresAt: number; attempts: number }>();
+import { otpStorage } from "@/lib/otp-storage";
 
 const sendOtpSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -72,15 +70,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
-// Cleanup expired OTPs periodically
-setInterval(() => {
-  const now = Date.now();
-  for (const [email, data] of otpStorage.entries()) {
-    if (data.expiresAt < now) {
-      otpStorage.delete(email);
-    }
-  }
-}, 60000); // Clean up every minute
-
-export { otpStorage };

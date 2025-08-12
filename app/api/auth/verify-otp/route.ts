@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { otpStorage } from "../send-otp/route";
+import { otpStorage } from "@/lib/otp-storage";
 
 const verifyOtpSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
 
     // Get stored OTP data
     const storedData = otpStorage.get(email);
-    
+
     if (!storedData) {
       return NextResponse.json(
         { success: false, message: "OTP not found or expired" },
@@ -45,11 +45,11 @@ export async function POST(request: NextRequest) {
       // Increment attempts
       storedData.attempts += 1;
       otpStorage.set(email, storedData);
-      
+
       return NextResponse.json(
-        { 
-          success: false, 
-          message: `Invalid OTP. ${3 - storedData.attempts} attempts remaining.` 
+        {
+          success: false,
+          message: `Invalid OTP. ${3 - storedData.attempts} attempts remaining.`
         },
         { status: 400 }
       );
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error("Verify OTP error:", error);
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { success: false, message: "Invalid input data" },
