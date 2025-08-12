@@ -88,16 +88,9 @@ export default function UserInfoForm({
       setCurrentStep("otp-verification");
 
       // Show success message
-      if (process.env.NODE_ENV === "development" && result.otp) {
-        console.log("Development OTP:", result.otp);
-        toast.success(
-          `OTP sent! Check your email or use development OTP: ${result.otp}`
-        );
-      } else {
-        toast.success(
-          "OTP sent to your email successfully! Please check your inbox."
-        );
-      }
+      toast.success(
+        "OTP sent to your email successfully! Please check your inbox."
+      );
     } catch (error) {
       console.error("Error sending OTP:", error);
       const errorMessage =
@@ -196,16 +189,9 @@ export default function UserInfoForm({
       }
 
       // Show success message
-      if (process.env.NODE_ENV === "development" && result.otp) {
-        console.log("Development OTP (resent):", result.otp);
-        toast.success(
-          `OTP resent! Check your email or use development OTP: ${result.otp}`
-        );
-      } else {
-        toast.success(
-          "OTP resent to your email successfully! Please check your inbox."
-        );
-      }
+      toast.success(
+        "OTP resent to your email successfully! Please check your inbox."
+      );
     } catch (error) {
       console.error("Error resending OTP:", error);
       const errorMessage =

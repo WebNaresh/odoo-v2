@@ -40,42 +40,38 @@ export async function POST(request: NextRequest) {
         throw new Error("Failed to send email");
       }
 
-      console.log(`✅ OTP sent successfully to ${email}: ${otp}`);
+      console.log(`✅ OTP sent successfully to ${email}`);
     } catch (emailError) {
       console.error("❌ Failed to send OTP email:", emailError);
 
-      // In development, still log the OTP for testing
-      if (process.env.NODE_ENV === "development") {
-        console.log(`🔧 Development OTP for ${email}: ${otp}`);
-      } else {
-        // In production, if email fails, remove the OTP and return error
-        otpStorage.delete(email);
-        throw new Error("Failed to send OTP email");
-      }
+      // If email fails, remove the OTP and return error
+      otpStorage.delete(email);
+      throw new Error("Failed to send OTP email");
     }
+  }
 
     return NextResponse.json({
-      success: true,
-      message: "OTP sent successfully",
-      // In development, return OTP for testing
-      ...(process.env.NODE_ENV === "development" && { otp }),
-    });
+    success: true,
+    message: "OTP sent successfully",
+    // In development, return OTP for testing
+    ...(process.env.NODE_ENV === "development" && { otp }),
+  });
 
-  } catch (error) {
-    console.error("Send OTP error:", error);
+} catch (error) {
+  console.error("Send OTP error:", error);
 
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { success: false, message: "Invalid email address" },
-        { status: 400 }
-      );
-    }
-
+  if (error instanceof z.ZodError) {
     return NextResponse.json(
-      { success: false, message: "Failed to send OTP" },
-      { status: 500 }
+      { success: false, message: "Invalid email address" },
+      { status: 400 }
     );
   }
+
+  return NextResponse.json(
+    { success: false, message: "Failed to send OTP" },
+    { status: 500 }
+  );
+}
 }
 
 // Cleanup expired OTPs periodically

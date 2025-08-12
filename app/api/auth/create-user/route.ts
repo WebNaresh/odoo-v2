@@ -20,10 +20,18 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingUser) {
-      return NextResponse.json(
-        { success: false, message: "User with this email already exists" },
-        { status: 400 }
-      );
+      // Check if this is a manual registration user (has manual_ googleId)
+      if (existingUser.googleId.startsWith("manual_")) {
+        return NextResponse.json(
+          { success: false, message: "User with this email already exists. Please sign in with Google to link your account." },
+          { status: 400 }
+        );
+      } else {
+        return NextResponse.json(
+          { success: false, message: "User with this email already exists" },
+          { status: 400 }
+        );
+      }
     }
 
     // Create new user in database
