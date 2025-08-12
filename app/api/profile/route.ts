@@ -20,36 +20,10 @@ export async function GET(request: NextRequest) {
       role: session.user.role,
     });
 
-    // Fetch user with related data
+    // Fetch user basic data first
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
       include: {
-        bookings: {
-          include: {
-            court: {
-              include: {
-                venue: {
-                  select: {
-                    name: true,
-                  },
-                },
-              },
-            },
-          },
-          orderBy: {
-            createdAt: "desc",
-          },
-          take: 10, // Get last 10 bookings for recent activity
-        },
-        reviews: {
-          include: {
-            venue: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        },
         ownedVenues: {
           select: {
             id: true,
@@ -64,33 +38,113 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    // Fetch bookings without venue include to avoid relationship errors
+    const rawBookings = await prisma.booking.findMany({
+      where: { userId: user.id },
+      include: {
+        court: {
+          select: {
+            id: true,
+            name: true,
+            venueId: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 10,
+    });
+
+    // Get unique venue IDs from courts
+    const venueIds = [...new Set(rawBookings.map(b => b.court.venueId))];
+
+    // Fetch venues separately
+    const venues = await prisma.venue.findMany({
+      where: {
+        id: { in: venueIds },
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+
+    // Create venue lookup map
+    const venueMap = new Map(venues.map(v => [v.id, v]));
+
+    // Combine booking data with venue information
+    const bookings = rawBookings.map(booking => ({
+      ...booking,
+      court: {
+        ...booking.court,
+        venue: venueMap.get(booking.court.venueId) || null,
+      },
+    }));
+
+    // Fetch reviews with defensive querying
+    const rawReviews = await prisma.review.findMany({
+      where: { userId: user.id },
+      select: {
+        id: true,
+        rating: true,
+        comment: true,
+        venueId: true,
+        createdAt: true,
+      },
+    });
+
+    // Get venue data for reviews
+    const reviewVenueIds = [...new Set(rawReviews.map(r => r.venueId))];
+    const reviewVenues = await prisma.venue.findMany({
+      where: {
+        id: { in: reviewVenueIds },
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+
+    const reviewVenueMap = new Map(reviewVenues.map(v => [v.id, v]));
+
+    // Combine review data with venue information
+    const reviews = rawReviews.map(review => ({
+      ...review,
+      venue: reviewVenueMap.get(review.venueId) || null,
+    }));
+
     // Calculate user statistics
-    const totalBookings = user.bookings.length;
-    const completedBookings = user.bookings.filter(
+    const validBookings = bookings.filter((booking) => booking.court && booking.court.venue);
+    const totalBookings = validBookings.length;
+    const completedBookings = validBookings.filter(
       (booking) => booking.status === "COMPLETED"
     ).length;
-    const totalSpent = user.bookings
+    const totalSpent = validBookings
       .filter((booking) => booking.paymentStatus === "PAID")
       .reduce((sum, booking) => sum + booking.totalPrice, 0);
-    const reviewsGiven = user.reviews.length;
+    const reviewsGiven = reviews.filter((review) => review.venue).length;
 
     // Get recent bookings with venue and court info
-    const recentBookings = user.bookings.slice(0, 5).map((booking) => ({
-      id: booking.id,
-      venueName: booking.court.venue.name,
-      courtName: booking.court.name,
-      date: booking.bookingDate.toISOString().split("T")[0],
-      time: `${booking.startTime.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      })} - ${booking.endTime.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      })}`,
-      status: booking.status,
-      amount: booking.totalPrice,
-      paymentStatus: booking.paymentStatus,
-    }));
+    const recentBookings = bookings
+      .slice(0, 5)
+      .filter((booking) => booking.court && booking.court.venue) // Filter out bookings with missing venue/court data
+      .map((booking) => ({
+        id: booking.id,
+        venueName: booking.court.venue?.name || "Unknown Venue",
+        courtName: booking.court.name,
+        date: booking.bookingDate.toISOString().split("T")[0],
+        time: `${booking.startTime.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })} - ${booking.endTime.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}`,
+        status: booking.status,
+        amount: booking.totalPrice,
+        paymentStatus: booking.paymentStatus,
+      }));
 
     // Calculate additional stats
     const memberSince = user.createdAt.toLocaleDateString();
