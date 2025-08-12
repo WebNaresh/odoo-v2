@@ -5,7 +5,13 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { MainNav } from "@/components/layout/main-nav";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -208,13 +214,29 @@ export default function ProfilePage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "COMPLETED":
-        return <Badge className="bg-green-100 text-green-700 border-green-200">Completed</Badge>;
+        return (
+          <Badge className="bg-green-100 text-green-700 border-green-200">
+            Completed
+          </Badge>
+        );
       case "CONFIRMED":
-        return <Badge className="bg-blue-100 text-blue-700 border-blue-200">Confirmed</Badge>;
+        return (
+          <Badge className="bg-blue-100 text-blue-700 border-blue-200">
+            Confirmed
+          </Badge>
+        );
       case "CANCELLED":
-        return <Badge className="bg-red-100 text-red-700 border-red-200">Cancelled</Badge>;
+        return (
+          <Badge className="bg-red-100 text-red-700 border-red-200">
+            Cancelled
+          </Badge>
+        );
       default:
-        return <Badge className="bg-gray-100 text-gray-700 border-gray-200">Pending</Badge>;
+        return (
+          <Badge className="bg-gray-100 text-gray-700 border-gray-200">
+            Pending
+          </Badge>
+        );
     }
   };
 
@@ -245,7 +267,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <MainNav />
-      
+
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-7xl">
         {/* Profile Header */}
         <Card className="border-0 shadow-lg bg-white mb-8">
@@ -253,12 +275,15 @@ export default function ProfilePage() {
             <div className="flex flex-col lg:flex-row lg:items-center gap-6">
               <div className="flex items-center gap-6">
                 <Avatar className="w-24 h-24 lg:w-32 lg:h-32 border-4 border-[#00884d]/20">
-                  <AvatarImage src={user.image || undefined} alt={user.name || "User"} />
+                  <AvatarImage
+                    src={user.image || undefined}
+                    alt={user.name || "User"}
+                  />
                   <AvatarFallback className="bg-gradient-to-br from-[#00884d] to-[#00a855] text-white text-2xl lg:text-3xl font-bold">
                     {user.name?.charAt(0) || "U"}
                   </AvatarFallback>
                 </Avatar>
-                
+
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
@@ -271,7 +296,7 @@ export default function ProfilePage() {
                       </span>
                     </div>
                   </div>
-                  
+
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-gray-600">
                     <div className="flex items-center gap-2">
                       <Mail className="h-4 w-4" />
@@ -280,13 +305,14 @@ export default function ProfilePage() {
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4" />
                       <span className="text-sm">
-                        Member since {new Date(user.createdAt).toLocaleDateString()}
+                        Member since{" "}
+                        {new Date(user.createdAt).toLocaleDateString()}
                       </span>
                     </div>
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex gap-3">
                 <Button
                   variant="outline"
@@ -361,7 +387,9 @@ export default function ProfilePage() {
                       <Calendar className="h-6 w-6 text-blue-600" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-gray-900">{stats.totalBookings}</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {stats.totalBookings}
+                      </p>
                       <p className="text-sm text-gray-600">Total Bookings</p>
                     </div>
                   </div>
@@ -375,7 +403,9 @@ export default function ProfilePage() {
                       <Trophy className="h-6 w-6 text-green-600" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-gray-900">{stats.completedBookings}</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {stats.completedBookings}
+                      </p>
                       <p className="text-sm text-gray-600">Completed</p>
                     </div>
                   </div>
@@ -389,7 +419,9 @@ export default function ProfilePage() {
                       <CreditCard className="h-6 w-6 text-purple-600" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-gray-900">₹{stats.totalSpent.toLocaleString()}</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        ₹{stats.totalSpent.toLocaleString()}
+                      </p>
                       <p className="text-sm text-gray-600">Total Spent</p>
                     </div>
                   </div>
@@ -403,7 +435,9 @@ export default function ProfilePage() {
                       <Star className="h-6 w-6 text-red-600" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-gray-900">{stats.reviewsGiven}</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {stats.reviewsGiven}
+                      </p>
                       <p className="text-sm text-gray-600">Reviews Given</p>
                     </div>
                   </div>
@@ -425,18 +459,28 @@ export default function ProfilePage() {
                   <>
                     <div className="space-y-4">
                       {recentBookings.map((booking) => (
-                        <div key={booking.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                        <div
+                          key={booking.id}
+                          className="flex items-center justify-between p-4 bg-gray-50 rounded-xl"
+                        >
                           <div className="flex items-center gap-4">
                             <div className="w-10 h-10 bg-[#00884d]/10 rounded-lg flex items-center justify-center">
                               <MapPin className="h-5 w-5 text-[#00884d]" />
                             </div>
                             <div>
-                              <h4 className="font-semibold text-gray-900">{booking.venueName}</h4>
-                              <p className="text-sm text-gray-600">{booking.courtName} • {booking.date} • {booking.time}</p>
+                              <h4 className="font-semibold text-gray-900">
+                                {booking.venueName}
+                              </h4>
+                              <p className="text-sm text-gray-600">
+                                {booking.courtName} • {booking.date} •{" "}
+                                {booking.time}
+                              </p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
-                            <span className="font-bold text-gray-900">₹{booking.amount.toLocaleString()}</span>
+                            <span className="font-bold text-gray-900">
+                              ₹{booking.amount.toLocaleString()}
+                            </span>
                             {getStatusBadge(booking.status)}
                           </div>
                         </div>
@@ -457,8 +501,12 @@ export default function ProfilePage() {
                     <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                       <Calendar className="h-8 w-8 text-gray-400" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No bookings yet</h3>
-                    <p className="text-gray-600 mb-4">Start exploring venues and make your first booking!</p>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      No bookings yet
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                      Start exploring venues and make your first booking!
+                    </p>
                     <Button
                       onClick={() => router.push("/venues")}
                       className="bg-[#00884d] text-white"
@@ -478,10 +526,16 @@ export default function ProfilePage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle>Personal Information</CardTitle>
-                    <CardDescription>Manage your personal details and preferences</CardDescription>
+                    <CardDescription>
+                      Manage your personal details and preferences
+                    </CardDescription>
                   </div>
                   {isEditing && (
-                    <Button onClick={handleSaveProfile} disabled={loading} className="bg-[#00884d] text-white">
+                    <Button
+                      onClick={handleSaveProfile}
+                      disabled={loading}
+                      className="bg-[#00884d] text-white"
+                    >
                       <Save className="h-4 w-4 mr-2" />
                       Save Changes
                     </Button>
@@ -495,9 +549,13 @@ export default function ProfilePage() {
                     <Input
                       id="name"
                       value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, name: e.target.value })
+                      }
                       disabled={!isEditing}
-                      className={isEditing ? "border-[#00884d]/20" : "bg-gray-50"}
+                      className={
+                        isEditing ? "border-[#00884d]/20" : "bg-gray-50"
+                      }
                     />
                   </div>
 
@@ -510,43 +568,9 @@ export default function ProfilePage() {
                       disabled={true}
                       className="bg-gray-50"
                     />
-                    <p className="text-xs text-gray-500">Email cannot be changed</p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input
-                      id="phone"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      disabled={!isEditing}
-                      className={isEditing ? "border-[#00884d]/20" : "bg-gray-50"}
-                      placeholder="Enter your phone number"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="location">Location</Label>
-                    <Input
-                      id="location"
-                      value={formData.location}
-                      onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                      disabled={!isEditing}
-                      className={isEditing ? "border-[#00884d]/20" : "bg-gray-50"}
-                      placeholder="Enter your city/location"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="website">Website</Label>
-                    <Input
-                      id="website"
-                      value={formData.website}
-                      onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                      disabled={!isEditing}
-                      className={isEditing ? "border-[#00884d]/20" : "bg-gray-50"}
-                      placeholder="Enter your website URL"
-                    />
+                    <p className="text-xs text-gray-500">
+                      Email cannot be changed
+                    </p>
                   </div>
                 </div>
 
@@ -555,7 +579,9 @@ export default function ProfilePage() {
                   <Textarea
                     id="bio"
                     value={formData.bio}
-                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, bio: e.target.value })
+                    }
                     disabled={!isEditing}
                     className={isEditing ? "border-[#00884d]/20" : "bg-gray-50"}
                     placeholder="Tell us about yourself..."
@@ -571,15 +597,22 @@ export default function ProfilePage() {
             <Card className="border-0 shadow-lg bg-white">
               <CardHeader>
                 <CardTitle>Booking History</CardTitle>
-                <CardDescription>View and manage all your bookings</CardDescription>
+                <CardDescription>
+                  View and manage all your bookings
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="text-center py-12">
                   <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
                     <Calendar className="h-8 w-8 text-gray-400" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Detailed booking history coming soon</h3>
-                  <p className="text-gray-600 mb-6">For now, you can view your bookings on the dedicated bookings page.</p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Detailed booking history coming soon
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    For now, you can view your bookings on the dedicated
+                    bookings page.
+                  </p>
                   <Button
                     onClick={() => router.push("/bookings")}
                     className="bg-[#00884d] text-white"
@@ -596,15 +629,22 @@ export default function ProfilePage() {
             <Card className="border-0 shadow-lg bg-white">
               <CardHeader>
                 <CardTitle>Account Settings</CardTitle>
-                <CardDescription>Manage your account preferences and security</CardDescription>
+                <CardDescription>
+                  Manage your account preferences and security
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="text-center py-12">
                   <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
                     <Settings className="h-8 w-8 text-gray-400" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Advanced settings coming soon</h3>
-                  <p className="text-gray-600">We're working on additional settings and preferences for your account.</p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Advanced settings coming soon
+                  </h3>
+                  <p className="text-gray-600">
+                    We're working on additional settings and preferences for
+                    your account.
+                  </p>
                 </div>
               </CardContent>
             </Card>

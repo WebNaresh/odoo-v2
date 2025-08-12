@@ -1,22 +1,70 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { MainNav } from "@/components/layout/main-nav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, MapPin, Star, Filter, SlidersHorizontal, Grid3X3, List, X, RefreshCw, TrendingUp, Users, Clock, Heart } from "lucide-react";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { useVenuesWithFilters } from "@/hooks/use-venues";
+import {
+  Search,
+  MapPin,
+  Star,
+  SlidersHorizontal,
+  Grid3X3,
+  List,
+  X,
+  RefreshCw,
+  TrendingUp,
+  Users,
+  Clock,
+  Heart,
+} from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { useVenues } from "@/hooks/use-venues";
 
-const sportsOptions = ["Basketball", "Tennis", "Football", "Badminton", "Cricket", "Swimming", "Volleyball", "Squash"];
-const amenitiesOptions = ["Parking", "Changing Rooms", "Cafeteria", "AC", "Equipment Rental", "Shower", "Locker"];
+const sportsOptions = [
+  "Basketball",
+  "Tennis",
+  "Football",
+  "Badminton",
+  "Cricket",
+  "Swimming",
+  "Volleyball",
+  "Squash",
+];
+const amenitiesOptions = [
+  "Parking",
+  "Changing Rooms",
+  "Cafeteria",
+  "AC",
+  "Equipment Rental",
+  "Shower",
+  "Locker",
+];
 
 export default function VenuesPage() {
   const searchParams = useSearchParams();
@@ -25,35 +73,101 @@ export default function VenuesPage() {
   const initialSport = searchParams.get("sport") || "";
 
   const [searchQuery, setSearchQuery] = useState(initialSearch);
-  const [selectedSports, setSelectedSports] = useState<string[]>(initialSport ? [initialSport] : []);
+  const [selectedSports, setSelectedSports] = useState<string[]>(
+    initialSport ? [initialSport] : []
+  );
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 2000]);
   const [sortBy, setSortBy] = useState("rating");
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
-  const [activeFilters, setActiveFilters] = useState(0);
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+  // Fetch all venues using React Query
+  const { data: venuesResponse, isLoading: loading, isError } = useVenues();
 
-  // Use React Query hook for venues with filters
-  const {
-    data: venuesResponse,
-    isLoading: loading,
-    isError,
-  } = useVenuesWithFilters(
+  const allVenues = venuesResponse?.success ? venuesResponse.venues : [];
+
+  // Client-side filtering and sorting
+  const filteredAndSortedVenues = useMemo(() => {
+    let filtered = [...allVenues];
+
+    // Filter by search query (name, address, description, sports)
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(
+        (venue) =>
+          venue.name.toLowerCase().includes(query) ||
+          venue.address.toLowerCase().includes(query) ||
+          venue.description?.toLowerCase().includes(query) ||
+          venue.sports.some((sport) => sport.toLowerCase().includes(query))
+      );
+    }
+
+    // Filter by selected sports
+    if (selectedSports.length > 0) {
+      filtered = filtered.filter((venue) =>
+        selectedSports.some((sport) =>
+          venue.sports.some((venueSport) =>
+            venueSport.toLowerCase().includes(sport.toLowerCase())
+          )
+        )
+      );
+    }
+
+    // Filter by selected amenities
+    if (selectedAmenities.length > 0) {
+      filtered = filtered.filter((venue) =>
+        selectedAmenities.every((amenity) =>
+          venue.amenities.some((venueAmenity) =>
+            venueAmenity.toLowerCase().includes(amenity.toLowerCase())
+          )
+        )
+      );
+    }
+
+    // Filter by price range
+    if (priceRange[0] > 0 || priceRange[1] < 2000) {
+      filtered = filtered.filter((venue) => {
+        const minPrice = venue.minPrice || 0;
+        const maxPrice = venue.maxPrice || 0;
+        // Check if venue's price range overlaps with selected range
+        return minPrice <= priceRange[1] && maxPrice >= priceRange[0];
+      });
+    }
+
+    // Sort venues
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case "rating":
+          return (b.rating || 0) - (a.rating || 0);
+        case "price-low":
+          return (a.minPrice || 0) - (b.minPrice || 0);
+        case "price-high":
+          return (b.maxPrice || 0) - (a.maxPrice || 0);
+        case "distance":
+          // For now, just return as is since we don't have distance calculation
+          return 0;
+        default:
+          return 0;
+      }
+    });
+
+    return filtered;
+  }, [
+    allVenues,
     searchQuery,
     selectedSports,
     selectedAmenities,
     priceRange,
     sortBy,
-    50
-  );
+  ]);
 
-  const venues = venuesResponse?.success ? venuesResponse.venues : [];
-  const totalCount = venuesResponse?.success ? venuesResponse.pagination.total : 0;
+  const venues = filteredAndSortedVenues;
+  const totalCount = venues.length;
 
   const handleSportChange = (sport: string, checked: boolean) => {
     if (checked) {
       setSelectedSports([...selectedSports, sport]);
     } else {
-      setSelectedSports(selectedSports.filter(s => s !== sport));
+      setSelectedSports(selectedSports.filter((s) => s !== sport));
     }
   };
 
@@ -61,7 +175,7 @@ export default function VenuesPage() {
     if (checked) {
       setSelectedAmenities([...selectedAmenities, amenity]);
     } else {
-      setSelectedAmenities(selectedAmenities.filter(a => a !== amenity));
+      setSelectedAmenities(selectedAmenities.filter((a) => a !== amenity));
     }
   };
 
@@ -78,7 +192,9 @@ export default function VenuesPage() {
               <Checkbox
                 id={sport}
                 checked={selectedSports.includes(sport)}
-                onCheckedChange={(checked) => handleSportChange(sport, checked as boolean)}
+                onCheckedChange={(checked) =>
+                  handleSportChange(sport, checked as boolean)
+                }
                 className="data-[state=checked]:bg-[#00884d] data-[state=checked]:border-[#00884d]"
               />
               <label
@@ -125,7 +241,9 @@ export default function VenuesPage() {
               <Checkbox
                 id={amenity}
                 checked={selectedAmenities.includes(amenity)}
-                onCheckedChange={(checked) => handleAmenityChange(amenity, checked as boolean)}
+                onCheckedChange={(checked) =>
+                  handleAmenityChange(amenity, checked as boolean)
+                }
                 className="data-[state=checked]:bg-[#00884d] data-[state=checked]:border-[#00884d]"
               />
               <label
@@ -170,7 +288,9 @@ export default function VenuesPage() {
                 <Search className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Find Sports Venues</h1>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                  Find Sports Venues
+                </h1>
                 <p className="text-gray-600 text-lg">
                   Discover and book amazing sports facilities near you
                 </p>
@@ -190,19 +310,23 @@ export default function VenuesPage() {
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex gap-2">
                 <Button
-                  variant={viewMode === 'list' ? 'default' : 'outline'}
+                  variant={viewMode === "list" ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setViewMode('list')}
-                  className={viewMode === 'list' ? 'bg-[#00884d] hover:bg-[#00a855]' : ''}
+                  onClick={() => setViewMode("list")}
+                  className={
+                    viewMode === "list" ? "bg-[#00884d] hover:bg-[#00a855]" : ""
+                  }
                 >
                   <List className="h-4 w-4 mr-2" />
                   List
                 </Button>
                 <Button
-                  variant={viewMode === 'grid' ? 'default' : 'outline'}
+                  variant={viewMode === "grid" ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setViewMode('grid')}
-                  className={viewMode === 'grid' ? 'bg-[#00884d] hover:bg-[#00a855]' : ''}
+                  onClick={() => setViewMode("grid")}
+                  className={
+                    viewMode === "grid" ? "bg-[#00884d] hover:bg-[#00a855]" : ""
+                  }
                 >
                   <Grid3X3 className="h-4 w-4 mr-2" />
                   Grid
@@ -233,8 +357,12 @@ export default function VenuesPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="rating">⭐ Highest Rated</SelectItem>
-                  <SelectItem value="price-low">💰 Price: Low to High</SelectItem>
-                  <SelectItem value="price-high">💎 Price: High to Low</SelectItem>
+                  <SelectItem value="price-low">
+                    💰 Price: Low to High
+                  </SelectItem>
+                  <SelectItem value="price-high">
+                    💎 Price: High to Low
+                  </SelectItem>
                   <SelectItem value="distance">📍 Nearest First</SelectItem>
                 </SelectContent>
               </Select>
@@ -288,19 +416,30 @@ export default function VenuesPage() {
           {/* Active Filters Display */}
           {calculateActiveFilters() > 0 && (
             <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-100">
-              <span className="text-sm text-gray-500 font-medium">Active filters:</span>
+              <span className="text-sm text-gray-500 font-medium">
+                Active filters:
+              </span>
               {selectedSports.length > 0 && (
-                <Badge variant="secondary" className="bg-[#00884d]/10 text-[#00884d]">
+                <Badge
+                  variant="secondary"
+                  className="bg-[#00884d]/10 text-[#00884d]"
+                >
                   Sports: {selectedSports.length}
                 </Badge>
               )}
               {selectedAmenities.length > 0 && (
-                <Badge variant="secondary" className="bg-[#00884d]/10 text-[#00884d]">
+                <Badge
+                  variant="secondary"
+                  className="bg-[#00884d]/10 text-[#00884d]"
+                >
                   Amenities: {selectedAmenities.length}
                 </Badge>
               )}
               {(priceRange[0] > 0 || priceRange[1] < 2000) && (
-                <Badge variant="secondary" className="bg-[#00884d]/10 text-[#00884d]">
+                <Badge
+                  variant="secondary"
+                  className="bg-[#00884d]/10 text-[#00884d]"
+                >
                   Price: ₹{priceRange[0]} - ₹{priceRange[1]}
                 </Badge>
               )}
@@ -344,7 +483,10 @@ export default function VenuesPage() {
           <div className="flex-1">
             <div className="flex items-center justify-between mb-6">
               <div className="text-sm text-gray-600">
-                <span className="font-semibold text-gray-900">Showing {venues.length}</span> of {totalCount} venues
+                <span className="font-semibold text-gray-900">
+                  Showing {venues.length}
+                </span>{" "}
+                of {totalCount} venues
               </div>
               <div className="flex items-center gap-2">
                 <RefreshCw className="h-4 w-4 text-gray-400" />
@@ -353,11 +495,24 @@ export default function VenuesPage() {
             </div>
 
             {loading ? (
-              <div className={`grid gap-6 ${viewMode === 'grid' ? 'md:grid-cols-2 lg:grid-cols-3' : ''}`}>
+              <div
+                className={`grid gap-6 ${
+                  viewMode === "grid" ? "md:grid-cols-2 lg:grid-cols-3" : ""
+                }`}
+              >
                 {[...Array(6)].map((_, index) => (
-                  <Card key={index} className="overflow-hidden border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-                    <div className={viewMode === 'grid' ? 'block' : 'md:flex'}>
-                      <div className={`${viewMode === 'grid' ? 'aspect-video' : 'md:w-64 aspect-video md:aspect-square'} bg-gradient-to-br from-gray-200 to-gray-100 animate-pulse relative`}>
+                  <Card
+                    key={index}
+                    className="overflow-hidden border-0 shadow-lg bg-white/80 backdrop-blur-sm"
+                  >
+                    <div className={viewMode === "grid" ? "block" : "md:flex"}>
+                      <div
+                        className={`${
+                          viewMode === "grid"
+                            ? "aspect-video"
+                            : "md:w-64 aspect-video md:aspect-square"
+                        } bg-gradient-to-br from-gray-200 to-gray-100 animate-pulse relative`}
+                      >
                         <div className="absolute inset-0 bg-gradient-to-t from-gray-300/50 to-transparent" />
                       </div>
                       <div className="flex-1">
@@ -387,9 +542,12 @@ export default function VenuesPage() {
                 <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <span className="text-4xl">⚠️</span>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">Unable to load venues</h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                  Unable to load venues
+                </h3>
                 <p className="text-gray-600 mb-8 max-w-md mx-auto">
-                  There was an error loading venues. Please check your connection and try again.
+                  There was an error loading venues. Please check your
+                  connection and try again.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <Button
@@ -413,9 +571,12 @@ export default function VenuesPage() {
                 <div className="w-24 h-24 bg-[#00884d]/10 rounded-full flex items-center justify-center mx-auto mb-6">
                   <span className="text-4xl">🏟️</span>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">No venues found</h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                  No venues found
+                </h3>
                 <p className="text-gray-600 mb-8 max-w-md mx-auto">
-                  We couldn't find any venues matching your criteria. Try adjusting your search or filters.
+                  We couldn't find any venues matching your criteria. Try
+                  adjusting your search or filters.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <Button
@@ -435,7 +596,11 @@ export default function VenuesPage() {
                 </div>
               </div>
             ) : (
-              <div className={`grid gap-6 ${viewMode === 'grid' ? 'md:grid-cols-2 lg:grid-cols-3' : ''}`}>
+              <div
+                className={`grid gap-6 ${
+                  viewMode === "grid" ? "md:grid-cols-2 lg:grid-cols-3" : ""
+                }`}
+              >
                 {venues.map((venue, index) => (
                   <Card
                     key={venue.id}
@@ -443,8 +608,14 @@ export default function VenuesPage() {
                     style={{ animationDelay: `${index * 50}ms` }}
                     onClick={() => router.push(`/venues/${venue.id}`)}
                   >
-                    <div className={viewMode === 'grid' ? 'block' : 'md:flex'}>
-                      <div className={`${viewMode === 'grid' ? 'aspect-video' : 'md:w-64 aspect-video md:aspect-square'} bg-gray-100 relative overflow-hidden`}>
+                    <div className={viewMode === "grid" ? "block" : "md:flex"}>
+                      <div
+                        className={`${
+                          viewMode === "grid"
+                            ? "aspect-video"
+                            : "md:w-64 aspect-video md:aspect-square"
+                        } bg-gray-100 relative overflow-hidden`}
+                      >
                         {venue.photoUrls && venue.photoUrls.length > 0 ? (
                           <img
                             src={venue.photoUrls[0]}
@@ -453,7 +624,9 @@ export default function VenuesPage() {
                           />
                         ) : (
                           <div className="w-full h-full bg-gradient-to-br from-[#00884d]/20 to-[#00a855]/10 flex items-center justify-center">
-                            <span className="text-5xl group-hover:scale-110 transition-transform duration-300">🏟️</span>
+                            <span className="text-5xl group-hover:scale-110 transition-transform duration-300">
+                              🏟️
+                            </span>
                           </div>
                         )}
 
@@ -500,16 +673,20 @@ export default function VenuesPage() {
                               </CardTitle>
                               <CardDescription className="flex items-center gap-1 mt-2 text-gray-600">
                                 <MapPin className="h-4 w-4 text-[#00884d]" />
-                                <span className="line-clamp-1">{venue.address}</span>
+                                <span className="line-clamp-1">
+                                  {venue.address}
+                                </span>
                               </CardDescription>
                             </div>
 
-                            {viewMode === 'list' && (
+                            {viewMode === "list" && (
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-1">
                                   <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                                   <span className="text-sm font-semibold text-gray-900">
-                                    {venue.rating ? venue.rating.toFixed(1) : "New"}
+                                    {venue.rating
+                                      ? venue.rating.toFixed(1)
+                                      : "New"}
                                   </span>
                                   <span className="text-sm text-gray-500">
                                     ({venue.reviewCount} reviews)
@@ -517,7 +694,9 @@ export default function VenuesPage() {
                                 </div>
                                 {venue.courtCount > 0 && (
                                   <div className="text-right">
-                                    <div className="text-xs text-gray-500">{venue.courtCount} courts</div>
+                                    <div className="text-xs text-gray-500">
+                                      {venue.courtCount} courts
+                                    </div>
                                   </div>
                                 )}
                               </div>
@@ -528,30 +707,43 @@ export default function VenuesPage() {
                         <CardContent className="pt-0">
                           <div className="space-y-4">
                             <div className="flex flex-wrap gap-2">
-                              {venue.sports.slice(0, viewMode === 'grid' ? 3 : 4).map((sport) => (
-                                <Badge
-                                  key={sport}
-                                  className="text-xs bg-[#00884d]/10 text-[#00884d] hover:bg-[#00884d]/20 border-0"
-                                >
-                                  {sport}
-                                </Badge>
-                              ))}
-                              {venue.sports.length > (viewMode === 'grid' ? 3 : 4) && (
+                              {venue.sports
+                                .slice(0, viewMode === "grid" ? 3 : 4)
+                                .map((sport) => (
+                                  <Badge
+                                    key={sport}
+                                    className="text-xs bg-[#00884d]/10 text-[#00884d] hover:bg-[#00884d]/20 border-0"
+                                  >
+                                    {sport}
+                                  </Badge>
+                                ))}
+                              {venue.sports.length >
+                                (viewMode === "grid" ? 3 : 4) && (
                                 <Badge className="text-xs bg-gray-100 text-gray-600 hover:bg-gray-200 border-0">
-                                  +{venue.sports.length - (viewMode === 'grid' ? 3 : 4)} more
+                                  +
+                                  {venue.sports.length -
+                                    (viewMode === "grid" ? 3 : 4)}{" "}
+                                  more
                                 </Badge>
                               )}
                             </div>
 
-                            {viewMode === 'list' && (
+                            {viewMode === "list" && (
                               <div className="flex flex-wrap gap-2">
                                 {venue.amenities.slice(0, 3).map((amenity) => (
-                                  <Badge key={amenity} variant="outline" className="text-xs border-[#00884d]/20 text-gray-600">
+                                  <Badge
+                                    key={amenity}
+                                    variant="outline"
+                                    className="text-xs border-[#00884d]/20 text-gray-600"
+                                  >
                                     {amenity}
                                   </Badge>
                                 ))}
                                 {venue.amenities.length > 3 && (
-                                  <Badge variant="outline" className="text-xs border-gray-200 text-gray-500">
+                                  <Badge
+                                    variant="outline"
+                                    className="text-xs border-gray-200 text-gray-500"
+                                  >
                                     +{venue.amenities.length - 3} more
                                   </Badge>
                                 )}
@@ -560,11 +752,12 @@ export default function VenuesPage() {
 
                             <div className="flex items-center justify-between pt-2">
                               <div className="flex items-center gap-2">
-                                {viewMode === 'grid' && venue.courtCount > 0 && (
-                                  <span className="text-sm text-gray-500">
-                                    {venue.courtCount} courts
-                                  </span>
-                                )}
+                                {viewMode === "grid" &&
+                                  venue.courtCount > 0 && (
+                                    <span className="text-sm text-gray-500">
+                                      {venue.courtCount} courts
+                                    </span>
+                                  )}
                               </div>
                               <Button
                                 onClick={(e) => {
