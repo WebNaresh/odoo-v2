@@ -246,14 +246,6 @@ export default function VenueSearchComponent({
         className
       )}
     >
-      {/* Helper Text */}
-      <div className="text-center mb-4 animate-in fade-in-0 slide-in-from-top-2 duration-700 delay-200">
-        <p className="text-gray-600 text-sm">🎯 Find sports venues near you</p>
-        <p className="text-gray-500 text-xs mt-1">
-          Type a location or use GPS to discover nearby courts and facilities
-        </p>
-      </div>
-
       <form onSubmit={handleManualSearch} className="relative group">
         <div className="absolute inset-0 bg-gradient-to-r from-[#00884d]/20 to-[#00a855]/20 rounded-2xl blur-sm group-hover:blur-md transition-all duration-300"></div>
         <div className="relative bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg border border-[#00884d]/10 p-4 hover:shadow-xl hover:border-[#00884d]/20 transition-all duration-300">
