@@ -323,7 +323,9 @@ export function MainNav() {
                 <Bell className="h-4 w-4 text-[#00884d]" />
                 {/* Notification badge */}
                 <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full flex items-center justify-center">
-                  <span className="text-[10px] text-white font-bold">3</span>
+                  <span className="text-[10px] text-white font-bold">
+                    &nbsp;
+                  </span>
                 </span>
               </Button>
             )}

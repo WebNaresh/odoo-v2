@@ -304,13 +304,6 @@ export default function AdminDashboardPage() {
                 <FileText className="mr-2 h-4 w-4" />
                 Reports & Analytics
               </Button>
-              <Button
-                variant="outline"
-                onClick={() => router.push("/admin/moderation")}
-              >
-                <Shield className="mr-2 h-4 w-4" />
-                Content Moderation ({platformStats.activeReports})
-              </Button>
             </div>
           </CardContent>
         </Card>
