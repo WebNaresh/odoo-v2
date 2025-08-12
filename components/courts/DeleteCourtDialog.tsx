@@ -69,24 +69,20 @@ export function DeleteCourtDialog({
             <Trash2 className="h-5 w-5 text-destructive" />
             Delete Court
           </AlertDialogTitle>
-          <AlertDialogDescription className="space-y-2">
-            <div>
-              Are you sure you want to delete <strong>{court.name}</strong>?
-            </div>
-            <div className="text-sm text-muted-foreground">
-              This action cannot be undone. All associated time slots and
-              booking history will be permanently removed.
-            </div>
-            {court._count && court._count.bookings > 0 && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mt-3">
-                <div className="text-sm text-yellow-800">
-                  <strong>Warning:</strong> This court has{" "}
-                  {court._count.bookings} booking(s) associated with it. Make
-                  sure there are no active bookings before deleting.
-                </div>
-              </div>
-            )}
+          <AlertDialogDescription>
+            Are you sure you want to delete <strong>{court.name}</strong>? This
+            action cannot be undone. All associated time slots and booking
+            history will be permanently removed.
           </AlertDialogDescription>
+          {court._count && court._count.bookings > 0 && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mt-3">
+              <div className="text-sm text-yellow-800">
+                <strong>Warning:</strong> This court has {court._count.bookings}{" "}
+                booking(s) associated with it. Make sure there are no active
+                bookings before deleting.
+              </div>
+            </div>
+          )}
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
