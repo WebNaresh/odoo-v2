@@ -26,9 +26,11 @@ import {
   Building2,
   ArrowLeft,
   CheckCircle,
-  Play,
   Star,
-  MapPin,
+  Shield,
+  Zap,
+  Clock,
+  Award,
 } from "lucide-react";
 import Image from "next/image";
 import Autoplay from "embla-carousel-autoplay";
@@ -60,24 +62,49 @@ const carouselSlides: CarouselSlide[] = [
     image: "/sports-center.jpg",
     title: "Premium Sports Facilities",
     description:
-      "Book world-class sports venues with state-of-the-art equipment and professional-grade facilities.",
+      "Book world-class sports venues with state-of-the-art equipment and professional-grade facilities for an unmatched experience.",
     features: ["Professional Equipment", "Modern Facilities", "Expert Staff"],
   },
   {
     id: 2,
     image: "/indoors-tennis-court.jpg",
-    title: "Indoor Tennis Courts",
+    title: "Smart Booking System",
     description:
-      "Experience premium indoor tennis courts with perfect lighting and climate control for year-round play.",
-    features: ["Climate Controlled", "Professional Courts", "Equipment Rental"],
+      "Experience seamless booking with real-time availability, instant confirmations, and flexible scheduling options.",
+    features: ["Real-time Booking", "Instant Confirmation", "Flexible Timing"],
   },
   {
     id: 3,
     image: "/empty-stadium-day.jpg",
-    title: "Stadium Experiences",
+    title: "Community & Events",
     description:
-      "Access to premium stadium facilities for tournaments, events, and professional training sessions.",
-    features: ["Tournament Ready", "Large Capacity", "Event Hosting"],
+      "Join a thriving sports community with tournaments, events, and opportunities to connect with fellow athletes.",
+    features: ["Tournaments", "Community Events", "Networking"],
+  },
+];
+
+// Enhanced features for the platform
+const platformFeatures = [
+  {
+    icon: Zap,
+    title: "Instant Booking",
+    description:
+      "Book your favorite courts in seconds with real-time availability",
+  },
+  {
+    icon: Shield,
+    title: "Secure Payments",
+    description: "Safe and secure payment processing with multiple options",
+  },
+  {
+    icon: Clock,
+    title: "24/7 Access",
+    description: "Book anytime, anywhere with our mobile-friendly platform",
+  },
+  {
+    icon: Award,
+    title: "Premium Quality",
+    description: "Only verified, high-quality venues and facilities",
   },
 ];
 
@@ -459,26 +486,17 @@ export default function SignIn() {
   const renderSignIn = () => (
     <div className="w-full max-w-md mx-auto">
       {/* Mobile Logo - only visible on small screens */}
-      <div className="lg:hidden text-center mb-8">
-        <div className="flex items-center justify-center space-x-3 mb-6">
-          <div className="h-12 w-12 rounded-xl bg-[#00884d] flex items-center justify-center shadow-lg">
-            <span className="text-white font-bold text-xl">QC</span>
+      <div className="lg:hidden text-center mb-6">
+        <div className="flex items-center justify-center space-x-3 mb-4">
+          <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-[#00884d] to-[#00a855] flex items-center justify-center shadow-lg">
+            <span className="text-white font-bold text-lg">QC</span>
           </div>
-          <span className="font-bold text-3xl text-foreground">QuickCourt</span>
+          <span className="font-bold text-2xl text-foreground">QuickCourt</span>
         </div>
       </div>
 
-      <div className="text-center mb-8">
-        <h1 className="text-3xl lg:text-4xl font-bold mb-3 bg-gradient-to-r from-[#00884d] to-[#00a855] bg-clip-text text-transparent">
-          Welcome Back
-        </h1>
-        <p className="text-lg text-muted-foreground">
-          Sign in to access your sports booking platform
-        </p>
-      </div>
-
       <Card className="border-0 shadow-2xl bg-card/50 backdrop-blur-sm">
-        <CardContent className="p-8">
+        <CardContent className="p-6">
           {error && (
             <div className="mb-6 rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 ring-1 ring-red-500/20 px-4 py-3 text-sm flex items-center gap-2">
               <div className="h-4 w-4 rounded-full bg-red-500 flex-shrink-0" />
@@ -532,19 +550,35 @@ export default function SignIn() {
             <UserInfoForm onSubmit={handleUserInfoSubmit} loading={loading} />
           </div>
 
+          {/* Trust Indicators - Compact */}
+          <div className="flex items-center justify-center gap-4 mb-4 p-3 bg-muted/10 rounded-lg">
+            <div className="flex items-center gap-1">
+              <Shield className="h-3 w-3 text-green-600" />
+              <span className="text-xs text-muted-foreground">Secure</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Clock className="h-3 w-3 text-blue-600" />
+              <span className="text-xs text-muted-foreground">24/7</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Award className="h-3 w-3 text-orange-600" />
+              <span className="text-xs text-muted-foreground">Premium</span>
+            </div>
+          </div>
+
           <Button
             variant="outline"
             onClick={() => router.push("/")}
-            className="w-full h-12 border-2 hover:bg-muted/50 transition-all duration-200"
+            className="w-full h-12 border-2 hover:bg-muted/50 transition-all duration-200 group"
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform duration-200" />
             Back to Home
           </Button>
         </CardContent>
       </Card>
 
-      <div className="mt-8 text-center">
-        <p className="text-sm text-muted-foreground leading-relaxed">
+      <div className="mt-4 text-center">
+        <p className="text-sm text-muted-foreground">
           By signing in, you agree to our{" "}
           <span className="text-[#00884d] hover:underline cursor-pointer font-medium">
             terms of service
@@ -555,34 +589,6 @@ export default function SignIn() {
           </span>
           .
         </p>
-      </div>
-
-      {/* Features highlight for mobile */}
-      <div className="lg:hidden mt-12 grid grid-cols-3 gap-4 text-center">
-        <div className="space-y-2">
-          <div className="h-12 w-12 rounded-full bg-[#00884d]/10 flex items-center justify-center mx-auto">
-            <Play className="h-6 w-6 text-[#00884d]" />
-          </div>
-          <p className="text-xs font-medium text-muted-foreground">
-            Easy Booking
-          </p>
-        </div>
-        <div className="space-y-2">
-          <div className="h-12 w-12 rounded-full bg-[#00884d]/10 flex items-center justify-center mx-auto">
-            <MapPin className="h-6 w-6 text-[#00884d]" />
-          </div>
-          <p className="text-xs font-medium text-muted-foreground">
-            Find Venues
-          </p>
-        </div>
-        <div className="space-y-2">
-          <div className="h-12 w-12 rounded-full bg-[#00884d]/10 flex items-center justify-center mx-auto">
-            <Star className="h-6 w-6 text-[#00884d]" />
-          </div>
-          <p className="text-xs font-medium text-muted-foreground">
-            Top Quality
-          </p>
-        </div>
       </div>
     </div>
   );
@@ -640,34 +646,72 @@ export default function SignIn() {
   );
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 text-foreground">
       {authStep === "signin" ? (
         <div className="grid lg:grid-cols-2 min-h-screen">
           {/* Left side - Image Carousel */}
-          <div className="hidden lg:block relative">
+          <div className="hidden lg:block relative overflow-hidden">
             <ImageCarousel />
             {/* QuickCourt Logo Overlay */}
             <div className="absolute top-8 left-8 z-10">
               <div className="flex items-center space-x-3">
-                <div className="h-10 w-10 rounded-xl bg-[#00884d] flex items-center justify-center shadow-lg">
-                  <span className="text-white font-bold text-lg">QC</span>
+                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-[#00884d] to-[#00a855] flex items-center justify-center shadow-xl">
+                  <span className="text-white font-bold text-xl">QC</span>
                 </div>
                 <span className="font-bold text-2xl text-white drop-shadow-lg">
                   QuickCourt
                 </span>
               </div>
             </div>
+
+            {/* Enhanced Features Overlay */}
+            <div className="absolute bottom-8 left-8 right-8 z-10">
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+                <h3 className="text-white font-semibold text-lg mb-4">
+                  Why Choose QuickCourt?
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  {platformFeatures.map((feature, index) => (
+                    <div key={index} className="flex items-start gap-3">
+                      <div className="p-2 bg-white/20 rounded-lg">
+                        <feature.icon className="h-4 w-4 text-white" />
+                      </div>
+                      <div>
+                        <div className="text-white font-medium text-sm">
+                          {feature.title}
+                        </div>
+                        <div className="text-white/80 text-xs">
+                          {feature.description}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Right side - Sign in form */}
-          <div className="flex items-center justify-center p-6 lg:p-12">
-            {renderSignIn()}
+          <div className="flex items-center justify-center p-4 sm:p-6 lg:p-12 relative">
+            {/* Background Pattern */}
+            <div className="absolute inset-0 opacity-5">
+              <div
+                className="absolute inset-0"
+                style={{
+                  backgroundImage: `radial-gradient(circle at 1px 1px, rgba(0,136,77,0.3) 1px, transparent 0)`,
+                  backgroundSize: "20px 20px",
+                }}
+              ></div>
+            </div>
+            <div className="relative z-10 w-full">{renderSignIn()}</div>
           </div>
         </div>
       ) : (
-        <div className="flex items-center justify-center min-h-screen p-6">
-          {authStep === "role-selection" && renderRoleSelection()}
-          {authStep === "completing" && renderCompleting()}
+        <div className="flex items-center justify-center min-h-screen p-4 sm:p-6">
+          <div className="w-full max-w-md">
+            {authStep === "role-selection" && renderRoleSelection()}
+            {authStep === "completing" && renderCompleting()}
+          </div>
         </div>
       )}
     </div>
