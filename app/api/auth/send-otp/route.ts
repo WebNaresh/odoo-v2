@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { getEmailService } from "@/lib/email";
 
 // In-memory storage for OTPs (in production, use Redis or database)
 const otpStorage = new Map<string, { otp: string; expiresAt: number; attempts: number }>();
@@ -15,10 +16,10 @@ export async function POST(request: NextRequest) {
 
     // Generate 4-digit OTP
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
-    
+
     // Set expiration time (5 minutes from now)
     const expiresAt = Date.now() + 5 * 60 * 1000;
-    
+
     // Store OTP with email as key
     otpStorage.set(email, {
       otp,
@@ -26,12 +27,32 @@ export async function POST(request: NextRequest) {
       attempts: 0,
     });
 
-    // In production, send email here
-    // For development, we'll just log it
-    console.log(`OTP for ${email}: ${otp}`);
-    
-    // Simulate email sending delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Send OTP via email
+    try {
+      const emailService = getEmailService();
+      const emailSent = await emailService.sendOtpEmail(
+        email,
+        "", // We don't have the user's name yet
+        otp
+      );
+
+      if (!emailSent) {
+        throw new Error("Failed to send email");
+      }
+
+      console.log(`✅ OTP sent successfully to ${email}: ${otp}`);
+    } catch (emailError) {
+      console.error("❌ Failed to send OTP email:", emailError);
+
+      // In development, still log the OTP for testing
+      if (process.env.NODE_ENV === "development") {
+        console.log(`🔧 Development OTP for ${email}: ${otp}`);
+      } else {
+        // In production, if email fails, remove the OTP and return error
+        otpStorage.delete(email);
+        throw new Error("Failed to send OTP email");
+      }
+    }
 
     return NextResponse.json({
       success: true,
@@ -42,7 +63,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error("Send OTP error:", error);
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { success: false, message: "Invalid email address" },

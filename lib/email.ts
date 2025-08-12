@@ -737,6 +737,174 @@ class EmailService {
   }
 
   /**
+   * Send OTP verification email
+   */
+  async sendOtpEmail(
+    userEmail: string,
+    userName: string,
+    otp: string
+  ): Promise<boolean> {
+    const subject = "Your QuickCourt Verification Code";
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Email Verification</title>
+          <style>
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+              line-height: 1.6;
+              color: #333;
+              margin: 0;
+              padding: 0;
+              background-color: #f8f9fa;
+            }
+            .container {
+              max-width: 600px;
+              margin: 0 auto;
+              padding: 20px;
+            }
+            .email-wrapper {
+              background: #ffffff;
+              border-radius: 12px;
+              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+              overflow: hidden;
+            }
+            .header {
+              background: linear-gradient(135deg, #00884d 0%, #00a855 100%);
+              color: white;
+              padding: 40px 30px;
+              text-align: center;
+            }
+            .header h1 {
+              margin: 0 0 10px 0;
+              font-size: 28px;
+              font-weight: 700;
+            }
+            .header p {
+              margin: 0;
+              font-size: 16px;
+              opacity: 0.9;
+            }
+            .content {
+              padding: 40px 30px;
+            }
+            .otp-container {
+              background: #f8f9fa;
+              border: 2px solid #00884d;
+              border-radius: 12px;
+              padding: 30px;
+              text-align: center;
+              margin: 30px 0;
+            }
+            .otp-code {
+              font-size: 36px;
+              font-weight: 700;
+              color: #00884d;
+              letter-spacing: 8px;
+              margin: 20px 0;
+              font-family: 'Courier New', monospace;
+            }
+            .otp-label {
+              font-size: 14px;
+              color: #6b7280;
+              text-transform: uppercase;
+              letter-spacing: 1px;
+              margin-bottom: 10px;
+            }
+            .warning-box {
+              background: #fef3c7;
+              border: 1px solid #f59e0b;
+              border-radius: 8px;
+              padding: 16px;
+              margin: 24px 0;
+            }
+            .warning-title {
+              font-weight: 600;
+              color: #92400e;
+              margin-bottom: 8px;
+            }
+            .footer {
+              background: #f8f9fa;
+              text-align: center;
+              padding: 30px;
+              color: #6b7280;
+              font-size: 14px;
+              border-top: 1px solid #e5e7eb;
+            }
+            @media (max-width: 600px) {
+              .container { padding: 10px; }
+              .content { padding: 24px 20px; }
+              .header { padding: 30px 20px; }
+              .otp-code { font-size: 28px; letter-spacing: 4px; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="email-wrapper">
+              <div class="header">
+                <h1>🔐 Email Verification</h1>
+                <p>Complete your QuickCourt account setup</p>
+              </div>
+
+              <div class="content">
+                <p>Hello <strong>${userName || 'there'}</strong>,</p>
+
+                <p>Thank you for signing up with QuickCourt! To complete your account setup, please verify your email address using the verification code below:</p>
+
+                <div class="otp-container">
+                  <div class="otp-label">Your Verification Code</div>
+                  <div class="otp-code">${otp}</div>
+                  <p style="margin: 0; color: #6b7280; font-size: 14px;">Enter this code in the verification form</p>
+                </div>
+
+                <div class="warning-box">
+                  <div class="warning-title">⚠️ Important Security Information</div>
+                  <ul style="margin: 8px 0; padding-left: 20px; color: #92400e;">
+                    <li>This code will expire in <strong>5 minutes</strong></li>
+                    <li>Never share this code with anyone</li>
+                    <li>QuickCourt will never ask for this code via phone or email</li>
+                    <li>If you didn't request this code, please ignore this email</li>
+                  </ul>
+                </div>
+
+                <p>Once verified, you'll be able to:</p>
+                <ul>
+                  <li>Book sports venues and courts</li>
+                  <li>Manage your bookings</li>
+                  <li>Access exclusive deals and offers</li>
+                  <li>Connect with the sports community</li>
+                </ul>
+
+                <p>If you're having trouble with verification or didn't request this code, please contact our support team.</p>
+
+                <p>Welcome to QuickCourt!</p>
+                <p><strong>The QuickCourt Team</strong></p>
+              </div>
+
+              <div class="footer">
+                <p>This is an automated verification email. Please do not reply to this email.</p>
+                <p>Need help? Contact our support team for assistance.</p>
+                <p>&copy; ${new Date().getFullYear()} QuickCourt. All rights reserved.</p>
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    return this.sendEmail({
+      to: userEmail,
+      subject,
+      html,
+    });
+  }
+
+  /**
    * Send user unban notification email
    */
   async sendUserUnbanEmail(
