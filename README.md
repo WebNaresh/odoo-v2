@@ -2,7 +2,12 @@
 
 A full-stack web application that enables sports enthusiasts to book local sports facilities (badminton courts, turf grounds, tennis tables) and create/join matches with others in their area.
 
-**Team Members:** Naresh Bhosale & Vivek Bhos
+🌐 **Live Demo:** [https://oddoohackathon.vercel.app/](https://oddoohackathon.vercel.app/)
+
+## 👥 Team Members
+
+- **Naresh Bhosale** - [GitHub Profile](https://github.com/WebNaresh)
+- **Vivek Bhos** - [GitHub Profile](https://github.com/bhos1242)
 
 ## 🏆 Project Overview
 
