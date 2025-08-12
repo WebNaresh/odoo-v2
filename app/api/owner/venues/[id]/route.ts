@@ -298,7 +298,14 @@ const updateVenueSchema = z.object({
   }).optional(),
   amenities: z.array(z.string()).default([]),
   sports: z.array(z.string()).min(1, "At least one sport is required"),
-  photoUrls: z.array(z.string().url("Invalid URL format")).default([]),
+  photoUrls: z.array(z.string().refine((url) => {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  }, "Invalid URL format")).default([]),
   operatingHours: z.object({
     monday: z.object({
       isOpen: z.boolean(),
@@ -400,12 +407,12 @@ export async function PUT(
 
     const validationResult = updateVenueSchema.safeParse(body);
     if (!validationResult.success) {
-      console.log("❌ [UPDATE VENUE API] Validation failed:", validationResult.error.errors);
+      console.log("❌ [UPDATE VENUE API] Validation failed:", validationResult.error.issues);
       return NextResponse.json(
         {
           success: false,
           error: "Invalid venue data",
-          details: validationResult.error.errors
+          details: validationResult.error.issues
         },
         { status: 400 }
       );

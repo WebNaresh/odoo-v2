@@ -149,7 +149,7 @@ export function BookingConfirmationDialog({
         {
           name: session.user.name || "User",
           email: session.user.email || "",
-          contact: session.user.phone || undefined,
+          contact: undefined, // Phone not available in session
         },
         // Payment success callback
         (paymentResult) => {
