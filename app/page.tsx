@@ -62,7 +62,7 @@ export default function Home() {
           <div className="container mx-auto px-4 py-20 relative z-10">
             <div className="text-center max-w-6xl mx-auto">
               {/* Enhanced Badge */}
-              <div className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-[#00884d]/10 to-[#00a855]/10 border border-[#00884d]/20 text-[#00884d] text-sm font-semibold mb-8 hover:scale-105 transition-transform duration-300 cursor-pointer">
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-[#00884d]/10 to-[#00a855]/10 border border-[#00884d]/20 text-[#00884d] text-xs sm:text-sm font-semibold mb-6 hover:scale-105 transition-transform duration-300 cursor-pointer">
                 <span className="animate-pulse mr-2">🏆</span>
                 India's #1 Sports Venue Booking Platform
                 <span className="ml-2 bg-[#00884d] text-white px-2 py-1 rounded-full text-xs">
@@ -71,7 +71,7 @@ export default function Home() {
               </div>
 
               {/* Enhanced Heading */}
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight mb-8 leading-tight">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight mb-6 leading-tight">
                 <span className="block">Find & Book Your</span>
                 <span className="block bg-gradient-to-r from-[#00884d] to-[#00a855] bg-clip-text text-transparent mt-2">
                   Perfect Sports Venue
@@ -119,10 +119,10 @@ export default function Home() {
                         <span className="text-white text-xl font-bold">🏟️</span>
                       </div>
                     </div>
-                    <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#00884d] to-[#00a855] bg-clip-text text-transparent mb-2">
+                    <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[#00884d] to-[#00a855] bg-clip-text text-transparent mb-2">
                       500+
                     </div>
-                    <div className="text-sm md:text-base font-semibold text-gray-600">
+                    <div className="text-xs md:text-sm font-semibold text-gray-600">
                       Premium Venues
                     </div>
                   </div>
@@ -135,10 +135,10 @@ export default function Home() {
                         <span className="text-white text-xl font-bold">📅</span>
                       </div>
                     </div>
-                    <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#00884d] to-[#00a855] bg-clip-text text-transparent mb-2">
+                    <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[#00884d] to-[#00a855] bg-clip-text text-transparent mb-2">
                       50k+
                     </div>
-                    <div className="text-sm md:text-base font-semibold text-gray-600">
+                    <div className="text-xs md:text-sm font-semibold text-gray-600">
                       Happy Bookings
                     </div>
                   </div>
@@ -151,10 +151,10 @@ export default function Home() {
                         <span className="text-white text-xl font-bold">🏆</span>
                       </div>
                     </div>
-                    <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#00884d] to-[#00a855] bg-clip-text text-transparent mb-2">
+                    <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[#00884d] to-[#00a855] bg-clip-text text-transparent mb-2">
                       25+
                     </div>
-                    <div className="text-sm md:text-base font-semibold text-gray-600">
+                    <div className="text-xs md:text-sm font-semibold text-gray-600">
                       Sports Available
                     </div>
                   </div>
@@ -167,10 +167,10 @@ export default function Home() {
                         <span className="text-white text-xl font-bold">⭐</span>
                       </div>
                     </div>
-                    <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#00884d] to-[#00a855] bg-clip-text text-transparent mb-2">
+                    <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[#00884d] to-[#00a855] bg-clip-text text-transparent mb-2">
                       4.8★
                     </div>
-                    <div className="text-sm md:text-base font-semibold text-gray-600">
+                    <div className="text-xs md:text-sm font-semibold text-gray-600">
                       User Rating
                     </div>
                   </div>
@@ -178,11 +178,11 @@ export default function Home() {
               </div>
 
               {/* Call to Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center mt-12">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center mt-10">
                 <Button
                   size="lg"
                   onClick={() => router.push("/venues")}
-                  className="h-14 px-8 bg-gradient-to-r from-[#00884d] to-[#00a855] hover:from-[#00a855] hover:to-[#00884d] text-white font-bold rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-xl shadow-lg text-lg"
+                  className="h-12 px-6 bg-gradient-to-r from-[#00884d] to-[#00a855] hover:from-[#00a855] hover:to-[#00884d] text-white font-bold rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-xl shadow-lg text-base"
                 >
                   🎯 Find Venues Now
                 </Button>
@@ -190,7 +190,7 @@ export default function Home() {
                   size="lg"
                   variant="outline"
                   onClick={() => router.push("/auth/signin")}
-                  className="h-14 px-8 border-2 border-[#00884d] text-[#00884d] hover:bg-[#00884d] hover:text-white font-bold rounded-2xl transition-all duration-300 hover:scale-105 text-lg"
+                  className="h-12 px-6 border-2 border-[#00884d] text-[#00884d] hover:bg-[#00884d] hover:text-white font-bold rounded-2xl transition-all duration-300 hover:scale-105 text-base"
                 >
                   🚀 Join QuickCourt
                 </Button>
