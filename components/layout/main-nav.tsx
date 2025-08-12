@@ -25,7 +25,6 @@ import {
   Menu,
   Search,
   User,
-  Settings,
   LogOut,
   Calendar,
   Building2,
@@ -34,19 +33,10 @@ import {
   MapPin,
   BarChart3,
   Users,
-  ClipboardList,
-  Trophy,
-  BookOpen,
-  CreditCard,
   Bell,
   Heart,
-  Star,
-  ChevronDown,
   X,
   Zap,
-  Globe,
-  Phone,
-  Mail,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
@@ -61,22 +51,21 @@ interface NavItem {
 
 // Define navigation items for different user roles
 const navigationItems: NavItem[] = [
-  // Public navigation items (visible to all users)
+  // Public navigation items (visible to all users including non-logged-in)
   {
     title: "Home",
     href: "/",
     icon: Home,
     description: "Return to homepage",
   },
-
-  // Customer (USER) specific navigation
   {
     title: "Browse Venues",
     href: "/venues",
     icon: MapPin,
-    roles: ["USER"],
-    description: "Find and book sports facilities",
+    description: "Find and explore sports facilities",
   },
+
+  // Authenticated user navigation
   {
     title: "My Bookings",
     href: "/bookings",
@@ -90,6 +79,13 @@ const navigationItems: NavItem[] = [
     icon: User,
     roles: ["USER"],
     description: "Manage your account settings",
+  },
+  {
+    title: "Favorites",
+    href: "/favorites",
+    icon: Heart,
+    roles: ["USER"],
+    description: "Your saved venues and courts",
   },
 
   // Facility Owner specific navigation
@@ -160,7 +156,7 @@ export function MainNav() {
 
   // Filter navigation items based on user role and authentication status
   const filteredNavItems = navigationItems.filter((item) => {
-    // If no roles specified, show to everyone
+    // If no roles specified, show to everyone (including non-logged-in users)
     if (!item.roles || item.roles.length === 0) {
       return true;
     }
@@ -299,7 +295,9 @@ export function MainNav() {
             >
               <Search className="h-4 w-4 lg:mr-3 text-[#00884d] group-hover:scale-110 transition-transform duration-200" />
               <span className="hidden lg:inline-flex text-gray-500 group-hover:text-[#00884d] transition-colors duration-200">
-                {userRole === "FACILITY_OWNER"
+                {!isAuthenticated
+                  ? "Search venues & sports..."
+                  : userRole === "FACILITY_OWNER"
                   ? "Search your venues..."
                   : userRole === "ADMIN"
                   ? "Search platform..."
@@ -686,7 +684,9 @@ export function MainNav() {
                     >
                       <Search className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                       <span>
-                        {userRole === "FACILITY_OWNER"
+                        {!isAuthenticated
+                          ? "Search Venues"
+                          : userRole === "FACILITY_OWNER"
                           ? "Search Venues"
                           : userRole === "ADMIN"
                           ? "Search Platform"
@@ -697,7 +697,17 @@ export function MainNav() {
 
                   {/* Mobile Auth Buttons */}
                   {!session && (
-                    <div className="p-4 sm:p-6 border-t border-primary/10 space-y-3">
+                    <div className="p-4 sm:p-6 border-t border-primary/10 space-y-4">
+                      {/* Call to Action for Non-logged Users */}
+                      <div className="text-center space-y-2 mb-4">
+                        <p className="text-sm text-gray-600 font-medium">
+                          Ready to book your perfect court?
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Sign in to access booking features and save favorites
+                        </p>
+                      </div>
+
                       <Button
                         onClick={() => {
                           handleSignIn();
@@ -713,8 +723,9 @@ export function MainNav() {
                           router.push("/auth/signin");
                           setIsOpen(false);
                         }}
-                        className="w-full bg-gradient-primary text-white font-semibold py-3 text-base"
+                        className="w-full bg-gradient-to-r from-[#00884d] to-[#00a855] text-white font-semibold py-3 text-base hover:from-[#00a855] hover:to-[#00884d] transition-all duration-300"
                       >
+                        <Zap className="h-4 w-4 mr-2" />
                         Get Started Free
                       </Button>
                     </div>
