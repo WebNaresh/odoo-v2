@@ -36,22 +36,22 @@ export function useCreateBooking() {
     onSuccess: (data) => {
       if (data.success) {
         toast.success(data.message || "Booking created successfully!");
-        
+
         // Invalidate relevant queries
         queryClient.invalidateQueries({ queryKey: bookingKeys.user() });
         queryClient.invalidateQueries({ queryKey: bookingKeys.all });
-        
+
         // Invalidate venue-related queries to update time slot availability
         if (data.booking?.court?.venue?.id) {
-          queryClient.invalidateQueries({ 
-            queryKey: ['venues', 'details', data.booking.court.venue.id] 
+          queryClient.invalidateQueries({
+            queryKey: ['venues', 'details', data.booking.court.venue.id]
           });
         }
-        
+
         // Invalidate time slot queries
         if (data.booking?.timeSlotId) {
-          queryClient.invalidateQueries({ 
-            queryKey: bookingKeys.timeSlot(data.booking.timeSlotId) 
+          queryClient.invalidateQueries({
+            queryKey: bookingKeys.timeSlot(data.booking.timeSlotId)
           });
         }
       } else {
@@ -74,22 +74,22 @@ export function useCancelBooking() {
     onSuccess: (data) => {
       if (data.success) {
         toast.success(data.message || "Booking cancelled successfully!");
-        
+
         // Invalidate relevant queries
         queryClient.invalidateQueries({ queryKey: bookingKeys.user() });
         queryClient.invalidateQueries({ queryKey: bookingKeys.all });
-        
+
         // Invalidate venue-related queries to update time slot availability
         if (data.booking?.court?.venue?.id) {
-          queryClient.invalidateQueries({ 
-            queryKey: ['venues', 'details', data.booking.court.venue.id] 
+          queryClient.invalidateQueries({
+            queryKey: ['venues', 'details', data.booking.court.venue.id]
           });
         }
-        
+
         // Invalidate time slot queries
         if (data.booking?.timeSlotId) {
-          queryClient.invalidateQueries({ 
-            queryKey: bookingKeys.timeSlot(data.booking.timeSlotId) 
+          queryClient.invalidateQueries({
+            queryKey: bookingKeys.timeSlot(data.booking.timeSlotId)
           });
         }
       } else {
@@ -195,7 +195,7 @@ export function useBookingStatusUpdates(bookingId?: string) {
     queryKey: [...bookingKeys.all, 'status', bookingId],
     queryFn: async () => {
       if (!bookingId) return null;
-      
+
       const response = await fetch(`/api/bookings/${bookingId}/status`);
       if (!response.ok) {
         throw new Error('Failed to fetch booking status');
@@ -216,13 +216,13 @@ export function formatBookingForDisplay(booking: any) {
     venueName: booking.court?.venue?.name || 'Unknown Venue',
     courtName: booking.court?.name || 'Unknown Court',
     date: new Date(booking.bookingDate).toLocaleDateString(),
-    startTime: new Date(booking.startTime).toLocaleTimeString([], { 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    startTime: new Date(booking.startTime).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit'
     }),
-    endTime: new Date(booking.endTime).toLocaleTimeString([], { 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    endTime: new Date(booking.endTime).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit'
     }),
     duration: booking.duration,
     playerCount: booking.playerCount,
@@ -235,4 +235,3 @@ export function formatBookingForDisplay(booking: any) {
 }
 
 // Export types for convenience
-export type { CreateBookingData, CancelBookingData };

@@ -64,7 +64,7 @@ export function useAdminUsers(filters: UserFilters = {}) {
     queryKey: adminUserKeys.list(filters),
     queryFn: async (): Promise<UserListResponse> => {
       const params = new URLSearchParams();
-      
+
       if (filters.page) params.append('page', filters.page.toString());
       if (filters.limit) params.append('limit', filters.limit.toString());
       if (filters.search) params.append('search', filters.search);
@@ -121,5 +121,3 @@ export function useUnbanUser() {
   });
 }
 
-// Type exports for convenience
-export type { UserFilters, AdminUser, UserStatistics, UserListResponse };
