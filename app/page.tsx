@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { MainNav } from "@/components/layout/main-nav";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import VenueSearchComponent from "@/app/venues/_components/venue-search-component";
 import {
   Card,
   CardContent,
@@ -13,14 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Search,
-  MapPin,
-  Star,
-  Users,
-  Zap,
-  Shield,
-} from "lucide-react";
+import { MapPin, Star, Users, Zap, Shield } from "lucide-react";
 import { useFeaturedVenues } from "@/hooks/use-venues";
 import Link from "next/link";
 
@@ -34,7 +26,6 @@ const popularSports = [
 ];
 
 export default function Home() {
-  const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
 
   // Use React Query hook for featured venues
@@ -43,13 +34,6 @@ export default function Home() {
     isLoading: loading,
     isError,
   } = useFeaturedVenues(6);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/venues?search=${encodeURIComponent(searchQuery)}`);
-    }
-  };
 
   const handleSportClick = (sport: string) => {
     router.push(`/venues?sport=${encodeURIComponent(sport)}`);
@@ -81,7 +65,9 @@ export default function Home() {
               <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-[#00884d]/10 to-[#00a855]/10 border border-[#00884d]/20 text-[#00884d] text-xs sm:text-sm font-semibold mb-6 hover:scale-105 transition-transform duration-300 cursor-pointer">
                 <span className="animate-pulse mr-2">🏆</span>
                 India's #1 Sports Venue Booking Platform
-                <span className="ml-2 bg-[#00884d] text-white px-2 py-1 rounded-full text-xs">NEW</span>
+                <span className="ml-2 bg-[#00884d] text-white px-2 py-1 rounded-full text-xs">
+                  NEW
+                </span>
               </div>
 
               {/* Enhanced Heading */}
@@ -93,54 +79,34 @@ export default function Home() {
               </h1>
 
               {/* Enhanced Description */}
-              <p className="text-base sm:text-lg md:text-xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
-                Discover amazing sports facilities near you. Book courts, fields, and venues with just a few clicks.
-                <span className="block mt-2 text-[#00884d] font-semibold text-lg md:text-xl">
+              <p className="text-lg sm:text-xl md:text-2xl text-gray-600 mb-12 max-w-4xl mx-auto leading-relaxed">
+                Discover amazing sports facilities near you. Book courts,
+                fields, and venues with just a few clicks.
+                <span className="block mt-2 text-[#00884d] font-semibold text-xl md:text-2xl">
                   🎯 Play more, worry less.
                 </span>
               </p>
 
-              {/* Enhanced Search Bar */}
-              <div className="max-w-4xl mx-auto mb-16">
-                <form onSubmit={handleSearch} className="relative group">
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#00884d] to-[#00a855] rounded-3xl blur opacity-20 group-hover:opacity-30 transition-opacity duration-300"></div>
-                  <div className="relative bg-white rounded-3xl shadow-2xl border border-[#00884d]/10 p-3 hover:shadow-3xl transition-all duration-300">
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <div className="flex-1 relative">
-                        <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                        <Input
-                          type="text"
-                          placeholder="Search for venues, sports, or locations..."
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          className="pl-14 pr-6 h-14 text-base border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-gray-400 font-medium"
-                        />
-                      </div>
-                      <Button
-                        type="submit"
-                        size="lg"
-                        className="h-14 px-6 bg-gradient-to-r from-[#00884d] to-[#00a855] hover:from-[#00a855] hover:to-[#00884d] text-white font-bold rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-xl shadow-lg"
-                      >
-                        <Search className="h-4 w-4 mr-2" />
-                        <span className="hidden sm:inline">Search Venues</span>
-                        <span className="sm:hidden">Search</span>
-                      </Button>
-                    </div>
-                  </div>
-                </form>
+              {/* Enhanced Location Search */}
+              <VenueSearchComponent />
 
-                {/* Quick Search Suggestions */}
-                <div className="mt-6 flex flex-wrap justify-center gap-3">
-                  <span className="text-sm text-gray-500 font-medium">Popular searches:</span>
-                  {["Basketball", "Tennis", "Football", "Swimming"].map((sport) => (
-                    <button
-                      key={sport}
-                      onClick={() => handleSportClick(sport)}
-                      className="px-4 py-2 bg-white/80 hover:bg-[#00884d]/10 border border-[#00884d]/20 rounded-full text-sm font-medium text-[#00884d] hover:text-[#00a855] transition-all duration-200 hover:scale-105"
-                    >
-                      {sport}
-                    </button>
-                  ))}
+              {/* Quick Search Suggestions */}
+              <div className="max-w-4xl mx-auto mb-16">
+                <div className="flex flex-wrap justify-center gap-3">
+                  <span className="text-sm text-gray-500 font-medium">
+                    Popular searches:
+                  </span>
+                  {["Basketball", "Tennis", "Football", "Swimming"].map(
+                    (sport) => (
+                      <button
+                        key={sport}
+                        onClick={() => handleSportClick(sport)}
+                        className="px-4 py-2 bg-white/80 hover:bg-[#00884d]/10 border border-[#00884d]/20 rounded-full text-sm font-medium text-[#00884d] hover:text-[#00a855] transition-all duration-200 hover:scale-105"
+                      >
+                        {sport}
+                      </button>
+                    )
+                  )}
                 </div>
               </div>
 
@@ -299,17 +265,24 @@ export default function Home() {
                 🏆 Premium Selection
               </div>
               <h2 className="text-4xl md:text-5xl font-bold mb-6">
-                Featured <span className="bg-gradient-to-r from-[#00884d] to-[#00a855] bg-clip-text text-transparent">Venues</span>
+                Featured{" "}
+                <span className="bg-gradient-to-r from-[#00884d] to-[#00a855] bg-clip-text text-transparent">
+                  Venues
+                </span>
               </h2>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                Discover top-rated sports facilities handpicked for their quality, amenities, and customer satisfaction
+                Discover top-rated sports facilities handpicked for their
+                quality, amenities, and customer satisfaction
               </p>
             </div>
 
             {loading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[...Array(6)].map((_, index) => (
-                  <Card key={index} className="overflow-hidden border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                  <Card
+                    key={index}
+                    className="overflow-hidden border-0 shadow-lg bg-white/80 backdrop-blur-sm"
+                  >
                     <div className="aspect-video bg-gradient-to-br from-gray-200 to-gray-100 animate-pulse relative">
                       <div className="absolute inset-0 bg-gradient-to-t from-gray-300/50 to-transparent" />
                     </div>
@@ -337,9 +310,12 @@ export default function Home() {
                 <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <span className="text-4xl">⚠️</span>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">Unable to load venues</h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                  Unable to load venues
+                </h3>
                 <p className="text-gray-600 mb-8 max-w-md mx-auto">
-                  There was an error loading featured venues. Please check your connection and try again.
+                  There was an error loading featured venues. Please check your
+                  connection and try again.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <Button
@@ -374,7 +350,9 @@ export default function Home() {
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-[#00884d]/20 to-[#00a855]/10 flex items-center justify-center">
-                          <span className="text-5xl group-hover:scale-110 transition-transform duration-300">🏟️</span>
+                          <span className="text-5xl group-hover:scale-110 transition-transform duration-300">
+                            🏟️
+                          </span>
                         </div>
                       )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
@@ -413,7 +391,9 @@ export default function Home() {
                           </CardTitle>
                           <CardDescription className="flex items-center gap-1 mt-2 text-gray-600">
                             <MapPin className="h-4 w-4 text-[#00884d]" />
-                            <span className="line-clamp-1">{venue.address}</span>
+                            <span className="line-clamp-1">
+                              {venue.address}
+                            </span>
                           </CardDescription>
                         </div>
 
@@ -428,8 +408,12 @@ export default function Home() {
                             </span>
                           </div>
                           <div className="text-right">
-                            <div className="text-xs text-gray-500">Starting from</div>
-                            <div className="text-sm font-bold text-[#00884d]">₹500/hr</div>
+                            <div className="text-xs text-gray-500">
+                              Starting from
+                            </div>
+                            <div className="text-sm font-bold text-[#00884d]">
+                              ₹500/hr
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -454,11 +438,11 @@ export default function Home() {
                         </div>
 
                         <Link href={`/venues/${venue.id}`} className="block">
-                          <Button
-                            className="w-full bg-gradient-to-r from-[#00884d] to-[#00a855] hover:from-[#00a855] hover:to-[#00884d] text-white font-semibold py-3 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
-                          >
+                          <Button className="w-full bg-gradient-to-r from-[#00884d] to-[#00a855] hover:from-[#00a855] hover:to-[#00884d] text-white font-semibold py-3 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
                             <span className="mr-2">View Details</span>
-                            <span className="group-hover:translate-x-1 transition-transform duration-200">→</span>
+                            <span className="group-hover:translate-x-1 transition-transform duration-200">
+                              →
+                            </span>
                           </Button>
                         </Link>
                       </div>
@@ -475,7 +459,8 @@ export default function Home() {
                   Discover More Amazing Venues
                 </h3>
                 <p className="text-gray-600 mb-6">
-                  Explore our complete collection of premium sports facilities across the city
+                  Explore our complete collection of premium sports facilities
+                  across the city
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Button
