@@ -20,6 +20,7 @@ import {
 } from "@/lib/validations/user-info";
 import { UserRole } from "@prisma/client";
 import { z } from "zod";
+import { toast } from "react-hot-toast";
 
 type FormStep = "user-info" | "otp-verification" | "success";
 
@@ -86,13 +87,19 @@ export default function UserInfoForm({
       setUserFormData(data);
       setCurrentStep("otp-verification");
 
-      // In development, show the OTP in console
+      // In development, show the OTP in console and toast
       if (result.otp) {
         console.log("Development OTP:", result.otp);
+        toast.success(`OTP sent! Development OTP: ${result.otp}`);
+      } else {
+        toast.success("OTP sent to your email successfully!");
       }
     } catch (error) {
       console.error("Error sending OTP:", error);
-      setError(error instanceof Error ? error.message : "Failed to send OTP");
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to send OTP";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -140,6 +147,7 @@ export default function UserInfoForm({
 
       // Success - move to success step
       setCurrentStep("success");
+      toast.success("Account created successfully! You can now sign in.");
 
       // Call the onSubmit callback if provided
       if (onSubmit) {
@@ -147,7 +155,10 @@ export default function UserInfoForm({
       }
     } catch (error) {
       console.error("Error verifying OTP or creating user:", error);
-      setError(error instanceof Error ? error.message : "Failed to verify OTP");
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to verify OTP";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -159,10 +170,48 @@ export default function UserInfoForm({
     otpForm.reset();
   };
 
+  const handleResendOtp = async () => {
+    if (!userFormData) return;
+
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/auth/send-otp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: userFormData.email }),
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.message || "Failed to resend OTP");
+      }
+
+      // In development, show the OTP in console and toast
+      if (result.otp) {
+        console.log("Development OTP (resent):", result.otp);
+        toast.success(`OTP resent! Development OTP: ${result.otp}`);
+      } else {
+        toast.success("OTP resent to your email successfully!");
+      }
+    } catch (error) {
+      console.error("Error resending OTP:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to resend OTP";
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const roleOptions = [
     { value: UserRole.USER, label: "User" },
     { value: UserRole.FACILITY_OWNER, label: "Venue Owner" },
-    { value: UserRole.ADMIN, label: "Admin" },
   ];
 
   const renderUserInfoStep = () => (
@@ -230,6 +279,14 @@ export default function UserInfoForm({
               {userFormData?.email}
             </span>
           </p>
+          <button
+            type="button"
+            onClick={handleResendOtp}
+            disabled={isSubmitting}
+            className="text-sm text-[#00884d] hover:text-[#00a855] underline mt-2 disabled:opacity-50"
+          >
+            Resend OTP
+          </button>
         </div>
 
         <InputField

@@ -34,6 +34,7 @@ import Image from "next/image";
 import Autoplay from "embla-carousel-autoplay";
 import UserInfoForm from "@/components/auth/UserInfoForm";
 import { type UserInfoFormData } from "@/lib/validations/user-info";
+import { toast } from "react-hot-toast";
 
 type AuthStep = "signin" | "role-selection" | "completing";
 type UserRole = "USER" | "FACILITY_OWNER";
@@ -265,15 +266,19 @@ export default function SignIn() {
       setLoading(true);
       setError(null);
 
-      // Dummy mutation function - just console.log the data
-      console.log("User Info Form submitted:", data);
+      console.log("User created successfully:", data);
 
-      // Here you would typically make an API call to create/update the user
-      // For now, we'll just show a success message
-      alert("User information submitted successfully!");
+      // Show success message and redirect to sign in with Google
+      setTimeout(() => {
+        toast.success(
+          "Account created successfully! Please sign in with Google to continue."
+        );
+        // Optionally trigger Google sign-in automatically
+        // handleGoogleSignIn();
+      }, 1000);
     } catch (error) {
-      console.error("Error submitting user info:", error);
-      setError("Failed to submit user information. Please try again.");
+      console.error("Error creating user:", error);
+      setError("Failed to create user account. Please try again.");
     } finally {
       setLoading(false);
     }

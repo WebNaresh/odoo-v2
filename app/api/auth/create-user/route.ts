@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { UserRole } from "@prisma/client";
-import { signIn } from "next-auth/react";
 
 const createUserSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").optional(),
@@ -60,13 +59,13 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error("Create user error:", error);
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           message: "Invalid input data",
-          errors: error.errors 
+          errors: error.errors
         },
         { status: 400 }
       );

@@ -12,10 +12,7 @@ export const userInfoSchema = z.object({
     .email("Please enter a valid email address")
     .min(1, "Email is required"),
   role: z
-    .nativeEnum(UserRole, {
-      errorMap: () => ({ message: "Please select a valid role" }),
-    })
-    .default(UserRole.USER),
+    .nativeEnum(UserRole, "Please select a valid role"),
 });
 
 export type UserInfoFormData = z.infer<typeof userInfoSchema>;
