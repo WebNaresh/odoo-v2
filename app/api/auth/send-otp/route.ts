@@ -48,30 +48,29 @@ export async function POST(request: NextRequest) {
       otpStorage.delete(email);
       throw new Error("Failed to send OTP email");
     }
-  }
 
     return NextResponse.json({
-    success: true,
-    message: "OTP sent successfully",
-    // In development, return OTP for testing
-    ...(process.env.NODE_ENV === "development" && { otp }),
-  });
+      success: true,
+      message: "OTP sent successfully",
+      // In development, return OTP for testing
+      ...(process.env.NODE_ENV === "development" && { otp }),
+    });
 
-} catch (error) {
-  console.error("Send OTP error:", error);
+  } catch (error) {
+    console.error("Send OTP error:", error);
 
-  if (error instanceof z.ZodError) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, message: "Invalid email address" },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
-      { success: false, message: "Invalid email address" },
-      { status: 400 }
+      { success: false, message: "Failed to send OTP" },
+      { status: 500 }
     );
   }
-
-  return NextResponse.json(
-    { success: false, message: "Failed to send OTP" },
-    { status: 500 }
-  );
-}
 }
 
 // Cleanup expired OTPs periodically
