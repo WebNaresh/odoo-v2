@@ -39,6 +39,7 @@ const publicRoutes = [
   "/api/auth/:path*",
   "/bookings",
   "/profile",
+  "/:path*",
 ];
 
 // Helper function to check if a path matches any pattern
