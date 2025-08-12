@@ -32,6 +32,8 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Autoplay from "embla-carousel-autoplay";
+import UserInfoForm from "@/components/auth/UserInfoForm";
+import { type UserInfoFormData } from "@/lib/validations/user-info";
 
 type AuthStep = "signin" | "role-selection" | "completing";
 type UserRole = "USER" | "FACILITY_OWNER";
@@ -253,6 +255,25 @@ export default function SignIn() {
     } catch (error) {
       console.error("Sign in error:", error);
       setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUserInfoSubmit = async (data: UserInfoFormData) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Dummy mutation function - just console.log the data
+      console.log("User Info Form submitted:", data);
+
+      // Here you would typically make an API call to create/update the user
+      // For now, we'll just show a success message
+      alert("User information submitted successfully!");
+    } catch (error) {
+      console.error("Error submitting user info:", error);
+      setError("Failed to submit user information. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -500,6 +521,10 @@ export default function SignIn() {
               Or
             </span>
             <div className="flex-1 border-t border-border/50"></div>
+          </div>
+
+          <div className="mb-6">
+            <UserInfoForm onSubmit={handleUserInfoSubmit} loading={loading} />
           </div>
 
           <Button
